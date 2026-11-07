@@ -48,7 +48,7 @@
                             <RadioButton x:Name="NavHome" Theme="{StaticResource NavItem}" Tag="Home" IsCheckedChanged="OnNavigate" Margin="0,8,0,1">
                                 <StackPanel Orientation="Horizontal" Spacing="12"><ui:IconView Data="{StaticResource Icon.Home}" /><TextBlock Text="Home" /></StackPanel>
                             </RadioButton>
-                            <TextBlock Text="Customize" Classes="section" />
+                            <TextBlock Text="CUSTOMIZE" Classes="section" />
                             <RadioButton Theme="{StaticResource NavItem}" Tag="FastFlags" IsCheckedChanged="OnNavigate">
                                 <StackPanel Orientation="Horizontal" Spacing="12"><ui:IconView Data="{StaticResource Icon.Flag}" /><TextBlock Text="Fast Flags" /></StackPanel>
                             </RadioButton>
@@ -61,7 +61,7 @@
                             <RadioButton Theme="{StaticResource NavItem}" Tag="Appearance" IsCheckedChanged="OnNavigate">
                                 <StackPanel Orientation="Horizontal" Spacing="12"><ui:IconView Data="{StaticResource Icon.Palette}" /><TextBlock Text="Appearance" /></StackPanel>
                             </RadioButton>
-                            <TextBlock Text="App" Classes="section" />
+                            <TextBlock Text="APP" Classes="section" />
                             <RadioButton Theme="{StaticResource NavItem}" Tag="Behaviour" IsCheckedChanged="OnNavigate">
                                 <StackPanel Orientation="Horizontal" Spacing="12"><ui:IconView Data="{StaticResource Icon.Sliders}" /><TextBlock Text="Behaviour" /></StackPanel>
                             </RadioButton>
@@ -74,6 +74,8 @@
 
                 <!-- ===== Main area ===== -->
                 <Grid Grid.Column="1" RowDefinitions="44,*">
+                    <!-- A faint mint glow in the top corner, behind everything -->
+                    <Rectangle Grid.RowSpan="2" Fill="{DynamicResource Brush.Glow}" IsHitTestVisible="False" />
                     <Border x:Name="TitleBar" Background="Transparent" />
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
                         <Button Classes="caption" Click="OnMinimize" ToolTip.Tip="Minimize">

@@ -30,6 +30,8 @@ public static class FastFlagPresets
     public const string LodDistanceL12 = "DFIntCSGLevelOfDetailSwitchingDistanceL12";
     public const string LodDistanceL23 = "DFIntCSGLevelOfDetailSwitchingDistanceL23";
     public const string LodDistanceL34 = "DFIntCSGLevelOfDetailSwitchingDistanceL34";
+    public const string PauseVoxelizer = "DFFlagDebugPauseVoxelizer";
+    public const string GraySky = "FFlagDebugSkyGray";
 
     /// <summary>Roblox's allowlist for local Fast Flags, as published on the DevForum.</summary>
     public static readonly HashSet<string> Allowlist = new(StringComparer.Ordinal)
@@ -38,7 +40,7 @@ public static class FastFlagPresets
         LodDistance, LodDistanceL12, LodDistanceL23, LodDistanceL34,
         // Rendering
         ExclusiveFullscreen, TextureOverrideEnabled, TextureQuality, Msaa, DisableDpiScale,
-        "FFlagDebugGraphicsPreferD3D11", "FFlagDebugSkyGray", "DFFlagDebugPauseVoxelizer",
+        "FFlagDebugGraphicsPreferD3D11", GraySky, PauseVoxelizer,
         QualityLevel, GrassMaxDistance, GrassMinDistance,
         "FFlagDebugGraphicsPreferVulkan", "FFlagDebugGraphicsPreferOpenGL",
         // User interface
@@ -64,6 +66,8 @@ public static class FastFlagPresets
         ["Geometry.LOD.L12"] = LodDistanceL12,
         ["Geometry.LOD.L23"] = LodDistanceL23,
         ["Geometry.LOD.L34"] = LodDistanceL34,
+        ["Rendering.PauseVoxelizer"] = PauseVoxelizer,
+        ["Rendering.GraySky"] = GraySky,
     };
 
     /// <summary>Flags owned by the presets above; the editor hides them unless asked, like Bloxstrap.</summary>
@@ -177,6 +181,23 @@ public static class FastFlagPresets
         }
     }
 
+    /// <summary>
+    /// Stops Roblox recomputing its lighting grid as things move: a solid FPS gain on weak GPUs, but
+    /// shadows and light from moving objects stop updating.
+    /// </summary>
+    public static bool PauseLighting
+    {
+        get => GetPreset("Rendering.PauseVoxelizer")?.Equals("True", StringComparison.OrdinalIgnoreCase) == true;
+        set => SetPreset("Rendering.PauseVoxelizer", value ? "True" : null);
+    }
+
+    /// <summary>A plain gray sky instead of the skybox: a little less to draw.</summary>
+    public static bool PlainSky
+    {
+        get => GetPreset("Rendering.GraySky")?.Equals("True", StringComparison.OrdinalIgnoreCase) == true;
+        set => SetPreset("Rendering.GraySky", value ? "True" : null);
+    }
+
     /// <summary>Direct3D 11, Vulkan or OpenGL instead of Roblox's own pick (Windows only).</summary>
     public static RenderingMode Renderer
     {
@@ -188,14 +209,15 @@ public static class FastFlagPresets
     /// Every flag a graphics preset writes, with its value per level (null = Roblox's default). The
     /// quality level is Roblox's 1-21 FRM scale, the one the in-game graphics slider moves along.
     /// Lowest stays at quality 4 and texture level 1: quality 1-3 and texture level 0 make the
-    /// whole picture blurry, which costs more than the few frames they win back.
+    /// whole picture blurry, which costs more than the few frames they win back. Medium leaves the
+    /// textures to Roblox, which picks the sharpest the GPU's memory allows.
     /// </summary>
     private static readonly (string Flag, string? Lowest, string? Low, string? Medium, string? High)[] GraphicsTable =
     {
         (QualityLevel,           "4",    "6",    "11",   "21"),
         (Msaa,                   "1",    "1",    null,   "4"),
-        (TextureOverrideEnabled, "True", "True", "True", "True"),
-        (TextureQuality,         "1",    "2",    "2",    "3"),
+        (TextureOverrideEnabled, "True", "True", null,   "True"),
+        (TextureQuality,         "1",    "2",    null,   "3"),
         (GrassMaxDistance,       "0",    "0",    null,   null),
         (GrassMinDistance,       "0",    "0",    null,   null),
         (GrassMotion,            "0",    "0",    null,   null),
@@ -221,17 +243,36 @@ public static class FastFlagPresets
     }
 
     /// <summary>
-    /// 1.2.0's Lowest and Low used quality 1/5 with texture level 0/1 and blurred the picture. Flags
-    /// that still spell exactly one of those get the fixed preset; anything else is left alone.
+    /// Earlier versions' presets, flag by flag (missing = unset): 1.2.0's blurry Lowest and Low
+    /// (quality 1/5, textures 0/1) and the Medium that forced textures to level 2 until 1.4.
+    /// </summary>
+    private static readonly (GraphicsPreset Preset, Dictionary<string, string> Flags)[] LegacyPresets =
+    {
+        (GraphicsPreset.Lowest, Legacy(("1", "1", "0"), grass: true, lod: true)),
+        (GraphicsPreset.Low, Legacy(("5", "1", "1"), grass: true, lod: false)),
+        (GraphicsPreset.Medium, Legacy(("11", null, "2"), grass: false, lod: false)),
+    };
+
+    private static Dictionary<string, string> Legacy((string Quality, string? Msaa, string Texture) core, bool grass, bool lod)
+    {
+        var flags = new Dictionary<string, string> { [QualityLevel] = core.Quality, [TextureOverrideEnabled] = "True", [TextureQuality] = core.Texture };
+        if (core.Msaa is { } msaa) flags[Msaa] = msaa;
+        if (grass) flags[GrassMaxDistance] = flags[GrassMinDistance] = flags[GrassMotion] = "0";
+        if (lod) flags[LodDistance] = flags[LodDistanceL12] = flags[LodDistanceL23] = flags[LodDistanceL34] = "0";
+        return flags;
+    }
+
+    /// <summary>
+    /// Flags that still spell exactly one of an earlier version's presets move to today's version
+    /// of that preset; anything mixed by hand is left alone.
     /// </summary>
     public static bool UpgradeBlurryPresets()
     {
-        foreach (var (preset, quality, texture) in new[] { (GraphicsPreset.Lowest, "1", "0"), (GraphicsPreset.Low, "5", "1") })
+        foreach (var (preset, flags) in LegacyPresets)
         {
-            if (Get(QualityLevel) == quality && Get(TextureQuality) == texture &&
-                GraphicsTable.Where(row => row.Flag is not QualityLevel and not TextureQuality).All(row => Get(row.Flag) == ValueFor(preset, row)))
+            if (GraphicsTable.All(row => Get(row.Flag) == flags.GetValueOrDefault(row.Flag)))
             {
-                Logger.Info($"{LogIdent}::UpgradeBlurryPresets", $"Moving the old {preset} preset to the sharper one");
+                Logger.Info($"{LogIdent}::UpgradeBlurryPresets", $"Moving an older {preset} preset to the current one");
                 ApplyGraphicsPreset(preset);
                 return true;
             }
@@ -267,7 +308,7 @@ public static class GraphicsPresetText
         GraphicsPreset.Auto => "Roblox picks the quality itself and the in-game graphics slider works as usual.",
         GraphicsPreset.Lowest => "The most FPS without a blurry picture: quality 4 of 21, low textures, no grass and simplified distant parts. The in-game slider stops having an effect.",
         GraphicsPreset.Low => "Quality 6 of 21, medium textures and no grass. Good for older laptops and integrated graphics. The in-game slider stops having an effect.",
-        GraphicsPreset.Medium => "Balanced: quality 11 of 21 with medium textures. The in-game slider stops having an effect.",
+        GraphicsPreset.Medium => "Balanced: quality 11 of 21, and Roblox picks the sharpest textures your graphics card has room for. The in-game slider stops having an effect.",
         GraphicsPreset.High => "Quality 21 of 21, high textures and 4x anti-aliasing. Needs a strong graphics card. The in-game slider stops having an effect.",
         _ => "Custom: some of these flags were changed by hand. Pick a preset to set them all again.",
     };

@@ -25,10 +25,11 @@
         <Setter Property="FontSize" Value="32" />
         <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
     </Style>
+    <!-- Page titles: big, bold Inter; the monospace stays for the wordmark, the greeting and code -->
     <Style Selector="TextBlock.h1">
-        <Setter Property="FontFamily" Value="{StaticResource Font.Display}" />
-        <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="FontSize" Value="24" />
+        <Setter Property="FontFamily" Value="{StaticResource Font.Sans}" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="FontSize" Value="28" />
         <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
         <Setter Property="Margin" Value="0,0,0,6" />
     </Style>
@@ -54,10 +55,11 @@
         <Setter Property="Foreground" Value="{DynamicResource Brush.TextMuted}" />
     </Style>
     <Style Selector="TextBlock.section">
-        <Setter Property="FontSize" Value="12" />
-        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="LetterSpacing" Value="0.6" />
         <Setter Property="Foreground" Value="{DynamicResource Brush.TextMuted}" />
-        <Setter Property="Margin" Value="12,18,0,6" />
+        <Setter Property="Margin" Value="12,20,0,6" />
     </Style>
     <Style Selector="TextBlock.error">
         <Setter Property="Foreground" Value="{DynamicResource Brush.Danger}" />
@@ -67,12 +69,14 @@
     </Style>
 
     <!-- ===== Containers ===== -->
+    <!-- Cards: a faint sheen, a lit top edge and a soft shadow, so they read as raised glass -->
     <Style Selector="Border.card">
-        <Setter Property="Background" Value="{DynamicResource Brush.Surface}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}" />
+        <Setter Property="Background" Value="{DynamicResource Brush.CardFill}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.CardBorder}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource Radius.Large}" />
-        <Setter Property="Padding" Value="20,16" />
+        <Setter Property="BoxShadow" Value="0 6 22 -10 #50000000" />
+        <Setter Property="Padding" Value="22,18" />
         <Setter Property="Margin" Value="0,0,0,14" />
     </Style>
     <Style Selector="Border.banner">
@@ -88,7 +92,7 @@
         <Setter Property="Background" Value="{DynamicResource Brush.SurfaceAlt}" />
         <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource Radius.Medium}" />
+        <Setter Property="CornerRadius" Value="{StaticResource Radius.Pill}" />
         <Setter Property="Padding" Value="3" />
         <Setter Property="HorizontalAlignment" Value="Left" />
     </Style>

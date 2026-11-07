@@ -8,9 +8,10 @@
     <FontFamily x:Key="Font.Sans">fonts:Inter#Inter, Noto Sans, DejaVu Sans, Segoe UI</FontFamily>
     <FontFamily x:Key="Font.Mono">avares://BloxCode/Assets/Fonts#JetBrains Mono, DejaVu Sans Mono</FontFamily>
 
-    <CornerRadius x:Key="Radius.Small">6</CornerRadius>
-    <CornerRadius x:Key="Radius.Medium">8</CornerRadius>
-    <CornerRadius x:Key="Radius.Large">14</CornerRadius>
+    <CornerRadius x:Key="Radius.Small">8</CornerRadius>
+    <CornerRadius x:Key="Radius.Medium">10</CornerRadius>
+    <CornerRadius x:Key="Radius.Large">18</CornerRadius>
+    <CornerRadius x:Key="Radius.Pill">999</CornerRadius>
 
     <!-- Line icons on a 20 x 20 grid, drawn by ui:IconView in the current text colour -->
     <StreamGeometry x:Key="Icon.Home">M3.5,9.5 L10,3.5 L16.5,9.5 M5.5,8 L5.5,16.5 L14.5,16.5 L14.5,8 M8.5,16.5 L8.5,12 L11.5,12 L11.5,16.5</StreamGeometry>
@@ -96,9 +97,12 @@
         </Style>
 
         <Style Selector="^.primary">
-            <Setter Property="Background" Value="{DynamicResource Brush.Accent}" />
+            <Setter Property="Background" Value="{DynamicResource Brush.AccentFill}" />
             <Setter Property="Foreground" Value="{DynamicResource Brush.OnAccent}" />
             <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+        <Style Selector="^.primary /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="BoxShadow" Value="0 3 14 0 #40000000" />
         </Style>
         <Style Selector="^.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
             <Setter Property="Background" Value="{DynamicResource Brush.AccentHover}" />
@@ -197,7 +201,7 @@
             <Setter Property="Background" Value="{DynamicResource Brush.Hover}" />
         </Style>
         <Style Selector="^:checked /template/ Border#Chrome">
-            <Setter Property="Background" Value="{DynamicResource Brush.Selected}" />
+            <Setter Property="Background" Value="{DynamicResource Brush.NavSelected}" />
         </Style>
         <Style Selector="^:checked /template/ Border#Marker">
             <Setter Property="Opacity" Value="1" />
@@ -216,7 +220,8 @@
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Template">
             <ControlTemplate>
-                <Border x:Name="Chrome" Background="Transparent" CornerRadius="{StaticResource Radius.Small}" Padding="12,5">
+                <!-- Pill-shaped: the picked option lights up in the accent colour -->
+                <Border x:Name="Chrome" Background="Transparent" CornerRadius="{StaticResource Radius.Pill}" Padding="13,5">
                     <Border.Transitions>
                         <Transitions>
                             <BrushTransition Property="Background" Duration="0:0:0.14" />
@@ -230,10 +235,10 @@
             <Setter Property="Background" Value="{DynamicResource Brush.Hover}" />
         </Style>
         <Style Selector="^:checked /template/ Border#Chrome">
-            <Setter Property="Background" Value="{DynamicResource Brush.Surface}" />
+            <Setter Property="Background" Value="{DynamicResource Brush.AccentSoft}" />
         </Style>
         <Style Selector="^:checked">
-            <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Accent}" />
             <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
     </ControlTheme>

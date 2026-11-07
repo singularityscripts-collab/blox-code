@@ -49,7 +49,19 @@ public partial class FastFlagsPage : UserControl
         GraphicsHint.Text = GraphicsPresetText.Describe(graphics);
         SelectSegment(MsaaSegments, FastFlagPresets.MsaaSamples);
         SelectSegment(TextureSegments, FastFlagPresets.TextureLevel);
+        PauseLighting.IsChecked = FastFlagPresets.PauseLighting;
+        PlainSky.IsChecked = FastFlagPresets.PlainSky;
         _syncing = false;
+
+        if (GraphicsAdvisor.Recommended is { } recommended && GraphicsAdvisor.Gpu is { } gpu)
+        {
+            bool current = graphics == recommended;
+            RecommendRow.IsVisible = true;
+            RecommendText.Text = current
+                ? $"{recommended} is the preset suggested for your {gpu.Describe()}."
+                : $"Suggested for your {gpu.Describe()}: {recommended}";
+            RecommendButton.IsVisible = !current;
+        }
 
         int custom = Store.Settings.FastFlags.Keys.Count(k => !FastFlagPresets.PresetFlags.Contains(k));
         EditorSummary.Text = custom switch
@@ -58,6 +70,25 @@ public partial class FastFlagsPage : UserControl
             1 => "1 custom flag set · add, edit, import or export",
             _ => $"{custom} custom flags set · add, edit, import or export",
         };
+    }
+
+    private void OnExtraChanged(object? sender, RoutedEventArgs e)
+    {
+        if (_syncing)
+            return;
+        FastFlagPresets.PauseLighting = PauseLighting.IsChecked == true;
+        FastFlagPresets.PlainSky = PlainSky.IsChecked == true;
+        Store.SaveSettings();
+        Sync();
+    }
+
+    private void OnUseRecommended(object? sender, RoutedEventArgs e)
+    {
+        if (GraphicsAdvisor.Recommended is not { } recommended)
+            return;
+        FastFlagPresets.ApplyGraphicsPreset(recommended);
+        Store.SaveSettings();
+        Sync();
     }
 
     /// <summary>Checks the segment for the value; with no match, the first one, or none at all for a hand-mixed preset.</summary>

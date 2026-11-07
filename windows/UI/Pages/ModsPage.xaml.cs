@@ -48,7 +48,25 @@ public partial class ModsPage : UserControl
                 "This sound's format isn't supported by Windows here (OGG needs Microsoft's Web Media Extensions). Roblox plays it fine in game.");
         };
         Unloaded += (_, _) => _player.Close();
+        CleanPreviews();
         Refresh();
+    }
+
+    /// <summary>Font and sound previews leave copies in the cache; clear the old ones (in-use ones stay).</summary>
+    private static void CleanPreviews()
+    {
+        foreach (string dir in new[] { "font-preview", "sound-preview" }.Select(d => Path.Combine(Paths.Cache, d)).Where(Directory.Exists))
+        {
+            foreach (string entry in Directory.EnumerateFileSystemEntries(dir))
+            {
+                try
+                {
+                    if (Directory.Exists(entry)) Directory.Delete(entry, recursive: true);
+                    else File.Delete(entry);
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
+            }
+        }
     }
 
     private void Refresh()

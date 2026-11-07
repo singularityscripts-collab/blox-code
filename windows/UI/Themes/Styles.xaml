@@ -9,9 +9,10 @@
     <FontFamily x:Key="Font.Icons">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
     <FontFamily x:Key="Font.Symbols">Segoe UI Symbol</FontFamily>
 
-    <CornerRadius x:Key="Radius.Small">6</CornerRadius>
-    <CornerRadius x:Key="Radius.Medium">8</CornerRadius>
-    <CornerRadius x:Key="Radius.Large">14</CornerRadius>
+    <CornerRadius x:Key="Radius.Small">8</CornerRadius>
+    <CornerRadius x:Key="Radius.Medium">10</CornerRadius>
+    <CornerRadius x:Key="Radius.Large">18</CornerRadius>
+    <CornerRadius x:Key="Radius.Pill">999</CornerRadius>
 
     <!-- ===== Text ===== -->
     <Style x:Key="Text.Display" TargetType="TextBlock">
@@ -21,10 +22,11 @@
         <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
         <Setter Property="TextOptions.TextFormattingMode" Value="Ideal" />
     </Style>
+    <!-- Page titles: big, bold Inter; the monospace stays for the wordmark, the greeting and code -->
     <Style x:Key="Text.H1" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource Font.Display}" />
-        <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="FontSize" Value="24" />
+        <Setter Property="FontFamily" Value="{StaticResource Font.Sans}" />
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="FontSize" Value="28" />
         <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
         <Setter Property="Margin" Value="0,0,0,6" />
     </Style>
@@ -50,10 +52,10 @@
         <Setter Property="Foreground" Value="{DynamicResource Brush.TextMuted}" />
     </Style>
     <Style x:Key="Text.Section" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="12" />
-        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontWeight" Value="Bold" />
         <Setter Property="Foreground" Value="{DynamicResource Brush.TextMuted}" />
-        <Setter Property="Margin" Value="12,18,0,6" />
+        <Setter Property="Margin" Value="12,20,0,6" />
     </Style>
     <Style x:Key="Text.Icon" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource Font.Icons}" />
@@ -62,12 +64,13 @@
     </Style>
 
     <!-- ===== Containers ===== -->
+    <!-- Cards: a faint top-to-bottom sheen and a lit top edge, so they read as raised glass -->
     <Style x:Key="Card" TargetType="Border">
-        <Setter Property="Background" Value="{DynamicResource Brush.Surface}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}" />
+        <Setter Property="Background" Value="{DynamicResource Brush.CardFill}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.CardBorder}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="{StaticResource Radius.Large}" />
-        <Setter Property="Padding" Value="20,16" />
+        <Setter Property="Padding" Value="22,18" />
         <Setter Property="Margin" Value="0,0,0,14" />
     </Style>
     <Style x:Key="Divider" TargetType="Border">
@@ -152,11 +155,16 @@
     </Style>
 
     <Style x:Key="Button.Primary" TargetType="Button" BasedOn="{StaticResource Button.Base}">
-        <Setter Property="Background" Value="{DynamicResource Brush.Accent}" />
+        <Setter Property="Background" Value="{DynamicResource Brush.AccentFill}" />
         <Setter Property="BorderBrush" Value="Transparent" />
         <Setter Property="Foreground" Value="{DynamicResource Brush.OnAccent}" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="Tag" Value="{DynamicResource Brush.AccentHover}" />
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect BlurRadius="16" ShadowDepth="3" Direction="270" Opacity="0.28" Color="Black" />
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <Style x:Key="Button.Secondary" TargetType="Button" BasedOn="{StaticResource Button.Base}">
@@ -299,7 +307,7 @@
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.ExitActions>
-                            <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource Brush.Selected}" />
+                            <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource Brush.NavSelected}" />
                             <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
                             <Setter Property="FontWeight" Value="SemiBold" />
                         </Trigger>
@@ -310,11 +318,12 @@
     </Style>
 
     <!-- ===== Segmented control (RadioButtons inside a Border.Segmented) ===== -->
+    <!-- Pill-shaped: the picked option lights up in the accent colour -->
     <Style x:Key="Segmented" TargetType="Border">
         <Setter Property="Background" Value="{DynamicResource Brush.SurfaceAlt}" />
         <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource Radius.Medium}" />
+        <Setter Property="CornerRadius" Value="{StaticResource Radius.Pill}" />
         <Setter Property="Padding" Value="3" />
         <Setter Property="HorizontalAlignment" Value="Left" />
     </Style>
@@ -327,9 +336,9 @@
             <Setter.Value>
                 <ControlTemplate TargetType="RadioButton">
                     <Grid>
-                        <Border x:Name="Chrome" Background="Transparent" CornerRadius="{StaticResource Radius.Small}" />
-                        <Border x:Name="HoverFill" Background="{DynamicResource Brush.Hover}" CornerRadius="{StaticResource Radius.Small}" Opacity="0" />
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="12,5" />
+                        <Border x:Name="Chrome" Background="Transparent" CornerRadius="{StaticResource Radius.Pill}" />
+                        <Border x:Name="HoverFill" Background="{DynamicResource Brush.Hover}" CornerRadius="{StaticResource Radius.Pill}" Opacity="0" />
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="13,5" />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
@@ -350,8 +359,8 @@
                         </Trigger>
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="HoverFill" Property="Visibility" Value="Collapsed" />
-                            <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource Brush.Surface}" />
-                            <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
+                            <Setter TargetName="Chrome" Property="Background" Value="{DynamicResource Brush.AccentSoft}" />
+                            <Setter Property="Foreground" Value="{DynamicResource Brush.Accent}" />
                             <Setter Property="FontWeight" Value="SemiBold" />
                         </Trigger>
                     </ControlTemplate.Triggers>

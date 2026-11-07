@@ -22,6 +22,15 @@
                     <Border Background="{DynamicResource Brush.SurfaceAlt}" CornerRadius="{StaticResource Radius.Medium}" Padding="12,9" Margin="0,14,0,0">
                         <TextBlock x:Name="GraphicsHint" Style="{StaticResource Text.Muted}" Foreground="{DynamicResource Brush.TextSecondary}" />
                     </Border>
+
+                    <!-- Suggestion from the graphics card -->
+                    <Border x:Name="RecommendRow" Background="{DynamicResource Brush.AccentSoft}" CornerRadius="{StaticResource Radius.Medium}" Padding="12,8" Margin="0,8,0,0" Visibility="Collapsed">
+                        <DockPanel>
+                            <Button x:Name="RecommendButton" DockPanel.Dock="Right" Style="{StaticResource Button.Primary}" Padding="12,5" Content="Use it" Click="OnUseRecommended" />
+                            <TextBlock Text="&#xE945;" Style="{StaticResource Text.Icon}" FontSize="14" Foreground="{DynamicResource Brush.Accent}" Margin="0,0,10,0" />
+                            <TextBlock x:Name="RecommendText" VerticalAlignment="Center" TextWrapping="Wrap" FontSize="12.5" Foreground="{DynamicResource Brush.Text}" Margin="0,0,10,0" />
+                        </DockPanel>
+                    </Border>
                 </StackPanel>
             </Border>
 
@@ -58,6 +67,24 @@
                         <StackPanel>
                             <TextBlock Text="Disable DPI scaling" />
                             <TextBlock Style="{StaticResource Text.Muted}" Text="Render at native resolution on high-DPI displays (sharper, smaller UI)." />
+                        </StackPanel>
+                    </DockPanel>
+                    <Border Style="{StaticResource Divider}" />
+
+                    <DockPanel Margin="0,4">
+                        <CheckBox x:Name="PauseLighting" DockPanel.Dock="Right" Style="{StaticResource Toggle}" Click="OnPresetChanged" />
+                        <StackPanel>
+                            <TextBlock Text="Pause lighting updates" />
+                            <TextBlock Style="{StaticResource Text.Muted}" Text="More FPS on weak graphics cards. Light and shadows from moving things stop updating." />
+                        </StackPanel>
+                    </DockPanel>
+                    <Border Style="{StaticResource Divider}" />
+
+                    <DockPanel Margin="0,4">
+                        <CheckBox x:Name="PlainSky" DockPanel.Dock="Right" Style="{StaticResource Toggle}" Click="OnPresetChanged" />
+                        <StackPanel>
+                            <TextBlock Text="Plain gray sky" />
+                            <TextBlock Style="{StaticResource Text.Muted}" Text="Skips drawing the skybox for a few extra frames." />
                         </StackPanel>
                     </DockPanel>
                     <Border Style="{StaticResource Divider}" />

@@ -28,6 +28,24 @@
                     <SolidColorBrush x:Key="Brush.Warning" Color="#9A6A12" />
                     <SolidColorBrush x:Key="Brush.Mascot" Color="#D77757" />
                     <SolidColorBrush x:Key="Brush.MascotEye" Color="#141413" />
+                    <SolidColorBrush x:Key="Brush.NavSelected" Color="#DCEFE8" />
+                    <LinearGradientBrush x:Key="Brush.CardFill" StartPoint="0%,0%" EndPoint="0%,100%">
+                        <GradientStop Color="#FFFFFF" Offset="0" />
+                        <GradientStop Color="#FAFBFE" Offset="1" />
+                    </LinearGradientBrush>
+                    <LinearGradientBrush x:Key="Brush.CardBorder" StartPoint="0%,0%" EndPoint="0%,100%">
+                        <GradientStop Color="#E4E8F0" Offset="0" />
+                        <GradientStop Color="#CFD6E3" Offset="1" />
+                    </LinearGradientBrush>
+                    <LinearGradientBrush x:Key="Brush.AccentFill" StartPoint="0%,0%" EndPoint="0%,100%">
+                        <GradientStop Color="#0B8565" Offset="0" />
+                        <GradientStop Color="#066A51" Offset="1" />
+                    </LinearGradientBrush>
+                    <RadialGradientBrush x:Key="Brush.Glow" Center="85%,0%" GradientOrigin="85%,0%" RadiusX="75%" RadiusY="90%">
+                        <GradientStop Color="#2610B981" Offset="0" />
+                        <GradientStop Color="#0A6C7CFF" Offset="0.45" />
+                        <GradientStop Color="#00FFFFFF" Offset="1" />
+                    </RadialGradientBrush>
 
                     <!-- Fluent controls (text boxes, scroll bars, tooltips) pick these up -->
                     <SolidColorBrush x:Key="TextControlBackground" Color="#FFFFFF" />
@@ -55,10 +73,10 @@
 
                 <!-- Blox Code "Midnight": deep navy like Bit's terminal screen, with a bright mint cursor accent -->
                 <ResourceDictionary x:Key="Dark">
-                    <SolidColorBrush x:Key="Brush.Bg" Color="#111520" />
-                    <SolidColorBrush x:Key="Brush.Sidebar" Color="#0B0E17" />
+                    <SolidColorBrush x:Key="Brush.Bg" Color="#0F131D" />
+                    <SolidColorBrush x:Key="Brush.Sidebar" Color="#0A0D15" />
                     <SolidColorBrush x:Key="Brush.Surface" Color="#181D2B" />
-                    <SolidColorBrush x:Key="Brush.SurfaceAlt" Color="#141927" />
+                    <SolidColorBrush x:Key="Brush.SurfaceAlt" Color="#131826" />
                     <SolidColorBrush x:Key="Brush.Hover" Color="#212839" />
                     <SolidColorBrush x:Key="Brush.Selected" Color="#283149" />
                     <SolidColorBrush x:Key="Brush.Border" Color="#232A3C" />
@@ -75,6 +93,24 @@
                     <SolidColorBrush x:Key="Brush.Warning" Color="#F2C14E" />
                     <SolidColorBrush x:Key="Brush.Mascot" Color="#D77757" />
                     <SolidColorBrush x:Key="Brush.MascotEye" Color="#141413" />
+                    <SolidColorBrush x:Key="Brush.NavSelected" Color="#16282C" />
+                    <LinearGradientBrush x:Key="Brush.CardFill" StartPoint="0%,0%" EndPoint="0%,100%">
+                        <GradientStop Color="#1B2131" Offset="0" />
+                        <GradientStop Color="#161B28" Offset="1" />
+                    </LinearGradientBrush>
+                    <LinearGradientBrush x:Key="Brush.CardBorder" StartPoint="0%,0%" EndPoint="0%,100%">
+                        <GradientStop Color="#36405A" Offset="0" />
+                        <GradientStop Color="#1F2535" Offset="1" />
+                    </LinearGradientBrush>
+                    <LinearGradientBrush x:Key="Brush.AccentFill" StartPoint="0%,0%" EndPoint="0%,100%">
+                        <GradientStop Color="#55F0C2" Offset="0" />
+                        <GradientStop Color="#2CD39F" Offset="1" />
+                    </LinearGradientBrush>
+                    <RadialGradientBrush x:Key="Brush.Glow" Center="85%,0%" GradientOrigin="85%,0%" RadiusX="75%" RadiusY="90%">
+                        <GradientStop Color="#223EE6B0" Offset="0" />
+                        <GradientStop Color="#0C6C7CFF" Offset="0.45" />
+                        <GradientStop Color="#00000000" Offset="1" />
+                    </RadialGradientBrush>
 
                     <SolidColorBrush x:Key="TextControlBackground" Color="#181D2B" />
                     <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="#181D2B" />

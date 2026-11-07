@@ -19,6 +19,34 @@
                     <Border Background="{DynamicResource Brush.SurfaceAlt}" CornerRadius="{StaticResource Radius.Medium}" Padding="12,9" Margin="0,12,0,0">
                         <TextBlock x:Name="GraphicsHint" Classes="muted" Foreground="{DynamicResource Brush.TextSecondary}" />
                     </Border>
+
+                    <!-- Suggestion from the graphics card -->
+                    <Border x:Name="RecommendRow" Background="{DynamicResource Brush.AccentSoft}" CornerRadius="{StaticResource Radius.Medium}" Padding="12,8" Margin="0,8,0,0" IsVisible="False">
+                        <DockPanel>
+                            <Button x:Name="RecommendButton" DockPanel.Dock="Right" Classes="primary" Padding="12,5" Content="Use it" Click="OnUseRecommended" />
+                            <TextBlock x:Name="RecommendText" VerticalAlignment="Center" TextWrapping="Wrap" FontSize="12.5" Foreground="{DynamicResource Brush.Text}" Margin="0,0,10,0" />
+                        </DockPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <Border Classes="card">
+                <StackPanel Spacing="4">
+                    <DockPanel>
+                        <CheckBox x:Name="PauseLighting" DockPanel.Dock="Right" Theme="{StaticResource Toggle}" IsCheckedChanged="OnExtraChanged" />
+                        <StackPanel>
+                            <TextBlock Text="Pause lighting updates" Classes="h2" />
+                            <TextBlock Classes="muted" Margin="0,2,0,0" Text="More FPS on weak graphics cards. Light and shadows from moving things stop updating." />
+                        </StackPanel>
+                    </DockPanel>
+                    <Border Classes="divider" />
+                    <DockPanel>
+                        <CheckBox x:Name="PlainSky" DockPanel.Dock="Right" Theme="{StaticResource Toggle}" IsCheckedChanged="OnExtraChanged" />
+                        <StackPanel>
+                            <TextBlock Text="Plain gray sky" Classes="h2" />
+                            <TextBlock Classes="muted" Margin="0,2,0,0" Text="Skips drawing the skybox for a few extra frames." />
+                        </StackPanel>
+                    </DockPanel>
                 </StackPanel>
             </Border>
 

@@ -7,6 +7,7 @@
     <SolidColorBrush x:Key="Brush.SurfaceAlt" Color="#EDF0F7" />
     <SolidColorBrush x:Key="Brush.Hover" Color="#E1E6F0" />
     <SolidColorBrush x:Key="Brush.Selected" Color="#D6DDEB" />
+    <SolidColorBrush x:Key="Brush.NavSelected" Color="#DCEFE8" />
     <SolidColorBrush x:Key="Brush.Border" Color="#DADFEA" />
     <SolidColorBrush x:Key="Brush.BorderStrong" Color="#C2CADB" />
     <SolidColorBrush x:Key="Brush.Text" Color="#0F1320" />
@@ -22,4 +23,24 @@
     <SolidColorBrush x:Key="Brush.Mascot" Color="#D77757" />
     <SolidColorBrush x:Key="Brush.MascotEye" Color="#141413" />
     <Color x:Key="Color.Shadow">#2E0F1320</Color>
+
+    <!-- Depth: cards darken slightly toward the bottom edge, the primary button is a slight
+         gradient, and a faint mint glow sits behind the page. -->
+    <LinearGradientBrush x:Key="Brush.CardFill" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#FFFFFF" Offset="0" />
+        <GradientStop Color="#FAFBFE" Offset="1" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="Brush.CardBorder" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#E4E8F0" Offset="0" />
+        <GradientStop Color="#CFD6E3" Offset="1" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="Brush.AccentFill" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#0B8565" Offset="0" />
+        <GradientStop Color="#066A51" Offset="1" />
+    </LinearGradientBrush>
+    <RadialGradientBrush x:Key="Brush.Glow" Center="0.85,0" GradientOrigin="0.85,0" RadiusX="0.75" RadiusY="0.9">
+        <GradientStop Color="#2610B981" Offset="0" />
+        <GradientStop Color="#0A6C7CFF" Offset="0.45" />
+        <GradientStop Color="#00FFFFFF" Offset="1" />
+    </RadialGradientBrush>
 </ResourceDictionary>

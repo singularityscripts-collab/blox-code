@@ -81,9 +81,15 @@ public static class ApkAssets
     {
         try
         {
+            // No custom font: only the rewritten families (if any) need removing; the APK isn't opened.
+            if (ModCatalog.CurrentFile(ModCatalog.Font) is null)
+            {
+                ModCatalog.RebuildFontFamilies(Array.Empty<(string, string)>());
+                return;
+            }
             var families = FindApk() is { } apk ? FontFamilies(apk) : new List<(string, string)>();
             // Without the APK there's nothing to rewrite from; keep what an earlier refresh made.
-            if (families.Count > 0 || ModCatalog.CurrentFile(ModCatalog.Slots.First(s => s.Kind == ModKind.Font)) is null)
+            if (families.Count > 0)
                 ModCatalog.RebuildFontFamilies(families);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidDataException)

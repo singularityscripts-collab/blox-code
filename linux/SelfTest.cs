@@ -85,7 +85,21 @@ public static class SelfTest
                 FastFlagPresets.Set(FastFlagPresets.TextureQuality, "0");
                 Expect(FastFlagPresets.UpgradeBlurryPresets() && FastFlagPresets.CurrentGraphicsPreset == GraphicsPreset.Lowest, "old Lowest upgraded");
                 Expect(!FastFlagPresets.UpgradeBlurryPresets(), "upgrade runs once");
+                // The Medium that forced textures to 2 now leaves them to Roblox.
                 FastFlagPresets.ApplyGraphicsPreset(GraphicsPreset.Auto);
+                FastFlagPresets.Set(FastFlagPresets.QualityLevel, "11");
+                FastFlagPresets.TextureLevel = "2";
+                Expect(FastFlagPresets.UpgradeBlurryPresets() && FastFlagPresets.CurrentGraphicsPreset == GraphicsPreset.Medium
+                       && FastFlagPresets.TextureLevel is null, "old Medium upgraded");
+                FastFlagPresets.ApplyGraphicsPreset(GraphicsPreset.Auto);
+
+                // Suggestions from the graphics card.
+                Expect(GraphicsAdvisor.Recommend(new GpuInfo("Intel(R) HD Graphics 5500", GpuVendor.Intel, null)) == GraphicsPreset.Lowest, "old Intel HD -> Lowest");
+                Expect(GraphicsAdvisor.Recommend(new GpuInfo("Intel(R) Iris(R) Xe Graphics", GpuVendor.Intel, 128L << 20)) == GraphicsPreset.Low, "Iris Xe -> Low");
+                Expect(GraphicsAdvisor.Recommend(new GpuInfo("Intel(R) Arc(TM) A750 Graphics", GpuVendor.Intel, 8L << 30)) == GraphicsPreset.High, "Arc A750 -> High");
+                Expect(GraphicsAdvisor.Recommend(new GpuInfo("AMD Radeon(TM) Graphics", GpuVendor.Amd, 512L << 20)) == GraphicsPreset.Low, "AMD APU -> Low");
+                Expect(GraphicsAdvisor.Recommend(new GpuInfo("NVIDIA GeForce GTX 1050", GpuVendor.Nvidia, 2L << 30)) == GraphicsPreset.Medium, "2 GB card -> Medium");
+                Expect(GraphicsAdvisor.Recommend(new GpuInfo("AMD Radeon RX 6600", GpuVendor.Amd, 8L << 30)) == GraphicsPreset.High, "8 GB card -> High");
             });
 
             Check("pick-a-file mods and the custom font", () =>

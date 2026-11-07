@@ -168,7 +168,11 @@ public sealed partial class Bootstrapper(HttpClient http, LaunchSettings launch,
             Report(BootstrapPhase.Downloading, status, (double)sum / total, $"{Mb(sum)} / {Mb(total)}");
         }
 
-        async Task Install(int index)
+        // Two packages with the same MD5 share one cache file: download it once, the other waits.
+        var fetches = new Dictionary<string, Task>(StringComparer.OrdinalIgnoreCase);
+        var fetchLock = new object();
+
+        async Task Fetch(int index)
         {
             var package = packages[index];
             await downloads.WaitAsync(failed.Token);
@@ -180,6 +184,19 @@ public sealed partial class Bootstrapper(HttpClient http, LaunchSettings launch,
             {
                 downloads.Release();
             }
+        }
+
+        async Task Install(int index)
+        {
+            var package = packages[index];
+            Task fetch;
+            lock (fetchLock)
+            {
+                if (!fetches.TryGetValue(package.Signature, out fetch!))
+                    fetches[package.Signature] = fetch = Fetch(index);
+            }
+            await fetch;
+            Progress(index, package.PackedSize, $"Downloading {package.Name}");
 
             await unpacking.WaitAsync(failed.Token);
             try
@@ -448,6 +465,12 @@ public sealed partial class Bootstrapper(HttpClient http, LaunchSettings launch,
     {
         try
         {
+            // No custom font: only the rewritten families (if any) need removing, nothing to read.
+            if (ModCatalog.CurrentFile(ModCatalog.Font) is null)
+            {
+                ModCatalog.RebuildFontFamilies(Array.Empty<(string, string)>());
+                return;
+            }
             string families = Path.Combine(versionDir, ModCatalog.FamiliesFolder.Replace('/', '\\'));
             var files = Directory.Exists(families)
                 ? Directory.EnumerateFiles(families, "*.json").Select(file =>

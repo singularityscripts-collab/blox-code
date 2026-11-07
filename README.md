@@ -29,7 +29,8 @@ atualizações automáticas não mostram esse aviso. Veja a [política de assina
   programa) e uma barra de cursor na página aberta. Animações suaves, que dá para desligar.
   Sidebar e "composer" no estilo do Claude desktop: cole um link de jogo ou um place ID e aperte Enter.
 - **Preset gráfico** Auto / Lowest / Low / Medium / High, feito só com flags da
-  [allowlist do Roblox](https://devforum.roblox.com/t/allowlist-for-local-client-configuration-via-fast-flags/3966569).
+  [allowlist do Roblox](https://devforum.roblox.com/t/allowlist-for-local-client-configuration-via-fast-flags/3966569),
+  com uma sugestão baseada na sua placa de vídeo e interruptores extras para ganhar FPS.
 - Tela de launch com status ao vivo (`▖ … (12s · esc to cancel)`) e o Bit andando em cima da barra
   de progresso, digitando código e pulando quando o Roblox abre.
 - **Fast Flag Editor** no estilo do Bloxstrap: Add new (nome único ou Import JSON colado/de arquivo),

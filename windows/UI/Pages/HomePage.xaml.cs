@@ -58,7 +58,8 @@ public partial class HomePage : UserControl
         var preset = FastFlagPresets.CurrentGraphicsPreset;
         foreach (var segment in GraphicsSegments.Children.OfType<RadioButton>())
             segment.IsChecked = (string?)segment.Tag == preset?.ToString();
-        GraphicsSummary.Text = GraphicsPresetText.Short(preset);
+        GraphicsSummary.Text = GraphicsPresetText.Short(preset)
+            + (GraphicsAdvisor.Recommended is { } suggested && suggested != preset ? $" · suggested: {suggested}" : "");
         _syncing = false;
 
         var swapped = ModCatalog.Slots.Where(s => ModCatalog.CurrentFile(s) is not null).Select(s => s.Title.ToLowerInvariant()).ToList();

@@ -62,6 +62,8 @@ public static class ModCatalog
 
     public static IEnumerable<IGrouping<string, ModSlot>> Groups => Slots.GroupBy(s => s.Group);
 
+    public static ModSlot Font { get; } = Slots.Single(s => s.Kind == ModKind.Font);
+
     private static string Full(string modsDir, string rel) => Path.Combine(modsDir, rel.Replace('/', Path.DirectorySeparatorChar));
 
     /// <summary>The file a slot currently uses in the Modifications folder, or null for Roblox's own.</summary>

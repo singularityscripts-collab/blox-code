@@ -3,6 +3,37 @@
 Todas as versões do Blox Code, da mais nova para a mais antiga. Quem tem o Blox Code instalado
 recebe cada versão automaticamente na próxima vez que abrir.
 
+## 1.5.0 — Presets que conhecem seu PC, visual novo
+
+### Gráficos
+
+- **Preset sugerido para o seu PC:** o Blox Code identifica a placa de vídeo (Windows pelo registro,
+  Linux pelo sistema) e sugere um preset: Lowest para Intel HD/UHD antigas, Low para Iris Xe e APUs
+  da AMD, e Low/Medium/High para placas dedicadas conforme a memória de vídeo. Um botão **Use it**
+  aplica a sugestão. A Home também mostra qual é a sugestão.
+- **Medium mais bonito:** antes forçava texturas no nível 2. Agora deixa o Roblox escolher as
+  texturas mais nítidas que a placa aguenta. Quem estava no Medium antigo passa para o novo sozinho.
+- **Mais FPS opcional:** dois novos interruptores, só com flags da allowlist: **Pause lighting
+  updates** (luz e sombra de objetos em movimento param de atualizar) e **Plain gray sky** (sem
+  skybox).
+
+### Visual
+
+- Cartões com aparência de vidro (brilho no topo, gradiente suave e, no Linux, sombra), botão
+  principal em gradiente com sombra, abas e seletores em formato de pílula com a opção escolhida em
+  menta, cantos mais arredondados e um brilho menta discreto no fundo.
+- Títulos das páginas em Inter, grandes e em negrito; a fonte de terminal fica no nome, na
+  saudação e no código. Seções da sidebar em maiúsculas, e a página aberta fica com fundo menta.
+
+### Correções
+
+- Dois pacotes do Roblox com o mesmo conteúdo podiam ser baixados ao mesmo tempo no mesmo arquivo.
+  Agora o segundo espera o primeiro.
+- Sem fonte personalizada, o Blox Code não abre mais os arquivos do Roblox a cada launch só para
+  conferir as fontes (mais rápido, principalmente no Linux).
+- As prévias de fonte e de som na tela Mods deixavam cópias acumulando na pasta temporária. Agora
+  elas são apagadas.
+
 ## 1.4.0 — Fontes novas, animações e Mods melhores
 
 ### Visual

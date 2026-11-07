@@ -49,6 +49,18 @@ public partial class FastFlagsPage : UserControl
         GraphicsHint.Text = GraphicsPresetText.Describe(graphics);
         ExclusiveFullscreen.IsChecked = FastFlagPresets.UseExclusiveFullscreen;
         DisableScaling.IsChecked = FastFlagPresets.DisableScaling;
+        PauseLighting.IsChecked = FastFlagPresets.PauseLighting;
+        PlainSky.IsChecked = FastFlagPresets.PlainSky;
+
+        if (GraphicsAdvisor.Recommended is { } recommended && GraphicsAdvisor.Gpu is { } gpu)
+        {
+            RecommendRow.Visibility = Visibility.Visible;
+            bool current = graphics == recommended;
+            RecommendText.Text = current
+                ? $"{recommended} is the preset suggested for your {gpu.Describe()}."
+                : $"Suggested for your {gpu.Describe()}: {recommended}";
+            RecommendButton.Visibility = current ? Visibility.Collapsed : Visibility.Visible;
+        }
         SelectSegment(RendererSegments, FastFlagPresets.Renderer.ToString());
         SelectSegment(MsaaSegments, FastFlagPresets.MsaaSamples);
         SelectSegment(TextureSegments, FastFlagPresets.TextureLevel);
@@ -76,6 +88,17 @@ public partial class FastFlagsPage : UserControl
     {
         FastFlagPresets.UseExclusiveFullscreen = ExclusiveFullscreen.IsChecked == true;
         FastFlagPresets.DisableScaling = DisableScaling.IsChecked == true;
+        FastFlagPresets.PauseLighting = PauseLighting.IsChecked == true;
+        FastFlagPresets.PlainSky = PlainSky.IsChecked == true;
+        Store.SaveSettings();
+        Sync();
+    }
+
+    private void OnUseRecommended(object sender, RoutedEventArgs e)
+    {
+        if (GraphicsAdvisor.Recommended is not { } recommended)
+            return;
+        FastFlagPresets.ApplyGraphicsPreset(recommended);
         Store.SaveSettings();
         Sync();
     }
