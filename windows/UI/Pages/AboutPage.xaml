@@ -28,6 +28,7 @@
                 <WrapPanel>
                     <Button Style="{StaticResource Button.Secondary}" Content="Open install folder" Click="OnOpenBase" Margin="0,0,8,0" />
                     <Button Style="{StaticResource Button.Secondary}" Content="Open logs" Click="OnOpenLogs" Margin="0,0,8,0" />
+                    <Button x:Name="SourceButton" Style="{StaticResource Button.Secondary}" Content="Source code" Click="OnSource" Margin="0,0,8,0" />
                     <Button Style="{StaticResource Button.Ghost}" Content="Bloxstrap on GitHub" Click="OnBloxstrap" />
                 </WrapPanel>
             </Border>

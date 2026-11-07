@@ -8,4 +8,10 @@
     <AssemblyName>BloxCode.Core</AssemblyName>
   </PropertyGroup>
 
+  <!-- The notes the app shows after an update ("What's new") come straight from the changelog,
+       so they don't depend on any website staying up. -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\CHANGELOG.md" LogicalName="CHANGELOG.md" Visible="false" />
+  </ItemGroup>
+
 </Project>

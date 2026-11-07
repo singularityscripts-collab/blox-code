@@ -13,6 +13,7 @@ public partial class AboutPage : UserControl
         InitializeComponent();
         VersionText.Text = $"v{App.Version} · .NET {Environment.Version}";
         Mascot.IsAnimated = Store.Settings.AnimateMascot;
+        SourceButton.Visibility = Updater.Homepage is null ? Visibility.Collapsed : Visibility.Visible;
     }
 
     private async void OnPoke(object sender, MouseButtonEventArgs e)
@@ -26,5 +27,11 @@ public partial class AboutPage : UserControl
 
     private void OnOpenBase(object sender, RoutedEventArgs e) => Open(Paths.Base);
     private void OnOpenLogs(object sender, RoutedEventArgs e) => Open(Paths.Logs);
+    private void OnSource(object sender, RoutedEventArgs e)
+    {
+        if (Updater.Homepage is { } url)
+            Open(url);
+    }
+
     private void OnBloxstrap(object sender, RoutedEventArgs e) => Open("https://github.com/bloxstraplabs/bloxstrap");
 }

@@ -24,7 +24,7 @@
                         </StackPanel>
                         <StackPanel>
                             <TextBlock Text="Update Blox Code automatically" Classes="h2" FontWeight="Normal" />
-                            <TextBlock x:Name="UpdateText" Classes="muted" Margin="0,2,0,0" Text="Each start checks GitHub for a newer AppImage and installs it. Sober updates Roblox on its own." />
+                            <TextBlock x:Name="UpdateText" Classes="muted" Margin="0,2,0,0" Text="Each start checks the signed release feed for a newer AppImage and installs it. Sober updates Roblox on its own." />
                         </StackPanel>
                     </DockPanel>
                 </StackPanel>

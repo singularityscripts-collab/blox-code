@@ -3,3 +3,5 @@
 linux/packaging/AppRun text eol=lf
 *.desktop text eol=lf
 *.yml text eol=lf
+# The update manifest is signed byte for byte: never convert its line endings.
+updates/** -text

@@ -58,10 +58,10 @@ public partial class BehaviourPage : UserControl
         AutoUpdate.IsEnabled = Updater.IsConfigured;
         CheckUpdatesButton.IsEnabled = usable;
         UpdateText.Text = message ?? (!Updater.IsConfigured
-            ? $"v{Updater.Current} · this build has no update source (set UpdateRepository in Directory.Build.props)."
+            ? $"v{Updater.Current} · this build has no update source (set UpdateFeeds and UpdatePublicKey in Directory.Build.props)."
             : !Paths.IsRunningInstalled
-                ? $"v{Updater.Current} · install Blox Code from Home to get updates from {Updater.Repository ?? "the release feed"}."
-                : $"v{Updater.Current} · releases come from github.com/{Updater.Repository}.");
+                ? $"v{Updater.Current} · install Blox Code from Home to get updates."
+                : $"v{Updater.Current} · signed releases come from {Updater.FeedHost}{(Updater.Feeds.Count > 1 ? $" (+{Updater.Feeds.Count - 1} backup{(Updater.Feeds.Count > 2 ? "s" : "")})" : "")}.");
     }
 
     private async void OnCheckUpdates(object sender, RoutedEventArgs e)

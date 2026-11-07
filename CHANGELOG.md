@@ -3,6 +3,23 @@
 Todas as versões do Blox Code, da mais nova para a mais antiga. Quem tem o Blox Code instalado
 recebe cada versão automaticamente na próxima vez que abrir.
 
+## 1.6.0 — Atualizações que não dependem do GitHub
+
+### Atualizações
+
+- **Fonte de atualização própria:** o Blox Code não pergunta mais ao GitHub se tem versão nova.
+  Ele lê um arquivo `latest.json` assinado, que pode ficar em qualquer hospedagem, e tenta os
+  endereços de reserva na ordem quando um sai do ar.
+- **Atualizações assinadas:** o app só aceita uma versão nova se o `latest.json` estiver assinado
+  com a chave do Blox Code, e só instala o arquivo baixado se o SHA-256 bater. Se alguém invadir a
+  hospedagem, não consegue empurrar um programa falso.
+- Se o download por um endereço falhar, o Blox Code tenta o próximo da lista.
+
+### Outras mudanças
+
+- **What's new** mostra as notas da versão dentro do próprio app, sem abrir site nenhum.
+- Janelas com texto longo agora rolam em vez de passar do tamanho da tela.
+
 ## 1.5.0 — Presets que conhecem seu PC, visual novo
 
 ### Gráficos

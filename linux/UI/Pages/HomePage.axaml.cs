@@ -109,6 +109,9 @@ public partial class HomePage : UserControl
         RenderBanners();
     }
 
+    private static (string Title, string Body)? NotesFor(string version) =>
+        Version.TryParse(version, out var v) ? ReleaseNotes.For(v) : null;
+
     private void RenderBanners()
     {
         Banners.Children.Clear();
@@ -116,10 +119,10 @@ public partial class HomePage : UserControl
         if (_updatedNotice is { } updated)
         {
             Banners.Children.Add(Banner($"Updated to v{updated}", "Blox Code reinstalled itself with the latest release.",
-                new[] { (Updater.Repository is null ? "Got it" : "What's new", (Action)(() =>
+                new[] { (NotesFor(updated) is null ? "Got it" : "What's new", (Action)(() =>
                 {
-                    if (Updater.Repository is { } repo)
-                        Shell.Open($"https://github.com/{repo}/releases/tag/v{updated}", _window);
+                    if (NotesFor(updated) is { } notes)
+                        _ = MessageDialog.ShowAsync(_window, $"What's new in v{updated}" + (notes.Title.Length > 0 ? $" — {notes.Title}" : ""), notes.Body);
                     _updatedNotice = null;
                     RenderBanners();
                 })) }));

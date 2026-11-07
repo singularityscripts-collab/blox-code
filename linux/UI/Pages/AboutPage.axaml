@@ -18,7 +18,7 @@
             </Border>
 
             <WrapPanel HorizontalAlignment="Center">
-                <Button Classes="chip" Content="GitHub" Click="OnRepo" />
+                <Button x:Name="RepoButton" Classes="chip" Content="Source code" Click="OnRepo" />
                 <Button Classes="chip" Content="What's new" Click="OnChangelog" />
                 <Button Classes="chip" Content="Sober" Click="OnSober" />
             </WrapPanel>

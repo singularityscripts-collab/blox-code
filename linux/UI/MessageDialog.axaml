@@ -11,8 +11,11 @@
                               Body="{DynamicResource Brush.Mascot}" Eye="{DynamicResource Brush.MascotEye}" />
                 <TextBlock x:Name="TitleText" Classes="h1" FontSize="21" Margin="0" VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="320" />
             </StackPanel>
-            <SelectableTextBlock x:Name="MessageText" FontSize="14" TextWrapping="Wrap" LineHeight="21"
-                                 Foreground="{DynamicResource Brush.TextSecondary}" />
+            <!-- Long text (release notes) scrolls instead of growing past the screen. -->
+            <ScrollViewer MaxHeight="420" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <SelectableTextBlock x:Name="MessageText" FontSize="14" TextWrapping="Wrap" LineHeight="21"
+                                     Foreground="{DynamicResource Brush.TextSecondary}" />
+            </ScrollViewer>
             <StackPanel x:Name="Commands" Margin="0,8,0,0" />
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,22,0,0" Spacing="8">
                 <Button x:Name="SecondaryButton" Click="OnSecondary" IsCancel="True" />

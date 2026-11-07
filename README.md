@@ -10,11 +10,10 @@ com editor, mods e links `roblox://`, no **Windows** e no **Linux**.
 
 | Sistema | Arquivo | Como o Roblox roda |
 | --- | --- | --- |
-| **Windows** 10/11 | [**BloxCode.exe**](https://github.com/huginhohenriquerl-ops/Blox-Code/releases/latest/download/BloxCode.exe) | O Blox Code baixa e abre o Roblox para Windows |
-| **Linux** — Arch, CachyOS, Manjaro, Ubuntu, Mint, Debian… | [**BloxCode-x86_64.AppImage**](https://github.com/huginhohenriquerl-ops/Blox-Code/releases/latest/download/BloxCode-x86_64.AppImage) | Pelo [Sober](https://sober.vinegarhq.org/), que o Blox Code instala para você |
+| **Windows** 10/11 | [**BloxCode.exe**](https://codeberg.org/HugoHenriquerl-ops/blox-code/releases/latest) | O Blox Code baixa e abre o Roblox para Windows |
+| **Linux** — Arch, CachyOS, Manjaro, Ubuntu, Mint, Debian… | [**BloxCode-x86_64.AppImage**](https://codeberg.org/HugoHenriquerl-ops/blox-code/releases/latest) | Pelo [Sober](https://sober.vinegarhq.org/), que o Blox Code instala para você |
 
-Os dois arquivos saem juntos em cada [release](https://github.com/huginhohenriquerl-ops/Blox-Code/releases/latest)
-e têm o mesmo número de versão. Cada um se atualiza sozinho, sempre com o arquivo do próprio sistema.
+Os dois arquivos saem juntos em cada [release no Codeberg](https://codeberg.org/HugoHenriquerl-ops/blox-code/releases/latest) e têm o mesmo número de versão. Cada um se atualiza sozinho, sempre com o arquivo do próprio sistema.
 O que mudou em cada versão está no [log de atualizações](CHANGELOG.md).
 
 **Aviso do Windows na primeira vez:** o `BloxCode.exe` ainda não é assinado, então o SmartScreen
@@ -38,8 +37,8 @@ atualizações automáticas não mostram esse aviso. Veja a [política de assina
   e aviso nas flags que o Roblox ignora por estarem fora da allowlist.
 - **Mods** sem fuçar pasta: escolha (ou arraste) um arquivo para o cursor, os sons do personagem ou
   a fonte do jogo, e **Reset** traz o original de volta. Para o resto, a pasta `Modifications`.
-- Abre os links `roblox://` do navegador, instala sem pedir senha/admin e se atualiza sozinho pelo
-  GitHub Releases.
+- Abre os links `roblox://` do navegador, instala sem pedir senha/admin e se atualiza sozinho
+  por um feed assinado que funciona em qualquer hospedagem.
 - Tema Sistema / Claro / Escuro.
 
 ## Windows
@@ -92,10 +91,19 @@ roteiro de teste em [docs/LINUX_TESTING.md](docs/LINUX_TESTING.md).
 
 ## Atualização automática
 
-Toda vez que a cópia instalada abre (menu ou link do Roblox), ela pergunta ao GitHub Releases se há
-versão nova (no máximo 4 s). Se houver, baixa o arquivo do seu sistema, confere o SHA-256, reinicia
-com `-upgrade`, se substitui e continua o que você tinha pedido (abrir o jogo, o menu…). Mesmo fluxo
-do Bloxstrap. Dá para desligar em Behaviour.
+Toda vez que a cópia instalada abre (menu ou link do Roblox), ela lê o `latest.json` do feed de
+atualização (no máximo 4 s). Se houver versão nova, baixa o arquivo do seu sistema, confere o
+SHA-256, reinicia com `-upgrade`, se substitui e continua o que você tinha pedido (abrir o jogo, o
+menu…). Mesmo fluxo do Bloxstrap. Dá para desligar em Behaviour.
+
+O feed não depende de nenhum site:
+
+- Os endereços ficam em `<UpdateFeeds>` no [Directory.Build.props](Directory.Build.props), separados
+  por `;`, e são tentados na ordem. Qualquer hospedagem de arquivos estáticos serve.
+- O `latest.json` só vale se a assinatura em `latest.json.sig` (ECDSA P-256) bater com a chave
+  pública em `<UpdatePublicKey>`. O arquivo baixado só roda se o SHA-256 bater com o do manifesto.
+  Quem invadir uma hospedagem não consegue publicar um programa falso.
+- Se um endereço de download falhar, o próximo da lista é tentado.
 
 | | Windows | Linux |
 | --- | --- | --- |
@@ -115,7 +123,7 @@ dotnet publish windows/BloxCode.csproj -c Release -o dist
 ```
 
 O publish gera um único `dist/BloxCode.exe` self-contained (não precisa de .NET instalado). O AppImage
-do Linux é gerado no Linux (o GitHub Actions usa um contêiner Ubuntu 22.04):
+do Linux é gerado no Linux (de preferência Ubuntu 22.04, a base mais antiga suportada):
 
 ```bash
 bash linux/packaging/build-appimage.sh
@@ -128,11 +136,30 @@ sem tela numa pasta temporária, em qualquer sistema.
 Argumentos: `-player [uri]`, `-menu`/`-settings`, `-uninstall [-quiet]`, `-nolaunch`, `-force`,
 `-channel <nome>` (só Windows), `-noupdate`.
 
-Para publicar uma versão: aumente `<Version>` no [Directory.Build.props](Directory.Build.props)
-(é o mesmo número para os dois sistemas), escreva a seção no [CHANGELOG.md](CHANGELOG.md) e envie uma
-tag `vX.Y.Z`. O [GitHub Actions](.github/workflows/build.yml) compila o `.exe` e o `.AppImage`, testa
-o AppImage no Ubuntu, Debian e Arch e publica o release com os dois arquivos e as notas do CHANGELOG.
-O repositório do feed de atualização também fica no `Directory.Build.props` (`<UpdateRepository>`).
+Para publicar uma versão:
+
+1. Aumente `<Version>` no [Directory.Build.props](Directory.Build.props) (é o mesmo número para os
+   dois sistemas) e escreva a seção no [CHANGELOG.md](CHANGELOG.md).
+2. Gere o `dist/BloxCode.exe` (acima) e o `dist/BloxCode-x86_64.AppImage` (no Linux).
+3. Monte o feed assinado:
+
+   ```bash
+   node tools/release.js feed --codeberg HugoHenriquerl-ops/blox-code --exe dist/BloxCode.exe --appimage dist/BloxCode-x86_64.AppImage
+   ```
+
+   Isso grava `updates/latest.json` e `updates/latest.json.sig` e separa os arquivos em
+   `dist/release/vX.Y.Z/`.
+4. Crie o release `vX.Y.Z` no [Codeberg](https://codeberg.org/HugoHenriquerl-ops/blox-code/releases/new)
+   com os dois arquivos anexados, depois faça commit e push da pasta `updates/`. É esse push que avisa
+   as cópias instaladas. Confira com
+   `node tools/release.js verify https://codeberg.org/HugoHenriquerl-ops/blox-code/raw/branch/main/updates/`.
+
+Sem `--codeberg`, a ferramenta monta uma pasta `dist/feed` para qualquer outra hospedagem estática (com
+os arquivos ao lado do `latest.json`), que pode entrar como endereço extra em `<UpdateFeeds>`.
+
+A chave de assinatura foi criada uma vez com `node tools/release.js keygen` e fica fora do repositório,
+em `~/.bloxcode-release/update-signing-key.pem`. **Guarde uma cópia dela:** sem essa chave, as cópias
+instaladas não aceitam mais nenhuma atualização.
 
 ```
 windows/         Blox Code para Windows (WPF, BloxCode.csproj)
@@ -150,35 +177,36 @@ docs/            engenharia reversa do Bloxstrap, plano e roteiro de teste do Li
 tools/
   extract-bundle.js  extrai um .NET single-file bundle (usado no Bloxstrap.exe)
   make-icon.js       gera o ícone do Bit (.ico do Windows e PNGs do Linux)
+  release.js         chave de assinatura, feed de atualização assinado e conferência
+updates/         latest.json + latest.json.sig: o feed que as cópias instaladas leem
 ```
 
 Fora do escopo por enquanto: Roblox Studio, e Discord Rich Presence no Windows.
 
 ## Code signing policy
 
-*(Em inglês, como pede o programa de assinatura gratuita da SignPath Foundation.)*
+O `BloxCode.exe` ainda não tem assinatura de código da Microsoft (Authenticode), por isso o aviso do
+SmartScreen na primeira vez. O pedido de certificado gratuito à SignPath Foundation foi negado por
+falta de visibilidade do projeto; dá para pedir de novo quando o projeto crescer.
 
-Blox Code has applied for free code signing from the [SignPath Foundation](https://signpath.org).
-Once approved, Windows releases (`BloxCode.exe`) will carry this signature:
-free code signing provided by [SignPath.io](https://signpath.io), certificate by
-[SignPath Foundation](https://signpath.org).
-
-- **What gets signed:** only `BloxCode.exe`, built by [GitHub Actions](.github/workflows/build.yml)
-  from the source in this repository, for releases tagged `vX.Y.Z`. Nothing built elsewhere is signed.
-- **Committers and reviewers:** [huginhohenriquerl-ops](https://github.com/huginhohenriquerl-ops)
-- **Approvers:** [huginhohenriquerl-ops](https://github.com/huginhohenriquerl-ops). Every release is
-  approved by hand before it is signed.
-- **System changes:** the installer says what it does before doing it (per-user folder in
-  `%LocalAppData%\BloxCode`, Start menu and desktop shortcuts, `roblox://` link handler, an Apps &
-  Features entry) and Blox Code uninstalls from Settings → Apps or from its Behaviour page.
+- **Atualizações:** são assinadas mesmo assim. O app só aceita um `latest.json` assinado com a chave
+  do Blox Code (ECDSA P-256) e confere o SHA-256 de cada arquivo antes de instalar.
+- **De onde vêm os arquivos:** só dos releases em
+  [codeberg.org/HugoHenriquerl-ops/blox-code](https://codeberg.org/HugoHenriquerl-ops/blox-code),
+  compilados a partir deste código.
+- **Mantenedor e quem aprova cada release:** [HugoHenriquerl-ops](https://codeberg.org/HugoHenriquerl-ops)
+- **Mudanças no sistema:** o instalador avisa o que vai fazer antes de fazer (pasta do usuário em
+  `%LocalAppData%BloxCode`, atalhos no menu Iniciar e na área de trabalho, links `roblox://` e uma
+  entrada em Aplicativos). O Blox Code se desinstala por Configurações → Aplicativos ou pela página
+  Behaviour.
 
 ## Privacy
 
 Blox Code has no accounts, ads, analytics or telemetry, and sends no personal data anywhere. It only
 connects to these services, to do what you ask it to:
 
-- **GitHub** (`api.github.com`, `github.com` and GitHub's download servers): to check for and
-  download Blox Code updates. You can turn this off in Behaviour.
+- **The update feed** (the addresses in `<UpdateFeeds>`): to check for and download Blox Code
+  updates. You can turn this off in Behaviour.
 - **Roblox**, on Windows: `clientsettingscdn.roblox.com` / `clientsettings.roblox.com` to find the
   current Roblox version, and Roblox's download mirrors (`setup.rbxcdn.com`, `setup-aws.rbxcdn.com`,
   `setup-ak.rbxcdn.com`, `s3.amazonaws.com/setup.roblox.com`) to

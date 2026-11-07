@@ -83,7 +83,7 @@ public partial class HomePage : UserControl
             Banner.Visibility = Visibility.Visible;
             BannerTitle.Text = $"Updated to v{_updatedNotice}";
             BannerText.Text = "Blox Code reinstalled itself with the latest release.";
-            BannerButton.Content = Updater.Repository is null ? "Got it" : "What's new";
+            BannerButton.Content = NotesFor(_updatedNotice) is null ? "Got it" : "What's new";
             DesktopShortcut.Visibility = DesktopShortcutLabel.Visibility = Visibility.Collapsed;
         }
         else if (!Installer.IsInstalled)
@@ -108,6 +108,9 @@ public partial class HomePage : UserControl
         }
     }
 
+    private static (string Title, string Body)? NotesFor(string version) =>
+        Version.TryParse(version, out var v) ? ReleaseNotes.For(v) : null;
+
     private static string ExecutableName(string command)
     {
         var match = Regex.Match(command, "\"([^\"]+\\.exe)\"|(\\S+\\.exe)", RegexOptions.IgnoreCase);
@@ -118,8 +121,8 @@ public partial class HomePage : UserControl
     {
         if (_updatedNotice is not null)
         {
-            if (Updater.Repository is { } repo)
-                Shell.Open($"https://github.com/{repo}/releases/tag/v{_updatedNotice}", _window);
+            if (NotesFor(_updatedNotice) is { } notes)
+                MessageDialog.Show(_window, $"What's new in v{_updatedNotice}" + (notes.Title.Length > 0 ? $" — {notes.Title}" : ""), notes.Body);
             DesktopShortcut.Visibility = DesktopShortcutLabel.Visibility = Visibility.Visible;
             _updatedNotice = null;
             Banner.Visibility = Visibility.Collapsed;

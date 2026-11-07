@@ -1,0 +1,18 @@
+{
+  "format": 1,
+  "product": "BloxCode",
+  "version": "1.6.0",
+  "title": "Atualizações que não dependem do GitHub",
+  "published": "2026-11-07T23:52:29.615Z",
+  "notes": "### Atualizações\n\n- **Fonte de atualização própria:** o Blox Code não pergunta mais ao GitHub se tem versão nova.\n  Ele lê um arquivo `latest.json` assinado, que pode ficar em qualquer hospedagem, e tenta os\n  endereços de reserva na ordem quando um sai do ar.\n- **Atualizações assinadas:** o app só aceita uma versão nova se o `latest.json` estiver assinado\n  com a chave do Blox Code, e só instala o arquivo baixado se o SHA-256 bater. Se alguém invadir a\n  hospedagem, não consegue empurrar um programa falso.\n- Se o download por um endereço falhar, o Blox Code tenta o próximo da lista.\n\n### Outras mudanças\n\n- **What's new** mostra as notas da versão dentro do próprio app, sem abrir site nenhum.\n- Janelas com texto longo agora rolam em vez de passar do tamanho da tela.",
+  "assets": {
+    "windows-x64": {
+      "name": "BloxCode.exe",
+      "size": 62749891,
+      "sha256": "3f4dd3dae1b9db8e52fb9a89a70d7b195388a6eb3c2f8f05915380d513849605",
+      "urls": [
+        "https://codeberg.org/HugoHenriquerl-ops/blox-code/releases/download/v1.6.0/BloxCode.exe"
+      ]
+    }
+  }
+}

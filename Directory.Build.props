@@ -2,7 +2,7 @@
   <!-- Shared by BloxCode (Windows), BloxCode.Linux and BloxCode.Core so every build reports the
        same version and update feed. -->
   <PropertyGroup>
-    <Version>1.5.0</Version>
+    <Version>1.6.0</Version>
     <Product>Blox Code</Product>
     <Company>Blox Code</Company>
     <!-- Shown in the exe's Properties → Details, and checked when the exe is code-signed. -->
@@ -12,12 +12,20 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
-    <!-- GitHub "owner/repo" whose releases carry BloxCode.exe and BloxCode-x86_64.AppImage; empty
-         disables self-updates. Publish a release tagged vX.Y.Z (matching <Version>). -->
-    <UpdateRepository>huginhohenriquerl-ops/blox-code</UpdateRepository>
+    <!-- Self-update feeds, tried in order and separated by ';'. Each is the address of a folder made
+         by `node tools/release.js feed` (latest.json, latest.json.sig and the versioned files), on
+         any static host. Empty disables self-updates. -->
+    <UpdateFeeds>https://codeberg.org/HugoHenriquerl-ops/blox-code/raw/branch/main/updates/</UpdateFeeds>
+    <!-- The ECDSA P-256 key (base64 SubjectPublicKeyInfo) latest.json must be signed with; written by
+         `node tools/release.js keygen`. The private half never enters the repository. -->
+    <UpdatePublicKey>MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEnuHqDoEHf21g5XklHpp8aViS8KJIzonh77X4KQ4JOPKoewOY52+MX3Q3T/NaoAnlqVDkPMPaHRjzEc0jSAwZag==</UpdatePublicKey>
+    <!-- Opened by the "Source code" buttons; empty hides them. -->
+    <HomepageUrl>https://codeberg.org/HugoHenriquerl-ops/blox-code</HomepageUrl>
   </PropertyGroup>
 
   <ItemGroup>
-    <AssemblyMetadata Include="UpdateRepository" Value="$(UpdateRepository)" />
+    <AssemblyMetadata Include="UpdateFeeds" Value="$(UpdateFeeds)" />
+    <AssemblyMetadata Include="UpdatePublicKey" Value="$(UpdatePublicKey)" />
+    <AssemblyMetadata Include="HomepageUrl" Value="$(HomepageUrl)" />
   </ItemGroup>
 </Project>

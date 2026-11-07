@@ -299,6 +299,52 @@ public static class SelfTest
                 Expect(Updater.AssetName == (OperatingSystem.IsWindows() ? "BloxCode.exe" : "BloxCode-x86_64.AppImage"), "update asset");
             });
 
+            Check("signed update manifests", () =>
+            {
+                using var key = System.Security.Cryptography.ECDsa.Create(System.Security.Cryptography.ECCurve.NamedCurves.nistP256);
+                string publicKey = Convert.ToBase64String(key.ExportSubjectPublicKeyInfo());
+                string Sign(byte[] data) => Convert.ToBase64String(key.SignData(data, System.Security.Cryptography.HashAlgorithmName.SHA256));
+                string hash = new string('a', 64);
+                byte[] manifest = System.Text.Encoding.UTF8.GetBytes($$$"""
+                    {"format":1,"product":"BloxCode","version":"9.8.7","title":"Test","assets":{
+                      "linux-x64":{"name":"BloxCode-x86_64.AppImage","size":5,"sha256":"{{{hash}}}","urls":["9.8.7/BloxCode-x86_64.AppImage","http://evil.example/x","https://mirror.example/b"]}} }
+                    """);
+                var feed = new Uri("https://updates.example/feed/latest.json");
+                byte[] signature = System.Text.Encoding.ASCII.GetBytes(Sign(manifest) + "\n");
+
+                var info = Updater.ReadManifest(manifest, signature, publicKey, feed, "linux-x64");
+                Expect(info is { Version.Major: 9, Size: 5 } && info.Sha256 == hash, "a signed manifest reads");
+                Expect(info!.DownloadUrls.SequenceEqual(new[] { "https://updates.example/feed/9.8.7/BloxCode-x86_64.AppImage", "https://mirror.example/b" }),
+                    "relative addresses resolve next to the manifest; plain http is dropped");
+                Expect(Updater.ReadManifest(manifest, signature, publicKey, feed, "windows-x64") is null, "a missing platform is no update");
+
+                byte[] tampered = (byte[])manifest.Clone();
+                tampered[Array.IndexOf(tampered, (byte)'9')] = (byte)'8';
+                Expect(Throws(() => Updater.ReadManifest(tampered, signature, publicKey, feed, "linux-x64")), "a changed manifest is rejected");
+                using var other = System.Security.Cryptography.ECDsa.Create(System.Security.Cryptography.ECCurve.NamedCurves.nistP256);
+                Expect(Throws(() => Updater.ReadManifest(manifest, signature, Convert.ToBase64String(other.ExportSubjectPublicKeyInfo()), feed, "linux-x64")), "another key is rejected");
+                Expect(Throws(() => Updater.ReadManifest(manifest, "garbage"u8.ToArray(), publicKey, feed, "linux-x64")), "a broken signature is rejected");
+                Expect(Updater.FeedFolder("https://a.example/f") == "https://a.example/f/" && Updater.FeedFolder("https://a.example/f/latest.json") == "https://a.example/f/", "feed addresses");
+                Expect(Updater.PublicKey is not null, "this build trusts a release key");
+
+                var notes = ReleaseNotes.Parse("# Log\n\n## 2.0.0 — Big one\n\n### Fixes\n\n- **Bold** fix with `code`\n  wrapped [link](https://x)\n\n## 1.0.0\n- old\n", new Version(2, 0, 0));
+                Expect(notes is { Title: "Big one" } && notes.Value.Body == "FIXES\n\n• Bold fix with code wrapped link", $"changelog section to text ({notes?.Body})");
+                Expect(ReleaseNotes.For(Updater.Current) is not null, $"the built-in changelog has notes for {Updater.Current}");
+            });
+
+            // Optional end-to-end check against a real feed: BLOXCODE_UPDATE_FEED=<folder address>.
+            if (Environment.GetEnvironmentVariable("BLOXCODE_UPDATE_FEED") is { Length: > 0 } liveFeed)
+            {
+                Check($"update feed {liveFeed}", () =>
+                {
+                    using var http = new HttpClient();
+                    var update = Updater.CheckAsync(http, CancellationToken.None).GetAwaiter().GetResult();
+                    Expect(update is not null, $"the feed offers something newer than {Updater.Current}");
+                    string file = Updater.DownloadAsync(http, update!, new Progress<(long, long)>(), CancellationToken.None).GetAwaiter().GetResult();
+                    Expect(new FileInfo(file).Length == update!.Size, $"downloaded and verified {update.Version} ({file})");
+                });
+            }
+
             Check("one launch at a time", () =>
             {
                 using (var first = InstanceLock.TryAcquire("selftest"))
@@ -425,5 +471,11 @@ public static class SelfTest
     {
         if (!condition)
             throw new Exception(what);
+    }
+
+    private static bool Throws(Action action)
+    {
+        try { action(); return false; }
+        catch { return true; }
     }
 }
