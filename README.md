@@ -10,10 +10,10 @@ com editor, mods e links `roblox://`, no **Windows** e no **Linux**.
 
 | Sistema | Arquivo | Como o Roblox roda |
 | --- | --- | --- |
-| **Windows** 10/11 | [**BloxCode.exe**](https://codeberg.org/HugoHenriquerl-ops/blox-code/releases/latest) | O Blox Code baixa e abre o Roblox para Windows |
-| **Linux** — Arch, CachyOS, Manjaro, Ubuntu, Mint, Debian… | [**BloxCode-x86_64.AppImage**](https://codeberg.org/HugoHenriquerl-ops/blox-code/releases/latest) | Pelo [Sober](https://sober.vinegarhq.org/), que o Blox Code instala para você |
+| **Windows** 10/11 | [**BloxCode.exe**](https://gitlab.com/huginhohenriquerl/blox-code/-/releases/permalink/latest) | O Blox Code baixa e abre o Roblox para Windows |
+| **Linux** — Arch, CachyOS, Manjaro, Ubuntu, Mint, Debian… | [**BloxCode-x86_64.AppImage**](https://gitlab.com/huginhohenriquerl/blox-code/-/releases/permalink/latest) | Pelo [Sober](https://sober.vinegarhq.org/), que o Blox Code instala para você |
 
-Os dois arquivos saem juntos em cada [release no Codeberg](https://codeberg.org/HugoHenriquerl-ops/blox-code/releases/latest) e têm o mesmo número de versão. Cada um se atualiza sozinho, sempre com o arquivo do próprio sistema.
+Os dois arquivos saem juntos em cada [release no GitLab](https://gitlab.com/huginhohenriquerl/blox-code/-/releases/permalink/latest) e têm o mesmo número de versão. Cada um se atualiza sozinho, sempre com o arquivo do próprio sistema.
 O que mudou em cada versão está no [log de atualizações](CHANGELOG.md).
 
 **Aviso do Windows na primeira vez:** o `BloxCode.exe` ainda não é assinado, então o SmartScreen
@@ -144,17 +144,22 @@ Para publicar uma versão:
 3. Monte o feed assinado:
 
    ```bash
-   node tools/release.js feed --codeberg HugoHenriquerl-ops/blox-code --exe dist/BloxCode.exe --appimage dist/BloxCode-x86_64.AppImage
+   node tools/release.js feed --gitlab huginhohenriquerl/blox-code --exe dist/BloxCode.exe --appimage dist/BloxCode-x86_64.AppImage
    ```
 
    Isso grava `updates/latest.json` e `updates/latest.json.sig` e separa os arquivos em
    `dist/release/vX.Y.Z/`.
-4. Crie o release `vX.Y.Z` no [Codeberg](https://codeberg.org/HugoHenriquerl-ops/blox-code/releases/new)
-   com os dois arquivos anexados, depois faça commit e push da pasta `updates/`. É esse push que avisa
-   as cópias instaladas. Confira com
-   `node tools/release.js verify https://codeberg.org/HugoHenriquerl-ops/blox-code/raw/branch/main/updates/`.
+4. Envie os arquivos para o Package Registry do GitLab e crie o release `vX.Y.Z` (pede um token de
+   acesso com escopo `api`, sem mostrar na tela):
 
-Sem `--codeberg`, a ferramenta monta uma pasta `dist/feed` para qualquer outra hospedagem estática (com
+   ```bash
+   node tools/release.js publish-gitlab --gitlab huginhohenriquerl/blox-code
+   ```
+
+5. Faça commit e push da pasta `updates/`. É esse push que avisa as cópias instaladas. Confira com
+   `node tools/release.js verify https://gitlab.com/huginhohenriquerl/blox-code/-/raw/main/updates/`.
+
+Sem `--gitlab`, a ferramenta monta uma pasta `dist/feed` para qualquer outra hospedagem estática (com
 os arquivos ao lado do `latest.json`), que pode entrar como endereço extra em `<UpdateFeeds>`.
 
 A chave de assinatura foi criada uma vez com `node tools/release.js keygen` e fica fora do repositório,
@@ -192,9 +197,9 @@ falta de visibilidade do projeto; dá para pedir de novo quando o projeto cresce
 - **Atualizações:** são assinadas mesmo assim. O app só aceita um `latest.json` assinado com a chave
   do Blox Code (ECDSA P-256) e confere o SHA-256 de cada arquivo antes de instalar.
 - **De onde vêm os arquivos:** só dos releases em
-  [codeberg.org/HugoHenriquerl-ops/blox-code](https://codeberg.org/HugoHenriquerl-ops/blox-code),
+  [gitlab.com/huginhohenriquerl/blox-code](https://gitlab.com/huginhohenriquerl/blox-code),
   compilados a partir deste código.
-- **Mantenedor e quem aprova cada release:** [HugoHenriquerl-ops](https://codeberg.org/HugoHenriquerl-ops)
+- **Mantenedor e quem aprova cada release:** [huginhohenriquerl](https://gitlab.com/huginhohenriquerl)
 - **Mudanças no sistema:** o instalador avisa o que vai fazer antes de fazer (pasta do usuário em
   `%LocalAppData%BloxCode`, atalhos no menu Iniciar e na área de trabalho, links `roblox://` e uma
   entrada em Aplicativos). O Blox Code se desinstala por Configurações → Aplicativos ou pela página

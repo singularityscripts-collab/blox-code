@@ -19,16 +19,21 @@
 //       that folder's address in <UpdateFeeds>. --mirror adds extra download addresses, tried after
 //       the copy next to the manifest; {version} and {name} are filled in.
 //
-//   node tools/release.js feed --codeberg owner/repo --exe ... --appimage ...
-//       The Codeberg layout: latest.json + .sig go to updates/ in this repository (pushing them
-//       publishes the release; the feed is https://codeberg.org/owner/repo/raw/branch/main/updates/),
-//       and the files are attached to the release tagged v<version>, downloaded from
-//       https://codeberg.org/owner/repo/releases/download/v<version>/<name>. The files to attach
-//       are copied to dist/release/v<version>/.
+//   node tools/release.js feed --gitlab group/project --exe ... --appimage ...
+//       The GitLab layout: latest.json + .sig go to updates/ in this repository (the feed is
+//       https://gitlab.com/group/project/-/raw/main/updates/), and the files are downloaded from the
+//       project's generic package registry (bloxcode/<version>/<name>). The files are copied to
+//       dist/release/v<version>/ for the next step.
+//
+//   node tools/release.js publish-gitlab --gitlab group/project
+//       Uploads dist/release/v<version>/ to the package registry and creates the GitLab release
+//       v<version> with download links. Asks for a GitLab access token (scope "api") without
+//       showing it, or reads $GITLAB_TOKEN; the token is never written anywhere. Run it before
+//       pushing updates/, so installed copies never see a manifest whose files aren't online yet.
 //
 //   node tools/release.js verify <feed folder or https:// address>
 //       Checks the signature with the key in Directory.Build.props, and the files' hashes when they
-//       are local.
+//       are local or that they download when they are remote.
 'use strict';
 
 const crypto = require('crypto');
@@ -144,15 +149,14 @@ function feed(options) {
   if (publicKeyBase64(privateKey) !== trusted)
     fail(`the key at ${keyFile} isn't the one Directory.Build.props trusts; builds would reject this feed`);
 
-  // Codeberg: the manifest lives in the repository, the files on the release.
-  const codeberg = typeof options.codeberg === 'string' ? options.codeberg.replace(/^https:\/\/codeberg\.org\//, '').replace(/\/$/, '') : null;
-  if (options.codeberg && !/^[\w.-]+\/[\w.-]+$/.test(codeberg || '')) fail('--codeberg expects owner/repo');
-  const out = path.resolve(options.out || (codeberg ? path.join(root, 'updates') : path.join(root, 'dist', 'feed')));
-  const filesDir = codeberg ? path.join(root, 'dist', 'release', `v${version}`) : path.join(out, version);
+  // GitLab: the manifest lives in the repository, the files in the package registry.
+  const gitlab = gitlabProject(options);
+  const out = path.resolve(options.out || (gitlab ? path.join(root, 'updates') : path.join(root, 'dist', 'feed')));
+  const filesDir = gitlab ? releaseDir(version) : path.join(out, version);
   fs.mkdirSync(filesDir, { recursive: true });
   fs.mkdirSync(out, { recursive: true });
   const mirrors = [
-    ...(codeberg ? [`https://codeberg.org/${codeberg}/releases/download/v{version}/{name}`] : []),
+    ...(gitlab ? [packageUrl(gitlab, '{version}', '{name}')] : []),
     ...(options.mirror || []),
   ];
 
@@ -166,13 +170,13 @@ function feed(options) {
     if (!fs.existsSync(source)) fail(`${source} doesn't exist`);
     const target = path.join(filesDir, name);
     fs.copyFileSync(source, target);
-    if (!codeberg) {
+    if (!gitlab) {
       // A fixed address for download links; the app itself uses the versioned copy.
       fs.mkdirSync(path.join(out, 'latest'), { recursive: true });
       fs.copyFileSync(source, path.join(out, 'latest', name));
     }
     const urls = [
-      ...(codeberg ? [] : [`${version}/${name}`]),
+      ...(gitlab ? [] : [`${version}/${name}`]),
       ...mirrors.map(m => m.replace('{version}', version).replace('{name}', name)),
     ];
     assets[platform] = { name, size: fs.statSync(target).size, sha256: sha256File(target), urls };
@@ -196,9 +200,9 @@ function feed(options) {
   console.log(`Feed for ${version} written to ${out}`);
   for (const [platform, asset] of Object.entries(assets))
     console.log(`  ${platform}: ${asset.name}, ${asset.size} bytes, sha256 ${asset.sha256}`);
-  if (codeberg) {
-    console.log(`Next: create the release v${version} on https://codeberg.org/${codeberg}/releases/new, attach the files in ${filesDir},`);
-    console.log(`then commit and push ${path.relative(root, out)}/ — installed copies see the update once both are online.`);
+  if (gitlab) {
+    console.log(`Next: node tools/release.js publish-gitlab --gitlab ${gitlab}  (uploads ${filesDir} and creates the release),`);
+    console.log(`then commit and push ${path.relative(root, out)}/ — that push is what installed copies see.`);
   } else {
     console.log('Upload the whole folder (keeping its layout) to each feed address in <UpdateFeeds>.');
   }
@@ -228,8 +232,10 @@ async function verifyFeed(target) {
     if (remote || /^https?:\/\//.test(asset.urls[0])) {
       // Remote files: check they're reachable and the right size.
       for (const url of asset.urls.map(u => new URL(u, remote ? base + 'latest.json' : 'file:///').href)) {
-        const response = url.startsWith('http') ? await fetch(url, { method: 'HEAD', redirect: 'follow' }).catch(e => ({ ok: false, status: e.message })) : { ok: false, status: 'not http' };
+        // GET (not HEAD, which some registries refuse), stopping after the headers.
+        const response = url.startsWith('http') ? await fetch(url, { redirect: 'follow' }).catch(e => ({ ok: false, status: e.message })) : { ok: false, status: 'not http' };
         const size = response.ok ? Number(response.headers.get('content-length')) : 0;
+        await response.body?.cancel?.().catch(() => {});
         const ok = response.ok && (!size || size === asset.size);
         console.log(`  ${platform}: ${url} ${ok ? 'reachable' : `NOT OK (${response.status}${size ? `, ${size} bytes` : ''})`}`);
         if (!ok) process.exitCode = 1;
@@ -243,13 +249,98 @@ async function verifyFeed(target) {
   }
 }
 
+function gitlabProject(options) {
+  if (!options.gitlab) return null;
+  const project = String(options.gitlab).replace(/^https:\/\/gitlab\.com\//, '').replace(/(\.git)?\/?$/, '');
+  if (!/^[\w.-]+(\/[\w.-]+)+$/.test(project)) fail('--gitlab expects group/project');
+  return project;
+}
+
+function releaseDir(version) {
+  return path.join(root, 'dist', 'release', `v${version}`);
+}
+
+const gitlabApi = project => `https://gitlab.com/api/v4/projects/${encodeURIComponent(project)}`;
+const packageUrl = (project, version, name) => `${gitlabApi(project)}/packages/generic/bloxcode/${version}/${name}`;
+
+/** Reads the token from $GITLAB_TOKEN or the keyboard, never echoing it. */
+function askToken() {
+  if (process.env.GITLAB_TOKEN) return Promise.resolve(process.env.GITLAB_TOKEN.trim());
+  if (!process.stdin.isTTY) fail('set GITLAB_TOKEN or run this in a terminal');
+  process.stdout.write('GitLab access token (scope "api"; nothing shows while you paste): ');
+  return new Promise(resolve => {
+    let token = '';
+    process.stdin.setRawMode(true);
+    process.stdin.resume();
+    process.stdin.setEncoding('utf8');
+    process.stdin.on('data', function onData(chunk) {
+      for (const ch of chunk) {
+        if (ch === '\r' || ch === '\n') {
+          process.stdin.setRawMode(false);
+          process.stdin.pause();
+          process.stdin.removeListener('data', onData);
+          process.stdout.write('\n');
+          return resolve(token.trim());
+        }
+        if (ch === '\u0003') process.exit(130); // Ctrl+C
+        if (ch === '\u0008' || ch === '\u007f') token = token.slice(0, -1);
+        else token += ch;
+      }
+    });
+  });
+}
+
+async function publishGitlab(options) {
+  const project = gitlabProject(options) || fail('pass --gitlab group/project');
+  const version = prop('Version');
+  const dir = releaseDir(version);
+  const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter(n => Object.values(platforms).some(p => p.name === n)) : [];
+  if (files.length === 0) fail(`nothing in ${dir}; run "feed --gitlab ${project}" first`);
+  const section = changelogSection(version) || fail(`CHANGELOG.md has no "## ${version}" section`);
+
+  const token = await askToken();
+  if (!token) fail('no token given');
+  const headers = { 'PRIVATE-TOKEN': token };
+
+  for (const name of files) {
+    const file = path.join(dir, name);
+    process.stdout.write(`Uploading ${name} (${(fs.statSync(file).size / 1048576).toFixed(1)} MB)… `);
+    const response = await fetch(packageUrl(project, version, name), { method: 'PUT', headers, body: fs.readFileSync(file) });
+    if (!response.ok) fail(`upload of ${name} failed: HTTP ${response.status} ${await response.text()}`);
+    console.log('done');
+  }
+
+  const links = files.map(name => ({ name, url: packageUrl(project, version, name), link_type: 'package' }));
+  const description = [
+    '### Baixar',
+    '',
+    ...links.map(l => `- [${l.name}](${l.url})`),
+    '',
+    'Quem já tem o Blox Code 1.6.0 ou mais novo recebe esta versão sozinho, com atualização assinada.',
+    '',
+    '### O que mudou',
+    '',
+    section.notes,
+  ].join('\n');
+  const response = await fetch(`${gitlabApi(project)}/releases`, {
+    method: 'POST',
+    headers: { ...headers, 'content-type': 'application/json' },
+    body: JSON.stringify({ tag_name: `v${version}`, ref: 'main', name: `v${version} — ${section.title}`, description, assets: { links } }),
+  });
+  if (response.status === 409) console.log(`Release v${version} already exists; the files were updated.`);
+  else if (!response.ok) fail(`creating the release failed: HTTP ${response.status} ${await response.text()}`);
+  else console.log(`Release v${version} created: https://gitlab.com/${project}/-/releases/v${version}`);
+  console.log('Now commit and push updates/ to make installed copies see it.');
+}
+
 const [command, ...rest] = process.argv.slice(2);
 const options = args(rest);
 switch (command) {
   case 'keygen': keygen(options); break;
   case 'feed': feed(options); break;
+  case 'publish-gitlab': publishGitlab(options); break;
   case 'verify': verifyFeed(options._[0]); break;
   default:
-    console.log('usage: node tools/release.js keygen | feed --exe <file> --appimage <file> [--out <dir>] [--mirror <url>] | verify <folder|url>');
+    console.log('usage: node tools/release.js keygen | feed [--gitlab group/project] --exe <file> --appimage <file> [--out <dir>] [--mirror <url>] | publish-gitlab --gitlab group/project | verify <folder|url>');
     process.exit(command ? 1 : 0);
 }

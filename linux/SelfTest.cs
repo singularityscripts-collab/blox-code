@@ -307,14 +307,14 @@ public static class SelfTest
                 string hash = new string('a', 64);
                 byte[] manifest = System.Text.Encoding.UTF8.GetBytes($$$"""
                     {"format":1,"product":"BloxCode","version":"9.8.7","title":"Test","assets":{
-                      "linux-x64":{"name":"BloxCode-x86_64.AppImage","size":5,"sha256":"{{{hash}}}","urls":["9.8.7/BloxCode-x86_64.AppImage","http://evil.example/x","https://mirror.example/b"]}} }
+                      "linux-x64":{"name":"BloxCode-x86_64.AppImage","size":5,"sha256":"{{{hash}}}","urls":["9.8.7/BloxCode-x86_64.AppImage","http://evil.example/x","https://mirror.example/p/a%2Fb/c"]}} }
                     """);
                 var feed = new Uri("https://updates.example/feed/latest.json");
                 byte[] signature = System.Text.Encoding.ASCII.GetBytes(Sign(manifest) + "\n");
 
                 var info = Updater.ReadManifest(manifest, signature, publicKey, feed, "linux-x64");
                 Expect(info is { Version.Major: 9, Size: 5 } && info.Sha256 == hash, "a signed manifest reads");
-                Expect(info!.DownloadUrls.SequenceEqual(new[] { "https://updates.example/feed/9.8.7/BloxCode-x86_64.AppImage", "https://mirror.example/b" }),
+                Expect(info!.DownloadUrls.SequenceEqual(new[] { "https://updates.example/feed/9.8.7/BloxCode-x86_64.AppImage", "https://mirror.example/p/a%2Fb/c" }),
                     "relative addresses resolve next to the manifest; plain http is dropped");
                 Expect(Updater.ReadManifest(manifest, signature, publicKey, feed, "windows-x64") is null, "a missing platform is no update");
 
