@@ -1,25 +1,25 @@
 {
   "format": 1,
   "product": "BloxCode",
-  "version": "1.7.1",
-  "title": "Atualizações só pelo GitHub",
-  "published": "2026-11-08T15:24:19.603Z",
-  "notes": "- O Blox Code agora busca atualizações só no GitHub. O endereço de reserva do GitLab foi removido.",
+  "version": "1.8.0",
+  "title": "Visual minimalista e tela inicial",
+  "published": "2026-11-08T17:23:25.535Z",
+  "notes": "### Tela inicial\n\n- Ao abrir o Blox Code aparece uma tela como a do Bloxstrap: **Launch Roblox**, que já mostra o\n  preset gráfico, os mods e as Fast Flags que vão ser usados, ou **Configure Blox Code**. Fechar a\n  tela fecha o Blox Code. Links do Roblox e o atalho \"Play Roblox\" continuam abrindo o jogo direto, e\n  `-menu` abre as configurações sem passar por ela.\n\n### Visual\n\n- Visual minimalista nos dois sistemas: fundo grafite (ou quase branco no tema claro), cartões\n  chapados com bordas finas, sem brilho de fundo, sem gradientes e sem sombras.\n- O menta fica só no que importa: o botão principal e os interruptores. Opções escolhidas e a página\n  aberta na barra lateral usam um destaque neutro.\n- Títulos um pouco menores e mais leves, seções da barra lateral sem letras maiúsculas e rodapé da\n  barra lateral sem moldura.",
   "assets": {
     "windows-x64": {
       "name": "BloxCode.exe",
-      "size": 62912775,
-      "sha256": "4d1f94d23a78b50147330c953b996f852af1e75e9e1345b2481d27472ac6c1ad",
+      "size": 62914525,
+      "sha256": "a473677660c1a9953e65d00d9885959304140c281b3000e8f2aa5453e1abf44a",
       "urls": [
-        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.7.1/BloxCode.exe"
+        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.8.0/BloxCode.exe"
       ]
     },
     "linux-x64": {
       "name": "BloxCode-x86_64.AppImage",
-      "size": 42052088,
-      "sha256": "f92c3374e29e39b2f5db7aa471ab0bb8a036e48259cef238dc10e5de8227f64f",
+      "size": 42056184,
+      "sha256": "5cd50e5b8f5d3accf4d1d07223294d1177059f56fc8f3b07543f1e04a8720451",
       "urls": [
-        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.7.1/BloxCode-x86_64.AppImage"
+        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.8.0/BloxCode-x86_64.AppImage"
       ]
     }
   }
