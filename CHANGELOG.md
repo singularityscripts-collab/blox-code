@@ -3,6 +3,10 @@
 Todas as versões do Blox Code, da mais nova para a mais antiga. Quem tem o Blox Code instalado
 recebe cada versão automaticamente na próxima vez que abrir.
 
+## 1.7.1 — Atualizações só pelo GitHub
+
+- O Blox Code agora busca atualizações só no GitHub. O endereço de reserva do GitLab foi removido.
+
 ## 1.7.0 — Presets de mods do Bloxstrap
 
 ### Mods
