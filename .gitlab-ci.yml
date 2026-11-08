@@ -1,0 +1,63 @@
+# Builds the Linux AppImage on GitLab and tests it on the distro families Blox Code supports.
+# The Windows exe is built on Windows (dotnet publish), and releases are signed and published from
+# the maintainer's machine with tools/release.js, so the signing key never reaches CI.
+#
+# Download the tested AppImage from a pipeline with:
+#   https://gitlab.com/huginhohenriquerl/blox-code/-/jobs/artifacts/<ref>/raw/dist/BloxCode-x86_64.AppImage?job=appimage
+
+stages: [build, test]
+
+variables:
+  DOTNET_NOLOGO: "1"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DEBIAN_FRONTEND: noninteractive
+
+.display-libs-apt: &display-libs-apt
+  - apt-get update
+  - apt-get install -y --no-install-recommends
+      ca-certificates xvfb xauth libx11-6 libice6 libsm6 libfontconfig1 libxrandr2 libxi6 libxcursor1 libgl1 fonts-dejavu-core
+
+appimage:
+  # Built on the oldest supported base (Ubuntu 22.04) so the AppImage runs on everything newer.
+  stage: build
+  image: ubuntu:22.04
+  variables:
+    DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: "1"
+  before_script:
+    - *display-libs-apt
+    - apt-get install -y --no-install-recommends curl file git desktop-file-utils
+    - curl -fsSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh
+    - bash /tmp/dotnet-install.sh --jsonfile global.json --install-dir /opt/dotnet
+    - export PATH="/opt/dotnet:$PATH" DOTNET_ROOT=/opt/dotnet
+  script:
+    - bash linux/packaging/build-appimage.sh
+    - APPIMAGE_EXTRACT_AND_RUN=1 dist/BloxCode-x86_64.AppImage --self-test
+    - APPIMAGE_EXTRACT_AND_RUN=1 timeout 120 xvfb-run -a dist/BloxCode-x86_64.AppImage --self-test --ui
+    - sha256sum dist/BloxCode-x86_64.AppImage
+  artifacts:
+    paths: [dist/BloxCode-x86_64.AppImage]
+    expire_in: 90 days
+
+.distro-test:
+  stage: test
+  needs: [appimage]
+  script:
+    - chmod +x dist/BloxCode-x86_64.AppImage
+    - APPIMAGE_EXTRACT_AND_RUN=1 dist/BloxCode-x86_64.AppImage --self-test
+    - APPIMAGE_EXTRACT_AND_RUN=1 timeout 120 xvfb-run -a dist/BloxCode-x86_64.AppImage --self-test --ui
+
+ubuntu-24.04:
+  extends: .distro-test
+  image: ubuntu:24.04
+  before_script: *display-libs-apt
+
+debian-12:
+  extends: .distro-test
+  image: debian:12
+  before_script: *display-libs-apt
+
+archlinux:
+  extends: .distro-test
+  image: archlinux:latest
+  before_script:
+    - pacman -Syu --noconfirm --needed xorg-server-xvfb xorg-xauth libx11 libice libsm fontconfig libxrandr libxi libxcursor mesa ttf-dejavu
