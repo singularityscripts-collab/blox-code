@@ -19,6 +19,15 @@
 //       that folder's address in <UpdateFeeds>. --mirror adds extra download addresses, tried after
 //       the copy next to the manifest; {version} and {name} are filled in.
 //
+//   node tools/release.js fetch-github --github owner/repo
+//       Downloads BloxCode.exe and BloxCode-x86_64.AppImage from the GitHub release v<version>
+//       (built by GitHub Actions) into dist/release/v<version>/, for the feed step.
+//
+//   node tools/release.js feed --github owner/repo --exe ... --appimage ...
+//       The GitHub layout: latest.json + .sig go to updates/ in this repository (served from
+//       raw.githubusercontent.com and from every mirror of the repository), and the files are
+//       downloaded from https://github.com/owner/repo/releases/download/v<version>/<name>.
+//
 //   node tools/release.js feed --gitlab group/project --exe ... --appimage ...
 //       The GitLab layout: latest.json + .sig go to updates/ in this repository (the feed is
 //       https://gitlab.com/group/project/-/raw/main/updates/), and the files are downloaded from the
@@ -149,13 +158,17 @@ function feed(options) {
   if (publicKeyBase64(privateKey) !== trusted)
     fail(`the key at ${keyFile} isn't the one Directory.Build.props trusts; builds would reject this feed`);
 
-  // GitLab: the manifest lives in the repository, the files in the package registry.
+  // GitHub / GitLab: the manifest lives in the repository, the files on the release (GitHub) or in
+  // the package registry (GitLab).
   const gitlab = gitlabProject(options);
-  const out = path.resolve(options.out || (gitlab ? path.join(root, 'updates') : path.join(root, 'dist', 'feed')));
-  const filesDir = gitlab ? releaseDir(version) : path.join(out, version);
+  const github = githubRepo(options);
+  const hosted = Boolean(gitlab || github);
+  const out = path.resolve(options.out || (hosted ? path.join(root, 'updates') : path.join(root, 'dist', 'feed')));
+  const filesDir = hosted ? releaseDir(version) : path.join(out, version);
   fs.mkdirSync(filesDir, { recursive: true });
   fs.mkdirSync(out, { recursive: true });
   const mirrors = [
+    ...(github ? [`https://github.com/${github}/releases/download/v{version}/{name}`] : []),
     ...(gitlab ? [packageUrl(gitlab, '{version}', '{name}')] : []),
     ...(options.mirror || []),
   ];
@@ -169,14 +182,15 @@ function feed(options) {
     }
     if (!fs.existsSync(source)) fail(`${source} doesn't exist`);
     const target = path.join(filesDir, name);
-    fs.copyFileSync(source, target);
-    if (!gitlab) {
+    if (path.resolve(source) !== path.resolve(target))
+      fs.copyFileSync(source, target);
+    if (!hosted) {
       // A fixed address for download links; the app itself uses the versioned copy.
       fs.mkdirSync(path.join(out, 'latest'), { recursive: true });
       fs.copyFileSync(source, path.join(out, 'latest', name));
     }
     const urls = [
-      ...(gitlab ? [] : [`${version}/${name}`]),
+      ...(hosted ? [] : [`${version}/${name}`]),
       ...mirrors.map(m => m.replace('{version}', version).replace('{name}', name)),
     ];
     assets[platform] = { name, size: fs.statSync(target).size, sha256: sha256File(target), urls };
@@ -200,7 +214,9 @@ function feed(options) {
   console.log(`Feed for ${version} written to ${out}`);
   for (const [platform, asset] of Object.entries(assets))
     console.log(`  ${platform}: ${asset.name}, ${asset.size} bytes, sha256 ${asset.sha256}`);
-  if (gitlab) {
+  if (github) {
+    console.log(`Next: commit updates/ and push it to GitHub and GitLab — that push is what installed copies see.`);
+  } else if (gitlab) {
     console.log(`Next: node tools/release.js publish-gitlab --gitlab ${gitlab}  (uploads ${filesDir} and creates the release),`);
     console.log(`then commit and push ${path.relative(root, out)}/ — that push is what installed copies see.`);
   } else {
@@ -254,6 +270,31 @@ function gitlabProject(options) {
   const project = String(options.gitlab).replace(/^https:\/\/gitlab\.com\//, '').replace(/(\.git)?\/?$/, '');
   if (!/^[\w.-]+(\/[\w.-]+)+$/.test(project)) fail('--gitlab expects group/project');
   return project;
+}
+
+function githubRepo(options) {
+  if (!options.github) return null;
+  const repo = String(options.github).replace(/^https:\/\/github\.com\//, '').replace(/(\.git)?\/?$/, '');
+  if (!/^[\w.-]+\/[\w.-]+$/.test(repo)) fail('--github expects owner/repo');
+  return repo;
+}
+
+/** Downloads this version's files from the GitHub release (public, no login needed). */
+async function fetchGithub(options) {
+  const repo = githubRepo(options) || fail('pass --github owner/repo');
+  const version = prop('Version');
+  const dir = releaseDir(version);
+  fs.mkdirSync(dir, { recursive: true });
+  for (const { name } of Object.values(platforms)) {
+    const url = `https://github.com/${repo}/releases/download/v${version}/${name}`;
+    process.stdout.write(`Downloading ${name}… `);
+    const response = await fetch(url, { redirect: 'follow' });
+    if (!response.ok) { console.log(`HTTP ${response.status}`); process.exitCode = 1; continue; }
+    const data = Buffer.from(await response.arrayBuffer());
+    fs.writeFileSync(path.join(dir, name), data);
+    console.log(`${(data.length / 1048576).toFixed(1)} MB`);
+  }
+  console.log(`Saved to ${dir}`);
 }
 
 function releaseDir(version) {
@@ -339,8 +380,9 @@ switch (command) {
   case 'keygen': keygen(options); break;
   case 'feed': feed(options); break;
   case 'publish-gitlab': publishGitlab(options); break;
+  case 'fetch-github': fetchGithub(options); break;
   case 'verify': verifyFeed(options._[0]); break;
   default:
-    console.log('usage: node tools/release.js keygen | feed [--gitlab group/project] --exe <file> --appimage <file> [--out <dir>] [--mirror <url>] | publish-gitlab --gitlab group/project | verify <folder|url>');
+    console.log('usage: node tools/release.js keygen | fetch-github --github owner/repo | feed [--github owner/repo | --gitlab group/project] --exe <file> --appimage <file> [--out <dir>] [--mirror <url>] | publish-gitlab --gitlab group/project | verify <folder|url>');
     process.exit(command ? 1 : 0);
 }
