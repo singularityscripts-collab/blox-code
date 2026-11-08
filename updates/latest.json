@@ -1,25 +1,25 @@
 {
   "format": 1,
   "product": "BloxCode",
-  "version": "1.7.0",
-  "title": "Presets de mods do Bloxstrap",
-  "published": "2026-11-08T15:15:14.395Z",
-  "notes": "### Mods\n\n- **Presets com um clique**, iguais aos do Bloxstrap (lidos do próprio Bloxstrap com engenharia\n  reversa):\n  - **Cursor do mouse** de 2006 ou de 2013;\n  - **Sons antigos do personagem**: passos, pulo e levantar clássicos; queda, aterrissagem, nado e\n    splash ficam em silêncio;\n  - **Fundo antigo do editor de avatar** (só no Windows);\n  - **Estilo de emoji**: Catmoji, Windows 11, Windows 10 ou Windows 8. A fonte é baixada quando você\n    escolhe e conferida antes de ser usada.\n- Desligar um preset apaga só os arquivos dele. Se você trocou algum por um arquivo seu, ele fica.\n- Os arquivos que vieram de um preset aparecem como \"From the … preset\" na lista de mods.\n- Nova aba **Presets** e **Reset all** também desliga os presets e o emoji.\n\n### Linux\n\n- O AppImage volta a ser gerado e testado automaticamente (Ubuntu 22.04 e 24.04, Debian 12 e Arch),\n  agora pelo GitLab.",
+  "version": "1.7.1",
+  "title": "Atualizações só pelo GitHub",
+  "published": "2026-11-08T15:24:19.603Z",
+  "notes": "- O Blox Code agora busca atualizações só no GitHub. O endereço de reserva do GitLab foi removido.",
   "assets": {
     "windows-x64": {
       "name": "BloxCode.exe",
-      "size": 62912780,
-      "sha256": "ea439797f46530e7a094da8149a6d491b13bced677060d307f60eb9f66c0c07f",
+      "size": 62912775,
+      "sha256": "4d1f94d23a78b50147330c953b996f852af1e75e9e1345b2481d27472ac6c1ad",
       "urls": [
-        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.7.0/BloxCode.exe"
+        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.7.1/BloxCode.exe"
       ]
     },
     "linux-x64": {
       "name": "BloxCode-x86_64.AppImage",
       "size": 42052088,
-      "sha256": "bf38290422bfffeeff2f76a46750f12dc821ccf93936c939aa276416ca37530e",
+      "sha256": "f92c3374e29e39b2f5db7aa471ab0bb8a036e48259cef238dc10e5de8227f64f",
       "urls": [
-        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.7.0/BloxCode-x86_64.AppImage"
+        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.7.1/BloxCode-x86_64.AppImage"
       ]
     }
   }
