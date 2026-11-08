@@ -13,7 +13,7 @@ namespace BloxCode.UI.Pages;
 /// </summary>
 public partial class ModsPage : UserControl
 {
-    private const string AllTab = "All", AdvancedTab = "Advanced";
+    private const string AllTab = "All", PresetsTab = "Presets", AdvancedTab = "Advanced";
 
     private readonly MainWindow _window;
     private readonly MediaPlayer _player = new();
@@ -26,7 +26,7 @@ public partial class ModsPage : UserControl
         InitializeComponent();
         FolderPath.Text = Paths.Modifications;
 
-        foreach (string tab in ModCatalog.Groups.Select(g => g.Key).Prepend(AllTab).Append(AdvancedTab))
+        foreach (string tab in ModCatalog.Groups.Select(g => g.Key).Prepend(PresetsTab).Prepend(AllTab).Append(AdvancedTab))
         {
             var segment = new RadioButton { Content = tab, GroupName = "modTabs" + GetHashCode(), IsChecked = tab == _tab };
             segment.SetResourceReference(StyleProperty, "Segment");
@@ -71,10 +71,12 @@ public partial class ModsPage : UserControl
 
     private void Refresh()
     {
+        BuildPresets();
         BuildSlots();
-        Groups.Visibility = _tab == AdvancedTab ? Visibility.Collapsed : Visibility.Visible;
+        PresetsHost.Visibility = _tab is AllTab or PresetsTab ? Visibility.Visible : Visibility.Collapsed;
+        Groups.Visibility = _tab is AdvancedTab or PresetsTab ? Visibility.Collapsed : Visibility.Visible;
         AdvancedCard.Visibility = _tab is AllTab or AdvancedTab ? Visibility.Visible : Visibility.Collapsed;
-        ResetAllButton.Visibility = ModCatalog.Slots.Any(s => ModCatalog.CurrentFile(s) is not null) ? Visibility.Visible : Visibility.Collapsed;
+        ResetAllButton.Visibility = AnythingChanged() ? Visibility.Visible : Visibility.Collapsed;
 
         List<string> mods;
         try
@@ -102,6 +104,105 @@ public partial class ModsPage : UserControl
             _ => $"{mods.Count} files, including the ones picked above:",
         };
     }
+
+    // ===== Presets (Bloxstrap's, see ModPresets) =====
+
+    private bool _emojiBusy;
+
+    private void BuildPresets()
+    {
+        PresetsHost.Children.Clear();
+        var rows = new StackPanel();
+        rows.Children.Add(new TextBlock { Text = "Presets" }.Styled("Text.H2"));
+        rows.Children.Add(new TextBlock { Text = "Bloxstrap's one-click mods. Turning one off removes only its own files.", Margin = new Thickness(0, 2, 0, 6) }.Styled("Text.Muted"));
+
+        var cursor = ModPresets.CurrentCursor();
+        rows.Children.Add(PresetRow("Mouse cursor", "Roblox's arrow from 2006 or 2013.",
+            Segments(ModPresets.CursorOptions.Select(o => (o.Label, o.Style == cursor, (Action)(() => Run(() => ModPresets.SetCursor(o.Style))))))));
+
+        foreach (var preset in ModPresets.Toggles)
+        {
+            rows.Children.Add(new Border().Styled("Divider"));
+            var toggle = new CheckBox { IsChecked = ModPresets.IsOn(preset), VerticalAlignment = VerticalAlignment.Center }.Styled("Toggle");
+            toggle.Checked += (_, _) => Run(() => ModPresets.Set(preset, true));
+            toggle.Unchecked += (_, _) => Run(() => ModPresets.Set(preset, false));
+            rows.Children.Add(PresetRow(preset.Title, preset.Description, toggle));
+        }
+
+        rows.Children.Add(new Border().Styled("Divider"));
+        var emoji = ModPresets.CurrentEmoji();
+        string emojiText = _emojiBusy ? "Downloading the font…"
+            : emoji is null ? "You have your own emoji font in the Modifications folder; picking one here replaces it."
+            : "Emoji in chat and names. The fonts download from Bloxstrap's server when you pick one.";
+        var emojiSegments = Segments(ModPresets.EmojiOptions.Select(o => (o.Label, o.Style == emoji, (Action)(() => PickEmoji(o.Style)))));
+        emojiSegments.IsEnabled = !_emojiBusy;
+        rows.Children.Add(PresetRow("Emoji style", emojiText, emojiSegments, stacked: true));
+
+        PresetsHost.Children.Add(new Border { Child = rows }.Styled("Card"));
+    }
+
+    private static FrameworkElement PresetRow(string title, string description, FrameworkElement control, bool stacked = false)
+    {
+        var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 12, 0) };
+        text.Children.Add(new TextBlock { Text = title, FontWeight = FontWeights.SemiBold });
+        text.Children.Add(new TextBlock { Text = description, TextWrapping = TextWrapping.Wrap }.Styled("Text.Muted"));
+        if (stacked)
+        {
+            control.HorizontalAlignment = HorizontalAlignment.Left;
+            control.Margin = new Thickness(0, 8, 0, 0);
+            var column = new StackPanel { Margin = new Thickness(0, 4, 0, 4) };
+            column.Children.Add(text);
+            column.Children.Add(control);
+            return column;
+        }
+        var row = new DockPanel { Margin = new Thickness(0, 4, 0, 4) };
+        control.VerticalAlignment = VerticalAlignment.Center;
+        DockPanel.SetDock(control, Dock.Right);
+        row.Children.Add(control);
+        row.Children.Add(text);
+        return row;
+    }
+
+    /// <summary>A pill-shaped segmented control; each option runs its action when picked.</summary>
+    private FrameworkElement Segments(IEnumerable<(string Label, bool Selected, Action Pick)> options)
+    {
+        var panel = new StackPanel { Orientation = Orientation.Horizontal };
+        string group = "preset" + Guid.NewGuid().ToString("N");
+        foreach (var (label, selected, pick) in options)
+        {
+            var segment = new RadioButton { Content = label, GroupName = group, IsChecked = selected };
+            segment.SetResourceReference(StyleProperty, "Segment");
+            segment.Checked += (_, _) => { if (!selected) pick(); };
+            panel.Children.Add(segment);
+        }
+        return new Border { Child = panel }.Styled("Segmented");
+    }
+
+    private async void PickEmoji(EmojiStyle style)
+    {
+        _emojiBusy = true;
+        Refresh();
+        try
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+            await ModPresets.SetEmojiAsync(style, App.Http, cts.Token);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or InvalidDataException or IOException or UnauthorizedAccessException or OperationCanceledException)
+        {
+            Logger.Warn("ModsPage::PickEmoji", ex.Message);
+            MessageDialog.Show(_window, "Couldn't change the emoji font", ex is OperationCanceledException ? "The download took too long. Check your connection and try again." : ex.Message);
+        }
+        finally
+        {
+            _emojiBusy = false;
+            Refresh();
+        }
+    }
+
+    private static bool AnythingChanged() =>
+        ModCatalog.Slots.Any(s => ModCatalog.CurrentFile(s) is not null)
+        || ModPresets.Toggles.Any(p => ModPresets.IsOn(p))
+        || ModPresets.CurrentEmoji() is not EmojiStyle.Default;
 
     // ===== Slots =====
 
@@ -157,7 +258,9 @@ public partial class ModsPage : UserControl
         else
         {
             var info = new FileInfo(current);
-            status.Text = $"Custom · {Size(info.Length)} · changed {info.LastWriteTime:d MMM}";
+            status.Text = ModPresets.OwnerOf(slot.Targets[0]) is { } preset
+                ? $"From the {preset.Title} preset"
+                : $"Custom · {Size(info.Length)} · changed {info.LastWriteTime:d MMM}";
             status.SetResourceReference(TextBlock.ForegroundProperty, "Brush.Accent");
         }
 
@@ -296,13 +399,23 @@ public partial class ModsPage : UserControl
         }
     }
 
-    private void OnResetAll(object sender, RoutedEventArgs e)
+    private async void OnResetAll(object sender, RoutedEventArgs e)
     {
         var swapped = ModCatalog.Slots.Where(s => ModCatalog.CurrentFile(s) is not null).ToList();
-        if (swapped.Count == 0 || !MessageDialog.Ask(_window, $"Reset {swapped.Count} mod(s)?",
-                "Roblox's own cursor, sounds and font come back on the next launch. Files in the Advanced folder stay.", "Reset all", "Cancel"))
+        var presets = ModPresets.Toggles.Where(p => ModPresets.IsOn(p)).ToList();
+        bool emoji = ModPresets.CurrentEmoji() is not EmojiStyle.Default and not null;
+        int count = swapped.Count + presets.Count + (emoji ? 1 : 0);
+        if (count == 0 || !MessageDialog.Ask(_window, $"Reset {count} mod(s)?",
+                "Roblox's own cursor, sounds, font and emoji come back on the next launch. Files in the Advanced folder stay.", "Reset all", "Cancel"))
             return;
-        Run(() => swapped.ForEach(s => ModCatalog.Reset(s)));
+        Run(() =>
+        {
+            presets.ForEach(p => ModPresets.Set(p, false));
+            swapped.ForEach(s => ModCatalog.Reset(s));
+        });
+        if (emoji)
+            await ModPresets.SetEmojiAsync(EmojiStyle.Default, App.Http, CancellationToken.None); // only deletes, no download
+        Refresh();
     }
 
     private static string? DroppedFile(DragEventArgs e) =>

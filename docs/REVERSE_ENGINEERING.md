@@ -105,6 +105,28 @@ outras flags da
 (qualidade FRM, grama, LOD de CSG e `FFlagDebugGraphicsPrefer*`), que alimentam o preset gráfico
 Lowest/Low/Medium/High.
 
+### Presets de mods (`ModPresetTask`)
+
+Lido com REA no mesmo `Bloxstrap.dll` (`inspect_managed_artifact` → recursos;
+`inspect_managed_members` nos tipos `ModsViewModel`, `ModPresetTask`, `EmojiModPresetTask`,
+`FontModPresetTask`, `EmojiTypeEx` e nas bases `BoolBaseTask`/`EnumBaseTask<T>`):
+
+| Observado | Evidência |
+| --- | --- |
+| Cada preset é um mapa "caminho dentro de `Modifications` → recurso embutido" (`_pathMap`), com um `ModPresetFileData` por arquivo que compara o hash (`HashMatches`). | campos `_pathMap`/`_fileDataMap`, chamadas `HashMatches`, `get_FullFilePath`, `get_ResourceStream` |
+| O estado ligado/desligado não fica salvo: o construtor lê a pasta e só considera ligado se **todos** os arquivos batem com o recurso. | `ModPresetTask..ctor` chama `HashMatches` e `set_OriginalState` |
+| Ligar grava o recurso no caminho (cria a pasta); desligar apaga **só** os arquivos que ainda batem com o recurso. | `Execute`: `CreateDirectory`, `WriteAllBytes`, `HashMatches` antes de `File.Delete` |
+| Sons antigos: `action_footsteps_plastic.mp3`→`OldWalk`, `action_jump.mp3`→`OldJump`, `action_get_up.mp3`→`OldGetUp`; `action_falling`, `action_jump_land`, `action_swim` e `impact_water` → `Empty.mp3`. | literais `ldstr` em `ModsViewModel` |
+| Cursor 2006/2013: `ArrowCursor.png` e `ArrowFarCursor.png` em `content\textures\Cursors\KeyboardMouse`. | enum `CursorType` + literais |
+| Fundo antigo do editor de avatar: `ExtraContent\places\Mobile.rbxl` → `OldAvatarBackground.rbxl`. | literais |
+| Emoji: `content\fonts\TwemojiMozilla.ttf`, baixado de `bloxstraplabs/rbxcustom-fontemojis` (Catmoji, Windows 11/10/8), estado pelo MD5 do arquivo. | `EmojiTypeEx.get_Filenames/get_Hashes`, URL base |
+| Os 9 arquivos embutidos (`Bloxstrap.Resources.Mods.*`) foram extraídos dos recursos do assembly e conferidos pelo SHA-256 que o REA reportou. | `managed` → `resources` |
+
+O Blox Code reimplementa isso em `shared/ModPresets.cs`, com os arquivos do Bloxstrap (MIT) em
+`shared/ModPresets`. Diferenças: o falling usa `action_falling.ogg`, o nome atual no Roblox (o
+Bloxstrap 2.11.4 ainda aponta para `.mp3`); as fontes de emoji são conferidas por SHA-256; o fundo
+do avatar só aparece no Windows (o Sober roda o cliente Android).
+
 ## 5. O que o Blox Code reimplementa / não reimplementa
 
 Reimplementado do zero (sem copiar código do Bloxstrap): itens 1–9 da seção 2, integração

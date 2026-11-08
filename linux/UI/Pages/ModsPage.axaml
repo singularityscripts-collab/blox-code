@@ -10,12 +10,15 @@
                 <TextBlock Text="Mods" Classes="h1" />
             </DockPanel>
             <TextBlock Classes="muted" Margin="0,0,0,16"
-                       Text="Pick a file for anything you want to change, or drop one onto its row. It goes into Sober's asset overlay right away, and Reset brings Roblox's original back." />
+                       Text="Turn on a ready-made preset, or pick a file for anything you want to change (you can drop one onto its row). It goes into Sober's asset overlay right away, and Reset brings Roblox's original back." />
 
             <!-- Tabs: everything, one group, or the advanced lists -->
             <Border Classes="segmented" HorizontalAlignment="Left" Margin="0,0,0,14">
                 <StackPanel x:Name="Tabs" Orientation="Horizontal" />
             </Border>
+
+            <!-- Bloxstrap's ready-made presets (ModPresets), built in code -->
+            <StackPanel x:Name="PresetsHost" />
 
             <!-- One card per group (Cursor, Sounds, Font), built from ModCatalog -->
             <StackPanel x:Name="Groups" />

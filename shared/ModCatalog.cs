@@ -172,7 +172,7 @@ public static class ModCatalog
     }
 
     /// <summary>Removes now-empty folders up to (not including) the Modifications folder.</summary>
-    private static void PruneEmpty(string dir, string root)
+    internal static void PruneEmpty(string dir, string root)
     {
         string stop = Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar);
         for (var current = Path.GetFullPath(dir); current.Length > stop.Length && current.StartsWith(stop, Paths.PathComparison);

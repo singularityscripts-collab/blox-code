@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!-- Platform-neutral pieces shared by the WPF app (Windows) and the Avalonia app (Linux):
-       settings, logging, Fast Flag rules, launch arguments and the self-updater. -->
+       settings, logging, Fast Flag rules, mods, launch arguments and the self-updater. -->
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>BloxCode.Core</RootNamespace>
@@ -12,6 +12,8 @@
        so they don't depend on any website staying up. -->
   <ItemGroup>
     <EmbeddedResource Include="..\CHANGELOG.md" LogicalName="CHANGELOG.md" Visible="false" />
+    <!-- Bloxstrap's mod preset files (MIT, see ModPresets/LICENSE-Bloxstrap.txt). -->
+    <EmbeddedResource Include="ModPresets\*.png;ModPresets\*.mp3;ModPresets\*.rbxl" LogicalName="ModPresets.%(Filename)%(Extension)" />
   </ItemGroup>
 
 </Project>

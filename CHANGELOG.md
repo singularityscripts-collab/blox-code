@@ -3,6 +3,27 @@
 Todas as versões do Blox Code, da mais nova para a mais antiga. Quem tem o Blox Code instalado
 recebe cada versão automaticamente na próxima vez que abrir.
 
+## 1.7.0 — Presets de mods do Bloxstrap
+
+### Mods
+
+- **Presets com um clique**, iguais aos do Bloxstrap (lidos do próprio Bloxstrap com engenharia
+  reversa):
+  - **Cursor do mouse** de 2006 ou de 2013;
+  - **Sons antigos do personagem**: passos, pulo e levantar clássicos; queda, aterrissagem, nado e
+    splash ficam em silêncio;
+  - **Fundo antigo do editor de avatar** (só no Windows);
+  - **Estilo de emoji**: Catmoji, Windows 11, Windows 10 ou Windows 8. A fonte é baixada quando você
+    escolhe e conferida antes de ser usada.
+- Desligar um preset apaga só os arquivos dele. Se você trocou algum por um arquivo seu, ele fica.
+- Os arquivos que vieram de um preset aparecem como "From the … preset" na lista de mods.
+- Nova aba **Presets** e **Reset all** também desliga os presets e o emoji.
+
+### Linux
+
+- O AppImage volta a ser gerado e testado automaticamente (Ubuntu 22.04 e 24.04, Debian 12 e Arch),
+  agora pelo GitLab.
+
 ## 1.6.0 — Atualizações que não dependem do GitHub
 
 ### Atualizações

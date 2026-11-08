@@ -139,6 +139,46 @@ public static class SelfTest
                 Expect(!Directory.EnumerateFileSystemEntries(mods).Any(), "resets leave nothing behind");
             });
 
+            Check("Bloxstrap-style mod presets", () =>
+            {
+                string mods = Path.Combine(Paths.Cache, "preset-test");
+                Directory.CreateDirectory(mods);
+                var sounds = ModPresets.OldCharacterSounds;
+                Expect(sounds.Files.Values.All(r => ModPresets.Resource(r).Length > 0), "built-in files are in the build");
+                Expect(!ModPresets.IsOn(sounds, mods), "off by default");
+
+                ModPresets.Set(sounds, true, mods);
+                Expect(ModPresets.IsOn(sounds, mods), "on once written");
+                Expect(ModPresets.OwnerOf("content/sounds/action_jump.mp3", mods) == sounds, "files know their preset");
+
+                // A file the user swapped in afterwards survives turning the preset off.
+                string jump = Path.Combine(mods, "content", "sounds", "action_jump.mp3");
+                File.WriteAllText(jump, "mine");
+                Expect(!ModPresets.IsOn(sounds, mods) && ModPresets.OwnerOf("content/sounds/action_jump.mp3", mods) is null, "a changed file breaks the match");
+                ModPresets.Set(sounds, false, mods);
+                Expect(File.ReadAllText(jump) == "mine" && ModSync.ListMods(mods).SequenceEqual(new[] { "content/sounds/action_jump.mp3" }), "off removes only the preset's own files");
+                File.Delete(jump);
+
+                ModPresets.SetCursor(CursorStyle.From2006, mods);
+                Expect(ModPresets.CurrentCursor(mods) == CursorStyle.From2006, "2006 cursor reads back");
+                ModPresets.SetCursor(CursorStyle.From2013, mods);
+                Expect(ModPresets.CurrentCursor(mods) == CursorStyle.From2013 && ModSync.ListMods(mods).Count == 2, "switching replaces the arrows");
+                ModPresets.SetCursor(CursorStyle.Default, mods);
+                Expect(ModPresets.CurrentCursor(mods) == CursorStyle.Default, "Default removes them");
+
+                Expect(ModPresets.CurrentEmoji(mods) == EmojiStyle.Default, "no emoji font is Default");
+                string emoji = Path.Combine(mods, "content", "fonts", "TwemojiMozilla.ttf");
+                Directory.CreateDirectory(Path.GetDirectoryName(emoji)!);
+                File.WriteAllText(emoji, "someone else's font");
+                Expect(ModPresets.CurrentEmoji(mods) is null, "an unknown emoji font is the user's own");
+                ModPresets.SetEmojiAsync(EmojiStyle.Default, new HttpClient(), CancellationToken.None, mods).GetAwaiter().GetResult();
+                Expect(File.Exists(emoji), "Default leaves the user's own emoji font alone");
+                Directory.Delete(Path.Combine(mods, "content"), recursive: true);
+
+                Expect(!Directory.EnumerateFileSystemEntries(mods).Any(), "nothing left behind");
+                Expect(ModPresets.Toggles.Contains(ModPresets.OldAvatarBackground) == OperatingSystem.IsWindows(), "avatar background is Windows-only");
+            });
+
             Check("flag values become JSON types", () =>
             {
                 Expect(SoberConfig.ToJson("FFlagX", "True").GetValueKind() == System.Text.Json.JsonValueKind.True, "bool");

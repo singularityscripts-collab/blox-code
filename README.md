@@ -35,8 +35,12 @@ atualizações automáticas não mostram esse aviso. Veja a [política de assina
 - **Fast Flag Editor** no estilo do Bloxstrap: Add new (nome único ou Import JSON colado/de arquivo),
   Delete selected, Export JSON, busca, validação de prefixo/valor, chave liga/desliga para booleanas
   e aviso nas flags que o Roblox ignora por estarem fora da allowlist.
-- **Mods** sem fuçar pasta: escolha (ou arraste) um arquivo para o cursor, os sons do personagem ou
-  a fonte do jogo, e **Reset** traz o original de volta. Para o resto, a pasta `Modifications`.
+- **Mods** sem fuçar pasta: os presets do Bloxstrap com um clique (cursor de 2006/2013, sons
+  antigos do personagem, fundo antigo do editor de avatar e estilo de emoji) ou um arquivo seu
+  (escolhido ou arrastado) para o cursor, os sons ou a fonte do jogo. **Reset** traz o original de
+  volta. Para o resto, a pasta `Modifications`. Os arquivos dos presets são do
+  [Bloxstrap](https://github.com/bloxstraplabs/bloxstrap) (MIT, licença em
+  [shared/ModPresets](shared/ModPresets)).
 - Abre os links `roblox://` do navegador, instala sem pedir senha/admin e se atualiza sozinho
   por um feed assinado que funciona em qualquer hospedagem.
 - Tema Sistema / Claro / Escuro.

@@ -49,7 +49,7 @@ public partial class ModsPage : UserControl
             CategoryChips.Children.Add(chip);
         }
 
-        foreach (string tab in ModCatalog.Groups.Select(g => g.Key).Prepend(AllTab).Append(AdvancedTab))
+        foreach (string tab in ModCatalog.Groups.Select(g => g.Key).Prepend(PresetsTab).Prepend(AllTab).Append(AdvancedTab))
         {
             var segment = new RadioButton { Content = tab, GroupName = "modTabs" + GetHashCode(), IsChecked = tab == _tab, Theme = Res.Theme("Segment") };
             segment.IsCheckedChanged += (_, _) =>
@@ -67,14 +67,16 @@ public partial class ModsPage : UserControl
 
     // ===== Pick-a-file slots =====
 
-    private const string AllTab = "All", AdvancedTab = "Advanced";
+    private const string AllTab = "All", PresetsTab = "Presets", AdvancedTab = "Advanced";
     private string _tab = AllTab;
 
     private void BuildSlots()
     {
-        Groups.IsVisible = _tab != AdvancedTab;
+        BuildPresets();
+        PresetsHost.IsVisible = _tab is AllTab or PresetsTab;
+        Groups.IsVisible = _tab is not (AdvancedTab or PresetsTab);
         AssetsCard.IsVisible = AppliedCard.IsVisible = _tab is AllTab or AdvancedTab;
-        ResetAllButton.IsVisible = ModCatalog.Slots.Any(s => ModCatalog.CurrentFile(s) is not null);
+        ResetAllButton.IsVisible = AnythingChanged();
 
         Groups.Children.Clear();
         foreach (var group in ModCatalog.Groups.Where(g => _tab == AllTab || g.Key == _tab))
@@ -92,6 +94,118 @@ public partial class ModsPage : UserControl
             Groups.Children.Add(new Border { Classes = { "card" }, Child = rows });
         }
     }
+
+    // ===== Presets (Bloxstrap's, see ModPresets) =====
+
+    private bool _emojiBusy;
+
+    private void BuildPresets()
+    {
+        PresetsHost.Children.Clear();
+        var rows = new StackPanel();
+        rows.Children.Add(new TextBlock { Text = "Presets", Classes = { "h2" } });
+        rows.Children.Add(new TextBlock { Text = "Bloxstrap's one-click mods. Turning one off removes only its own files.", Classes = { "muted" }, Margin = new Thickness(0, 2, 0, 6), TextWrapping = TextWrapping.Wrap });
+
+        var cursor = ModPresets.CurrentCursor();
+        rows.Children.Add(PresetRow("Mouse cursor", "Roblox's arrow from 2006 or 2013.",
+            Segments(ModPresets.CursorOptions.Select(o => (o.Label, o.Style == cursor, (Action)(() => PresetChange(() => ModPresets.SetCursor(o.Style))))))));
+
+        foreach (var preset in ModPresets.Toggles)
+        {
+            rows.Children.Add(new Border { Classes = { "divider" } });
+            var toggle = new CheckBox { IsChecked = ModPresets.IsOn(preset), Theme = Res.Theme("Toggle"), VerticalAlignment = VerticalAlignment.Center };
+            toggle.IsCheckedChanged += (_, _) => PresetChange(() => ModPresets.Set(preset, toggle.IsChecked == true));
+            rows.Children.Add(PresetRow(preset.Title, preset.Description, toggle));
+        }
+
+        rows.Children.Add(new Border { Classes = { "divider" } });
+        var emoji = ModPresets.CurrentEmoji();
+        string emojiText = _emojiBusy ? "Downloading the font…"
+            : emoji is null ? "You have your own emoji font in the Modifications folder; picking one here replaces it."
+            : "Emoji in chat and names. The fonts download from Bloxstrap's server when you pick one.";
+        var emojiSegments = Segments(ModPresets.EmojiOptions.Select(o => (o.Label, o.Style == emoji, (Action)(() => _ = PickEmojiAsync(o.Style)))));
+        emojiSegments.IsEnabled = !_emojiBusy;
+        rows.Children.Add(PresetRow("Emoji style", emojiText, emojiSegments, stacked: true));
+
+        PresetsHost.Children.Add(new Border { Classes = { "card" }, Child = rows });
+    }
+
+    private static Control PresetRow(string title, string description, Control control, bool stacked = false)
+    {
+        var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 12, 0) };
+        text.Children.Add(new TextBlock { Text = title, FontWeight = FontWeight.SemiBold });
+        text.Children.Add(new TextBlock { Text = description, Classes = { "muted" }, TextWrapping = TextWrapping.Wrap });
+        if (stacked)
+        {
+            control.HorizontalAlignment = HorizontalAlignment.Left;
+            control.Margin = new Thickness(0, 8, 0, 0);
+            var column = new StackPanel { Margin = new Thickness(0, 4) };
+            column.Children.Add(text);
+            column.Children.Add(control);
+            return column;
+        }
+        var row = new DockPanel { Margin = new Thickness(0, 4) };
+        control.VerticalAlignment = VerticalAlignment.Center;
+        DockPanel.SetDock(control, Dock.Right);
+        row.Children.Add(control);
+        row.Children.Add(text);
+        return row;
+    }
+
+    /// <summary>A pill-shaped segmented control; each option runs its action when picked.</summary>
+    private static Control Segments(IEnumerable<(string Label, bool Selected, Action Pick)> options)
+    {
+        var panel = new StackPanel { Orientation = Orientation.Horizontal };
+        string group = "preset" + Guid.NewGuid().ToString("N");
+        foreach (var (label, selected, pick) in options)
+        {
+            var segment = new RadioButton { Content = label, GroupName = group, IsChecked = selected, Theme = Res.Theme("Segment") };
+            segment.IsCheckedChanged += (_, _) => { if (segment.IsChecked == true && !selected) pick(); };
+            panel.Children.Add(segment);
+        }
+        return new Border { Classes = { "segmented" }, Child = panel };
+    }
+
+    private async void PresetChange(Action change)
+    {
+        try
+        {
+            change();
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException)
+        {
+            Logger.Warn("ModsPage::PresetChange", ex.Message);
+            await MessageDialog.ShowAsync(_window, "Couldn't change that preset", ex.Message);
+        }
+        ApplyToSober();
+    }
+
+    private async Task PickEmojiAsync(EmojiStyle style)
+    {
+        _emojiBusy = true;
+        BuildSlots();
+        try
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+            await ModPresets.SetEmojiAsync(style, App.Http, cts.Token);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or InvalidDataException or IOException or UnauthorizedAccessException or OperationCanceledException)
+        {
+            Logger.Warn("ModsPage::PickEmoji", ex.Message);
+            await MessageDialog.ShowAsync(_window, "Couldn't change the emoji font",
+                ex is OperationCanceledException ? "The download took too long. Check your connection and try again." : ex.Message);
+        }
+        finally
+        {
+            _emojiBusy = false;
+        }
+        ApplyToSober();
+    }
+
+    private static bool AnythingChanged() =>
+        ModCatalog.Slots.Any(s => ModCatalog.CurrentFile(s) is not null)
+        || ModPresets.Toggles.Any(p => ModPresets.IsOn(p))
+        || ModPresets.CurrentEmoji() is not EmojiStyle.Default;
 
     private Control SlotRow(ModSlot slot)
     {
@@ -127,7 +241,9 @@ public partial class ModsPage : UserControl
         else
         {
             var info = new FileInfo(current);
-            status.Text = $"Custom · {FormatSize(info.Length)} · changed {info.LastWriteTime:d MMM}";
+            status.Text = ModPresets.OwnerOf(slot.Targets[0]) is { } preset
+                ? $"From the {preset.Title} preset"
+                : $"Custom · {FormatSize(info.Length)} · changed {info.LastWriteTime:d MMM}";
             Res.BindBrush(status, TextBlock.ForegroundProperty, "Brush.Accent");
         }
 
@@ -236,9 +352,20 @@ public partial class ModsPage : UserControl
     private async void OnResetAll(object? sender, RoutedEventArgs e)
     {
         var swapped = ModCatalog.Slots.Where(s => ModCatalog.CurrentFile(s) is not null).ToList();
-        if (swapped.Count == 0 || !await MessageDialog.AskAsync(_window, $"Reset {swapped.Count} mod(s)?",
-                "Roblox's own cursor, sounds and font come back. Files you added in the advanced list stay.", "Reset all", "Cancel"))
+        var presets = ModPresets.Toggles.Where(p => ModPresets.IsOn(p)).ToList();
+        bool emoji = ModPresets.CurrentEmoji() is not EmojiStyle.Default and not null;
+        int count = swapped.Count + presets.Count + (emoji ? 1 : 0);
+        if (count == 0 || !await MessageDialog.AskAsync(_window, $"Reset {count} mod(s)?",
+                "Roblox's own cursor, sounds, font and emoji come back. Files you added in the advanced list stay.", "Reset all", "Cancel"))
             return;
+        presets.ForEach(p => ModPresets.Set(p, false));
+        if (emoji)
+            await ModPresets.SetEmojiAsync(EmojiStyle.Default, App.Http, CancellationToken.None); // only deletes, no download
+        if (swapped.Count == 0)
+        {
+            ApplyToSober();
+            return;
+        }
         // Passing the font slot (when it's among them) makes Change refresh the font families too.
         Change(() => swapped.ForEach(s => ModCatalog.Reset(s)), swapped.FirstOrDefault(s => s.Kind == ModKind.Font) ?? swapped[0]);
     }
