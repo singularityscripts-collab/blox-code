@@ -153,14 +153,10 @@ Para publicar uma versão:
    node tools/release.js feed --github singularityscripts-collab/blox-code --exe dist/release/vX.Y.Z/BloxCode.exe --appimage dist/release/vX.Y.Z/BloxCode-x86_64.AppImage
    ```
 
-4. Faça commit da pasta `updates/` e envie para o GitHub **e** para o GitLab (`git push github main` e
-   `git push origin main`). É esse push que avisa as cópias instaladas: as novas leem o GitHub e usam o
-   GitLab de reserva; as 1.6.0 só conhecem o GitLab. Confira com
-   `node tools/release.js verify https://raw.githubusercontent.com/singularityscripts-collab/blox-code/main/updates/`.
+4. Faça commit da pasta `updates/` e envie para o GitHub. É esse push que avisa as cópias instaladas.
+   Confira com `node tools/release.js verify https://raw.githubusercontent.com/singularityscripts-collab/blox-code/main/updates/`.
 
-O GitLab ([gitlab.com/huginhohenriquerl/blox-code](https://gitlab.com/huginhohenriquerl/blox-code)) guarda uma cópia do código e do feed; o CI
-dele não é usado. Com `--gitlab` em vez de `--github`, a ferramenta usa o Package Registry do GitLab
-(`publish-gitlab` envia os arquivos). Sem nenhum dos dois, a ferramenta monta uma pasta `dist/feed` para qualquer outra hospedagem estática (com
+Sem `--github`, a ferramenta monta uma pasta `dist/feed` para qualquer outra hospedagem estática (com
 os arquivos ao lado do `latest.json`), que pode entrar como endereço extra em `<UpdateFeeds>`.
 
 A chave de assinatura foi criada uma vez com `node tools/release.js keygen` e fica fora do repositório,
@@ -198,7 +194,7 @@ falta de visibilidade do projeto; dá para pedir de novo quando o projeto cresce
 - **Atualizações:** são assinadas mesmo assim. O app só aceita um `latest.json` assinado com a chave
   do Blox Code (ECDSA P-256) e confere o SHA-256 de cada arquivo antes de instalar.
 - **De onde vêm os arquivos:** só dos releases em
-  [github.com/singularityscripts-collab/blox-code](https://github.com/singularityscripts-collab/blox-code) (cópia em [gitlab.com/huginhohenriquerl/blox-code](https://gitlab.com/huginhohenriquerl/blox-code)),
+  [github.com/singularityscripts-collab/blox-code](https://github.com/singularityscripts-collab/blox-code),
   compilados a partir deste código.
 - **Mantenedor e quem aprova cada release:** [singularityscripts-collab](https://github.com/singularityscripts-collab)
 - **Mudanças no sistema:** o instalador avisa o que vai fazer antes de fazer (pasta do usuário em

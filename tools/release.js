@@ -28,18 +28,6 @@
 //       raw.githubusercontent.com and from every mirror of the repository), and the files are
 //       downloaded from https://github.com/owner/repo/releases/download/v<version>/<name>.
 //
-//   node tools/release.js feed --gitlab group/project --exe ... --appimage ...
-//       The GitLab layout: latest.json + .sig go to updates/ in this repository (the feed is
-//       https://gitlab.com/group/project/-/raw/main/updates/), and the files are downloaded from the
-//       project's generic package registry (bloxcode/<version>/<name>). The files are copied to
-//       dist/release/v<version>/ for the next step.
-//
-//   node tools/release.js publish-gitlab --gitlab group/project
-//       Uploads dist/release/v<version>/ to the package registry and creates the GitLab release
-//       v<version> with download links. Asks for a GitLab access token (scope "api") without
-//       showing it, or reads $GITLAB_TOKEN; the token is never written anywhere. Run it before
-//       pushing updates/, so installed copies never see a manifest whose files aren't online yet.
-//
 //   node tools/release.js verify <feed folder or https:// address>
 //       Checks the signature with the key in Directory.Build.props, and the files' hashes when they
 //       are local or that they download when they are remote.
@@ -158,18 +146,15 @@ function feed(options) {
   if (publicKeyBase64(privateKey) !== trusted)
     fail(`the key at ${keyFile} isn't the one Directory.Build.props trusts; builds would reject this feed`);
 
-  // GitHub / GitLab: the manifest lives in the repository, the files on the release (GitHub) or in
-  // the package registry (GitLab).
-  const gitlab = gitlabProject(options);
+  // GitHub: the manifest lives in the repository, the files on the release.
   const github = githubRepo(options);
-  const hosted = Boolean(gitlab || github);
+  const hosted = Boolean(github);
   const out = path.resolve(options.out || (hosted ? path.join(root, 'updates') : path.join(root, 'dist', 'feed')));
   const filesDir = hosted ? releaseDir(version) : path.join(out, version);
   fs.mkdirSync(filesDir, { recursive: true });
   fs.mkdirSync(out, { recursive: true });
   const mirrors = [
     ...(github ? [`https://github.com/${github}/releases/download/v{version}/{name}`] : []),
-    ...(gitlab ? [packageUrl(gitlab, '{version}', '{name}')] : []),
     ...(options.mirror || []),
   ];
 
@@ -215,10 +200,7 @@ function feed(options) {
   for (const [platform, asset] of Object.entries(assets))
     console.log(`  ${platform}: ${asset.name}, ${asset.size} bytes, sha256 ${asset.sha256}`);
   if (github) {
-    console.log(`Next: commit updates/ and push it to GitHub and GitLab — that push is what installed copies see.`);
-  } else if (gitlab) {
-    console.log(`Next: node tools/release.js publish-gitlab --gitlab ${gitlab}  (uploads ${filesDir} and creates the release),`);
-    console.log(`then commit and push ${path.relative(root, out)}/ — that push is what installed copies see.`);
+    console.log(`Next: commit updates/ and push it to GitHub — that push is what installed copies see.`);
   } else {
     console.log('Upload the whole folder (keeping its layout) to each feed address in <UpdateFeeds>.');
   }
@@ -265,13 +247,6 @@ async function verifyFeed(target) {
   }
 }
 
-function gitlabProject(options) {
-  if (!options.gitlab) return null;
-  const project = String(options.gitlab).replace(/^https:\/\/gitlab\.com\//, '').replace(/(\.git)?\/?$/, '');
-  if (!/^[\w.-]+(\/[\w.-]+)+$/.test(project)) fail('--gitlab expects group/project');
-  return project;
-}
-
 function githubRepo(options) {
   if (!options.github) return null;
   const repo = String(options.github).replace(/^https:\/\/github\.com\//, '').replace(/(\.git)?\/?$/, '');
@@ -301,88 +276,14 @@ function releaseDir(version) {
   return path.join(root, 'dist', 'release', `v${version}`);
 }
 
-const gitlabApi = project => `https://gitlab.com/api/v4/projects/${encodeURIComponent(project)}`;
-const packageUrl = (project, version, name) => `${gitlabApi(project)}/packages/generic/bloxcode/${version}/${name}`;
-
-/** Reads the token from $GITLAB_TOKEN or the keyboard, never echoing it. */
-function askToken() {
-  if (process.env.GITLAB_TOKEN) return Promise.resolve(process.env.GITLAB_TOKEN.trim());
-  if (!process.stdin.isTTY) fail('set GITLAB_TOKEN or run this in a terminal');
-  process.stdout.write('GitLab access token (scope "api"; nothing shows while you paste): ');
-  return new Promise(resolve => {
-    let token = '';
-    process.stdin.setRawMode(true);
-    process.stdin.resume();
-    process.stdin.setEncoding('utf8');
-    process.stdin.on('data', function onData(chunk) {
-      for (const ch of chunk) {
-        if (ch === '\r' || ch === '\n') {
-          process.stdin.setRawMode(false);
-          process.stdin.pause();
-          process.stdin.removeListener('data', onData);
-          process.stdout.write('\n');
-          return resolve(token.trim());
-        }
-        if (ch === '\u0003') process.exit(130); // Ctrl+C
-        if (ch === '\u0008' || ch === '\u007f') token = token.slice(0, -1);
-        else token += ch;
-      }
-    });
-  });
-}
-
-async function publishGitlab(options) {
-  const project = gitlabProject(options) || fail('pass --gitlab group/project');
-  const version = prop('Version');
-  const dir = releaseDir(version);
-  const files = fs.existsSync(dir) ? fs.readdirSync(dir).filter(n => Object.values(platforms).some(p => p.name === n)) : [];
-  if (files.length === 0) fail(`nothing in ${dir}; run "feed --gitlab ${project}" first`);
-  const section = changelogSection(version) || fail(`CHANGELOG.md has no "## ${version}" section`);
-
-  const token = await askToken();
-  if (!token) fail('no token given');
-  const headers = { 'PRIVATE-TOKEN': token };
-
-  for (const name of files) {
-    const file = path.join(dir, name);
-    process.stdout.write(`Uploading ${name} (${(fs.statSync(file).size / 1048576).toFixed(1)} MB)… `);
-    const response = await fetch(packageUrl(project, version, name), { method: 'PUT', headers, body: fs.readFileSync(file) });
-    if (!response.ok) fail(`upload of ${name} failed: HTTP ${response.status} ${await response.text()}`);
-    console.log('done');
-  }
-
-  const links = files.map(name => ({ name, url: packageUrl(project, version, name), link_type: 'package' }));
-  const description = [
-    '### Baixar',
-    '',
-    ...links.map(l => `- [${l.name}](${l.url})`),
-    '',
-    'Quem já tem o Blox Code 1.6.0 ou mais novo recebe esta versão sozinho, com atualização assinada.',
-    '',
-    '### O que mudou',
-    '',
-    section.notes,
-  ].join('\n');
-  const response = await fetch(`${gitlabApi(project)}/releases`, {
-    method: 'POST',
-    headers: { ...headers, 'content-type': 'application/json' },
-    body: JSON.stringify({ tag_name: `v${version}`, ref: 'main', name: `v${version} — ${section.title}`, description, assets: { links } }),
-  });
-  if (response.status === 409) console.log(`Release v${version} already exists; the files were updated.`);
-  else if (!response.ok) fail(`creating the release failed: HTTP ${response.status} ${await response.text()}`);
-  else console.log(`Release v${version} created: https://gitlab.com/${project}/-/releases/v${version}`);
-  console.log('Now commit and push updates/ to make installed copies see it.');
-}
-
 const [command, ...rest] = process.argv.slice(2);
 const options = args(rest);
 switch (command) {
   case 'keygen': keygen(options); break;
   case 'feed': feed(options); break;
-  case 'publish-gitlab': publishGitlab(options); break;
   case 'fetch-github': fetchGithub(options); break;
   case 'verify': verifyFeed(options._[0]); break;
   default:
-    console.log('usage: node tools/release.js keygen | fetch-github --github owner/repo | feed [--github owner/repo | --gitlab group/project] --exe <file> --appimage <file> [--out <dir>] [--mirror <url>] | publish-gitlab --gitlab group/project | verify <folder|url>');
+    console.log('usage: node tools/release.js keygen | fetch-github --github owner/repo | feed [--github owner/repo] --exe <file> --appimage <file> [--out <dir>] [--mirror <url>] | verify <folder|url>');
     process.exit(command ? 1 : 0);
 }
