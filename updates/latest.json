@@ -1,17 +1,25 @@
 {
   "format": 1,
   "product": "BloxCode",
-  "version": "1.6.0",
-  "title": "Atualizações que não dependem do GitHub",
-  "published": "2026-11-08T00:12:36.716Z",
-  "notes": "### Atualizações\n\n- **Fonte de atualização própria:** o Blox Code não pergunta mais ao GitHub se tem versão nova.\n  Ele lê um arquivo `latest.json` assinado, que pode ficar em qualquer hospedagem, e tenta os\n  endereços de reserva na ordem quando um sai do ar.\n- **Atualizações assinadas:** o app só aceita uma versão nova se o `latest.json` estiver assinado\n  com a chave do Blox Code, e só instala o arquivo baixado se o SHA-256 bater. Se alguém invadir a\n  hospedagem, não consegue empurrar um programa falso.\n- Se o download por um endereço falhar, o Blox Code tenta o próximo da lista.\n\n### Outras mudanças\n\n- **What's new** mostra as notas da versão dentro do próprio app, sem abrir site nenhum.\n- Janelas com texto longo agora rolam em vez de passar do tamanho da tela.",
+  "version": "1.7.0",
+  "title": "Presets de mods do Bloxstrap",
+  "published": "2026-11-08T15:15:14.395Z",
+  "notes": "### Mods\n\n- **Presets com um clique**, iguais aos do Bloxstrap (lidos do próprio Bloxstrap com engenharia\n  reversa):\n  - **Cursor do mouse** de 2006 ou de 2013;\n  - **Sons antigos do personagem**: passos, pulo e levantar clássicos; queda, aterrissagem, nado e\n    splash ficam em silêncio;\n  - **Fundo antigo do editor de avatar** (só no Windows);\n  - **Estilo de emoji**: Catmoji, Windows 11, Windows 10 ou Windows 8. A fonte é baixada quando você\n    escolhe e conferida antes de ser usada.\n- Desligar um preset apaga só os arquivos dele. Se você trocou algum por um arquivo seu, ele fica.\n- Os arquivos que vieram de um preset aparecem como \"From the … preset\" na lista de mods.\n- Nova aba **Presets** e **Reset all** também desliga os presets e o emoji.\n\n### Linux\n\n- O AppImage volta a ser gerado e testado automaticamente (Ubuntu 22.04 e 24.04, Debian 12 e Arch),\n  agora pelo GitLab.",
   "assets": {
     "windows-x64": {
       "name": "BloxCode.exe",
-      "size": 62749876,
-      "sha256": "54c100bf6a2ce9c5151cd744728fd75c9682ebe2aebd35f8631a7537e54b05da",
+      "size": 62912780,
+      "sha256": "ea439797f46530e7a094da8149a6d491b13bced677060d307f60eb9f66c0c07f",
       "urls": [
-        "https://gitlab.com/api/v4/projects/huginhohenriquerl%2Fblox-code/packages/generic/bloxcode/1.6.0/BloxCode.exe"
+        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.7.0/BloxCode.exe"
+      ]
+    },
+    "linux-x64": {
+      "name": "BloxCode-x86_64.AppImage",
+      "size": 42052088,
+      "sha256": "bf38290422bfffeeff2f76a46750f12dc821ccf93936c939aa276416ca37530e",
+      "urls": [
+        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.7.0/BloxCode-x86_64.AppImage"
       ]
     }
   }
