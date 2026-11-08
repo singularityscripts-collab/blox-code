@@ -17,7 +17,7 @@
 
                 <!-- Composer -->
                 <Border Background="{DynamicResource Brush.Surface}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"
-                        CornerRadius="18" Padding="18,14,12,12" BoxShadow="0 4 24 0 #14000000">
+                        CornerRadius="14" Padding="18,14,12,12">
                     <StackPanel>
                         <TextBox x:Name="Composer" Classes="bare" Watermark="Paste a Roblox game link or place ID…"
                                  KeyDown="OnComposerKeyDown" TextChanged="OnComposerChanged" />
@@ -52,8 +52,8 @@
                     <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="0" Margin="0,0,5,0" CornerRadius="14" Click="OnMods">
                         <Border Classes="card" Margin="0" Padding="16,12">
                             <DockPanel>
-                                <Border DockPanel.Dock="Left" Width="36" Height="36" CornerRadius="9" Background="{DynamicResource Brush.AccentSoft}" Margin="0,0,12,0">
-                                    <ui:IconView Data="{StaticResource Icon.Box}" Width="18" Height="18" Foreground="{DynamicResource Brush.Accent}" />
+                                <Border DockPanel.Dock="Left" Width="36" Height="36" CornerRadius="9" Background="{DynamicResource Brush.SurfaceAlt}" Margin="0,0,12,0">
+                                    <ui:IconView Data="{StaticResource Icon.Box}" Width="18" Height="18" Foreground="{DynamicResource Brush.TextSecondary}" />
                                 </Border>
                                 <StackPanel VerticalAlignment="Center">
                                     <TextBlock Text="Mods" Classes="h2" />
@@ -65,8 +65,8 @@
                     <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="0" Margin="5,0,0,0" CornerRadius="14" Click="OnFastFlags">
                         <Border Classes="card" Margin="0" Padding="16,12">
                             <DockPanel>
-                                <Border DockPanel.Dock="Left" Width="36" Height="36" CornerRadius="9" Background="{DynamicResource Brush.AccentSoft}" Margin="0,0,12,0">
-                                    <ui:IconView Data="{StaticResource Icon.Flag}" Width="18" Height="18" Foreground="{DynamicResource Brush.Accent}" />
+                                <Border DockPanel.Dock="Left" Width="36" Height="36" CornerRadius="9" Background="{DynamicResource Brush.SurfaceAlt}" Margin="0,0,12,0">
+                                    <ui:IconView Data="{StaticResource Icon.Flag}" Width="18" Height="18" Foreground="{DynamicResource Brush.TextSecondary}" />
                                 </Border>
                                 <StackPanel VerticalAlignment="Center">
                                     <TextBlock Text="Fast Flags" Classes="h2" />

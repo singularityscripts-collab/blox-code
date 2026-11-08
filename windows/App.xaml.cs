@@ -100,6 +100,23 @@ public partial class App : Application
                 break;
 
             default:
+                // A plain start asks first, like Bloxstrap: play now, or open the settings. -menu skips it.
+                if (!launch.ExplicitMenu)
+                {
+                    var menu = new LaunchMenuWindow();
+                    menu.ShowDialog();
+                    switch (menu.Choice)
+                    {
+                        case LaunchMenuChoice.LaunchRoblox:
+                            new BootstrapperWindow(LaunchSettings.ForPlayer()).Show();
+                            ShutdownMode = ShutdownMode.OnLastWindowClose;
+                            return;
+                        case LaunchMenuChoice.None:
+                            Shutdown();
+                            return;
+                    }
+                }
+
                 // One menu at a time: two would overwrite each other's settings. Bring the open one forward.
                 _menuLock = new Mutex(true, "BloxCode-Menu", out bool first);
                 if (!first)

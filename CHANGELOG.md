@@ -3,6 +3,24 @@
 Todas as versões do Blox Code, da mais nova para a mais antiga. Quem tem o Blox Code instalado
 recebe cada versão automaticamente na próxima vez que abrir.
 
+## 1.8.0 — Visual minimalista e tela inicial
+
+### Tela inicial
+
+- Ao abrir o Blox Code aparece uma tela como a do Bloxstrap: **Launch Roblox**, que já mostra o
+  preset gráfico, os mods e as Fast Flags que vão ser usados, ou **Configure Blox Code**. Fechar a
+  tela fecha o Blox Code. Links do Roblox e o atalho "Play Roblox" continuam abrindo o jogo direto, e
+  `-menu` abre as configurações sem passar por ela.
+
+### Visual
+
+- Visual minimalista nos dois sistemas: fundo grafite (ou quase branco no tema claro), cartões
+  chapados com bordas finas, sem brilho de fundo, sem gradientes e sem sombras.
+- O menta fica só no que importa: o botão principal e os interruptores. Opções escolhidas e a página
+  aberta na barra lateral usam um destaque neutro.
+- Títulos um pouco menores e mais leves, seções da barra lateral sem letras maiúsculas e rodapé da
+  barra lateral sem moldura.
+
 ## 1.7.1 — Atualizações só pelo GitHub
 
 - O Blox Code agora busca atualizações só no GitHub. O endereço de reserva do GitLab foi removido.

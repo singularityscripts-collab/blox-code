@@ -9,6 +9,12 @@ public sealed class LaunchSettings
     /// <summary>The roblox:/roblox-player: URI (or other args) handed straight to RobloxPlayerBeta.exe.</summary>
     public string RobloxArgs { get; private set; } = "";
 
+    /// <summary>
+    /// The settings were asked for by name (-menu, -settings). Without it, a plain start shows the
+    /// launch menu first, like Bloxstrap: play Roblox right away or open the settings.
+    /// </summary>
+    public bool ExplicitMenu { get; private set; }
+
     public bool Quiet { get; private set; }
     public bool NoLaunch { get; private set; }
     public bool Force { get; private set; }
@@ -52,6 +58,7 @@ public sealed class LaunchSettings
                 case "settings":
                 case "preferences":
                     s.Mode = LaunchMode.Menu;
+                    s.ExplicitMenu = true;
                     break;
                 case "uninstall":
                     s.Mode = LaunchMode.Uninstall;

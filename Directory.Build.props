@@ -2,7 +2,7 @@
   <!-- Shared by BloxCode (Windows), BloxCode.Linux and BloxCode.Core so every build reports the
        same version and update feed. -->
   <PropertyGroup>
-    <Version>1.7.1</Version>
+    <Version>1.8.0</Version>
     <Product>Blox Code</Product>
     <Company>Blox Code</Company>
     <!-- Shown in the exe's Properties → Details, and checked when the exe is code-signed. -->

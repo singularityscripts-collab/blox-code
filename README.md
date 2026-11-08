@@ -23,10 +23,13 @@ atualizações automáticas não mostram esse aviso. Veja a [política de assina
 
 ## Nos dois sistemas
 
-- Tema próprio: **Midnight** (azul-marinho com acento menta `#3EE6B0`) e **Daylight** (papel
-  azulado com menta `#077257`), Inter no texto e JetBrains Mono nos títulos (as duas vêm dentro do
-  programa) e uma barra de cursor na página aberta. Animações suaves, que dá para desligar.
-  Sidebar e "composer" no estilo do Claude desktop: cole um link de jogo ou um place ID e aperte Enter.
+- **Tela inicial** como a do Bloxstrap: ao abrir o Blox Code, escolha **Launch Roblox** (com o
+  preset gráfico, os mods e as flags atuais) ou **Configure Blox Code**. `-menu` abre direto as
+  configurações.
+- Visual minimalista: **Midnight** (grafite com acento menta `#3EE6B0`) e **Daylight** (quase branco
+  com menta `#077257`), superfícies chapadas com bordas finas, Inter no texto e JetBrains Mono na
+  marca e no código (as duas vêm dentro do programa). Animações suaves, que dá para desligar.
+  Cole um link de jogo ou um place ID na Home e aperte Enter.
 - **Preset gráfico** Auto / Lowest / Low / Medium / High, feito só com flags da
   [allowlist do Roblox](https://devforum.roblox.com/t/allowlist-for-local-client-configuration-via-fast-flags/3966569),
   com uma sugestão baseada na sua placa de vídeo e interruptores extras para ganhar FPS.

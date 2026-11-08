@@ -26,11 +26,10 @@
                         </Button>
 
                         <!-- Footer: the account chip, here showing install state -->
-                        <Border DockPanel.Dock="Bottom" CornerRadius="10" Padding="10,8" Margin="0,8,0,0" BorderThickness="1"
-                                BorderBrush="{DynamicResource Brush.Border}" Background="{DynamicResource Brush.Bg}">
+                        <Border DockPanel.Dock="Bottom" Padding="10,8" Margin="0,8,0,0">
                             <DockPanel>
                                 <Panel Width="32" Height="32" Margin="0,0,10,0">
-                                    <Border CornerRadius="16" Background="{DynamicResource Brush.Selected}">
+                                    <Border CornerRadius="16" Background="{DynamicResource Brush.SurfaceAlt}">
                                         <TextBlock Text="B" FontFamily="{StaticResource Font.Display}" FontWeight="SemiBold" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center" />
                                     </Border>
                                     <!-- Green when installed, amber while running portable -->
@@ -48,7 +47,7 @@
                             <RadioButton x:Name="NavHome" Theme="{StaticResource NavItem}" Tag="Home" IsCheckedChanged="OnNavigate" Margin="0,8,0,1">
                                 <StackPanel Orientation="Horizontal" Spacing="12"><ui:IconView Data="{StaticResource Icon.Home}" /><TextBlock Text="Home" /></StackPanel>
                             </RadioButton>
-                            <TextBlock Text="CUSTOMIZE" Classes="section" />
+                            <TextBlock Text="Customize" Classes="section" />
                             <RadioButton Theme="{StaticResource NavItem}" Tag="FastFlags" IsCheckedChanged="OnNavigate">
                                 <StackPanel Orientation="Horizontal" Spacing="12"><ui:IconView Data="{StaticResource Icon.Flag}" /><TextBlock Text="Fast Flags" /></StackPanel>
                             </RadioButton>
@@ -61,7 +60,7 @@
                             <RadioButton Theme="{StaticResource NavItem}" Tag="Appearance" IsCheckedChanged="OnNavigate">
                                 <StackPanel Orientation="Horizontal" Spacing="12"><ui:IconView Data="{StaticResource Icon.Palette}" /><TextBlock Text="Appearance" /></StackPanel>
                             </RadioButton>
-                            <TextBlock Text="APP" Classes="section" />
+                            <TextBlock Text="App" Classes="section" />
                             <RadioButton Theme="{StaticResource NavItem}" Tag="Behaviour" IsCheckedChanged="OnNavigate">
                                 <StackPanel Orientation="Horizontal" Spacing="12"><ui:IconView Data="{StaticResource Icon.Sliders}" /><TextBlock Text="Behaviour" /></StackPanel>
                             </RadioButton>
@@ -74,8 +73,7 @@
 
                 <!-- ===== Main area ===== -->
                 <Grid Grid.Column="1" RowDefinitions="44,*">
-                    <!-- A faint mint glow in the top corner, behind everything -->
-                    <Rectangle Grid.RowSpan="2" Fill="{DynamicResource Brush.Glow}" IsHitTestVisible="False" />
+
                     <Border x:Name="TitleBar" Background="Transparent" />
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
                         <Button Classes="caption" Click="OnMinimize" ToolTip.Tip="Minimize">

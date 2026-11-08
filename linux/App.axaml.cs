@@ -127,6 +127,19 @@ public partial class App : Application
                 break;
 
             default:
+                // A plain start asks first, like Bloxstrap: play now, or open the settings. -menu skips it.
+                if (!launch.ExplicitMenu)
+                {
+                    switch (await LaunchMenuWindow.AskAsync())
+                    {
+                        case LaunchMenuChoice.LaunchRoblox:
+                            Show(LaunchWindow.ForLaunch(LaunchSettings.ForPlayer()));
+                            return;
+                        case LaunchMenuChoice.None:
+                            Exit();
+                            return;
+                    }
+                }
                 if (!OpenMenu())
                     Exit();
                 break;

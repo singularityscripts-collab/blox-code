@@ -334,6 +334,9 @@ public static class SelfTest
                 Expect(link.Mode == LaunchMode.Player && link.RobloxArgs.EndsWith("1818"), "roblox:// opens the player");
                 var upgrade = LaunchSettings.Parse(new[] { "-upgrade", "-player", "roblox-player:1+launchmode:play" });
                 Expect(upgrade.Upgrade && upgrade.ForwardArgs.SequenceEqual(new[] { "-player", "roblox-player:1+launchmode:play" }), "upgrade forwards the rest");
+                Expect(LaunchSettings.Parse(Array.Empty<string>()) is { Mode: LaunchMode.Menu, ExplicitMenu: false }, "a plain start shows the launch menu");
+                Expect(LaunchSettings.Parse(new[] { "-menu" }).ExplicitMenu && LaunchSettings.Parse(new[] { "-settings" }).ExplicitMenu, "-menu goes straight to the settings");
+                Expect(LaunchMenu.Summary().StartsWith("Graphics: "), "launch menu summary");
                 Expect(RobloxLink.ToLaunchArgs("https://www.roblox.com/games/920587237/Adopt-Me") == "roblox://experiences/start?placeId=920587237", "game URL");
                 Expect(RobloxLink.ToLaunchArgs("not a game") is null && RobloxLink.ToLaunchArgs("") == "", "invalid and empty");
                 Expect(Updater.AssetName == (OperatingSystem.IsWindows() ? "BloxCode.exe" : "BloxCode-x86_64.AppImage"), "update asset");
