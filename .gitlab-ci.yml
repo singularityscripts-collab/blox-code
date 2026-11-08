@@ -12,10 +12,11 @@ variables:
   DOTNET_CLI_TELEMETRY_OPTOUT: "1"
   DEBIAN_FRONTEND: noninteractive
 
-.display-libs-apt: &display-libs-apt
-  - apt-get update
-  - apt-get install -y --no-install-recommends
-      ca-certificates xvfb xauth libx11-6 libice6 libsm6 libfontconfig1 libxrandr2 libxi6 libxcursor1 libgl1 fonts-dejavu-core
+# Display libraries for the UI smoke test, shared with !reference.
+.display-libs:
+  apt:
+    - apt-get update
+    - apt-get install -y --no-install-recommends ca-certificates xvfb xauth libx11-6 libice6 libsm6 libfontconfig1 libxrandr2 libxi6 libxcursor1 libgl1 fonts-dejavu-core
 
 appimage:
   # Built on the oldest supported base (Ubuntu 22.04) so the AppImage runs on everything newer.
@@ -24,7 +25,7 @@ appimage:
   variables:
     DOTNET_SYSTEM_GLOBALIZATION_INVARIANT: "1"
   before_script:
-    - *display-libs-apt
+    - !reference [.display-libs, apt]
     - apt-get install -y --no-install-recommends curl file git desktop-file-utils
     - curl -fsSL https://dot.net/v1/dotnet-install.sh -o /tmp/dotnet-install.sh
     - bash /tmp/dotnet-install.sh --jsonfile global.json --install-dir /opt/dotnet
@@ -49,12 +50,14 @@ appimage:
 ubuntu-24.04:
   extends: .distro-test
   image: ubuntu:24.04
-  before_script: *display-libs-apt
+  before_script:
+    - !reference [.display-libs, apt]
 
 debian-12:
   extends: .distro-test
   image: debian:12
-  before_script: *display-libs-apt
+  before_script:
+    - !reference [.display-libs, apt]
 
 archlinux:
   extends: .distro-test
