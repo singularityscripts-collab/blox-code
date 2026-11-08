@@ -110,14 +110,16 @@ jobs:
       matrix:
         image: ['ubuntu:24.04', 'debian:12', 'archlinux:latest']
     steps:
-      - name: Display libraries for the UI test
+      # A desktop always has OpenSSL (HTTPS needs it); the minimal container images may not, and the
+      # self-test hashes files, so ca-certificates/openssl come along.
+      - name: Display and system libraries for the tests
         run: |
           if command -v pacman >/dev/null; then
-            pacman -Syu --noconfirm --needed xorg-server-xvfb xorg-xauth libx11 libice libsm fontconfig libxrandr libxi libxcursor mesa ttf-dejavu
+            pacman -Syu --noconfirm --needed openssl xorg-server-xvfb xorg-xauth libx11 libice libsm fontconfig libxrandr libxi libxcursor mesa ttf-dejavu
           else
             apt-get update
             DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-              xvfb xauth libx11-6 libice6 libsm6 libfontconfig1 libxrandr2 libxi6 libxcursor1 libgl1 fonts-dejavu-core
+              ca-certificates openssl xvfb xauth libx11-6 libice6 libsm6 libfontconfig1 libxrandr2 libxi6 libxcursor1 libgl1 fonts-dejavu-core
           fi
       - uses: actions/download-artifact@v4
         with:
