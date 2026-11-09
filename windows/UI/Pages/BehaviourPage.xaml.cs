@@ -18,6 +18,13 @@ public partial class BehaviourPage : UserControl
         Cleanup.IsChecked = Store.Settings.CleanupOldVersions;
         Confirm.IsChecked = Store.Settings.ConfirmLaunches;
         AutoUpdate.IsChecked = Store.Settings.AutoUpdate;
+        Discord.IsChecked = Store.Settings.DiscordRichPresence && ActivityWatcher.DiscordAvailable;
+        DiscordJoin.IsChecked = Store.Settings.DiscordJoinButton;
+        Location.IsChecked = Store.Settings.ShowServerLocation;
+        Discord.IsEnabled = ActivityWatcher.DiscordAvailable;
+        if (!ActivityWatcher.DiscordAvailable)
+            DiscordText.Text = "This build has no Discord app (set DiscordAppId in Directory.Build.props).";
+        RefreshDiscordJoin();
         RefreshUpdateStatus();
         if (Store.State.ForceReinstall)
             ReinstallText.Text = "Scheduled — Roblox will be reinstalled on the next launch.";
@@ -49,8 +56,15 @@ public partial class BehaviourPage : UserControl
         Store.Settings.CleanupOldVersions = Cleanup.IsChecked == true;
         Store.Settings.ConfirmLaunches = Confirm.IsChecked == true;
         Store.Settings.AutoUpdate = AutoUpdate.IsChecked == true;
+        if (ActivityWatcher.DiscordAvailable)
+            Store.Settings.DiscordRichPresence = Discord.IsChecked == true;
+        Store.Settings.DiscordJoinButton = DiscordJoin.IsChecked == true;
+        Store.Settings.ShowServerLocation = Location.IsChecked == true;
+        RefreshDiscordJoin();
         Store.SaveSettings();
     }
+
+    private void RefreshDiscordJoin() => DiscordJoin.IsEnabled = Discord.IsEnabled && Discord.IsChecked == true;
 
     private void RefreshUpdateStatus(string? message = null)
     {

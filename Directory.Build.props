@@ -2,7 +2,7 @@
   <!-- Shared by BloxCode (Windows), BloxCode.Linux and BloxCode.Core so every build reports the
        same version and update feed. -->
   <PropertyGroup>
-    <Version>1.9.1</Version>
+    <Version>1.10.0</Version>
     <Product>Blox Code</Product>
     <Company>Blox Code</Company>
     <!-- Shown in the exe's Properties → Details, and checked when the exe is code-signed. -->
@@ -19,6 +19,9 @@
     <!-- The ECDSA P-256 key (base64 SubjectPublicKeyInfo) latest.json must be signed with; written by
          `node tools/release.js keygen`. The private half never enters the repository. -->
     <UpdatePublicKey>MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEnuHqDoEHf21g5XklHpp8aViS8KJIzonh77X4KQ4JOPKoewOY52+MX3Q3T/NaoAnlqVDkPMPaHRjzEc0jSAwZag==</UpdatePublicKey>
+    <!-- The Discord application whose name shows as "Playing …" in Rich Presence (discord.com/developers).
+         Empty turns Rich Presence off. -->
+    <DiscordAppId>1569498372472311818</DiscordAppId>
     <!-- Opened by the "Source code" buttons; empty hides them. -->
     <HomepageUrl>https://github.com/singularityscripts-collab/blox-code</HomepageUrl>
   </PropertyGroup>
@@ -27,5 +30,6 @@
     <AssemblyMetadata Include="UpdateFeeds" Value="$(UpdateFeeds)" />
     <AssemblyMetadata Include="UpdatePublicKey" Value="$(UpdatePublicKey)" />
     <AssemblyMetadata Include="HomepageUrl" Value="$(HomepageUrl)" />
+    <AssemblyMetadata Include="DiscordAppId" Value="$(DiscordAppId)" />
   </ItemGroup>
 </Project>

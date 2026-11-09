@@ -62,6 +62,8 @@ atalhos e uma entrada em Aplicativos, e passa a abrir os links do Roblox.
 - Presets de Fast Flags: fullscreen exclusivo, DPI, Rendering API (Direct3D 11 / Vulkan / OpenGL),
   MSAA, texturas. As flags vão para o `ClientAppSettings.json` do Roblox.
 - Mods: tudo em `Modifications\` é copiado por cima do Roblox; os originais ficam guardados.
+- Enquanto você joga: o jogo no seu status do Discord (Rich Presence) e um aviso com a localização
+  do servidor. O Blox Code lê o log do Roblox em segundo plano e fecha junto com ele.
 
 O fluxo de atualização e launch foi obtido por engenharia reversa do Bloxstrap 2.11.4 com o REA MCP e
 reescrito do zero em C#/WPF — veja [docs/REVERSE_ENGINEERING.md](docs/REVERSE_ENGINEERING.md).
@@ -188,7 +190,7 @@ tools/
 updates/         latest.json + latest.json.sig: o feed que as cópias instaladas leem
 ```
 
-Fora do escopo por enquanto: Roblox Studio, e Discord Rich Presence no Windows.
+Fora do escopo por enquanto: Roblox Studio.
 
 ## Code signing policy
 
@@ -219,6 +221,10 @@ connects to these services, to do what you ask it to:
   `setup-ak.rbxcdn.com`, `s3.amazonaws.com/setup.roblox.com`) to
   download the Roblox player.
 - **Flathub** (`dl.flathub.org`), on Linux: only when you click Install Sober, through Flatpak.
+- **While you play**, on Windows: Roblox's public game APIs (`apis.roblox.com`, `games.roblox.com`,
+  `thumbnails.roblox.com`) for the name and icon of the game you joined, and `ipinfo.io` with the
+  Roblox server's address (not yours) to say where that server is. Rich Presence talks only to the
+  Discord app on your own computer. Each of these can be turned off in Behaviour.
 
 These requests carry nothing about you beyond what any download does (your IP address and a
 `BloxCode/<version>` user agent). Roblox and Sober, once started, are separate programs with their

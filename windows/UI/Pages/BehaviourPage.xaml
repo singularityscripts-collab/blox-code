@@ -36,6 +36,35 @@
                 </StackPanel>
             </Border>
 
+            <TextBlock Text="WHILE YOU PLAY" Style="{StaticResource Text.Group}" />
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <DockPanel Margin="0,4">
+                        <CheckBox x:Name="Discord" DockPanel.Dock="Right" Style="{StaticResource Toggle}" Click="OnToggle" />
+                        <StackPanel Margin="0,0,16,0">
+                            <TextBlock Text="Show the game on Discord" />
+                            <TextBlock x:Name="DiscordText" Style="{StaticResource Text.Muted}" Text="Your Discord status shows the game you're in, who made it and for how long." />
+                        </StackPanel>
+                    </DockPanel>
+                    <Border Style="{StaticResource Divider}" />
+                    <DockPanel Margin="0,4">
+                        <CheckBox x:Name="DiscordJoin" DockPanel.Dock="Right" Style="{StaticResource Toggle}" Click="OnToggle" />
+                        <StackPanel Margin="0,0,16,0">
+                            <TextBlock Text="Let friends join from Discord" />
+                            <TextBlock Style="{StaticResource Text.Muted}" Text="Adds a &quot;Join server&quot; button to that status. Never shown for private servers." />
+                        </StackPanel>
+                    </DockPanel>
+                    <Border Style="{StaticResource Divider}" />
+                    <DockPanel Margin="0,4">
+                        <CheckBox x:Name="Location" DockPanel.Dock="Right" Style="{StaticResource Toggle}" Click="OnToggle" />
+                        <StackPanel Margin="0,0,16,0">
+                            <TextBlock Text="Show where the server is" />
+                            <TextBlock Style="{StaticResource Text.Muted}" Text="A small notice in the corner after you join, e.g. &quot;São Paulo, BR&quot;. The server's address is looked up on ipinfo.io." />
+                        </StackPanel>
+                    </DockPanel>
+                </StackPanel>
+            </Border>
+
             <TextBlock Text="MAINTENANCE" Style="{StaticResource Text.Group}" />
             <Border Style="{StaticResource Card}">
                 <StackPanel>

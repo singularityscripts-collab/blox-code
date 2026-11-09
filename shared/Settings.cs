@@ -17,6 +17,12 @@ public sealed class Settings
     public bool CleanupOldVersions { get; set; } = true;
     public bool ConfirmLaunches { get; set; }
     public bool AutoUpdate { get; set; } = true;
+    /// <summary>Windows: show the game being played on the Discord profile.</summary>
+    public bool DiscordRichPresence { get; set; } = true;
+    /// <summary>Windows: let Discord friends join the same public server from that status.</summary>
+    public bool DiscordJoinButton { get; set; }
+    /// <summary>Windows: say roughly where the server is after joining a game.</summary>
+    public bool ShowServerLocation { get; set; } = true;
     public Dictionary<string, string> FastFlags { get; set; } = new();
 }
 

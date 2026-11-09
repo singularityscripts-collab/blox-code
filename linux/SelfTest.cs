@@ -342,6 +342,88 @@ public static class SelfTest
                 Expect(Updater.AssetName == (OperatingSystem.IsWindows() ? "BloxCode.exe" : "BloxCode-x86_64.AppImage"), "update asset");
             });
 
+            Check("game joins and leaves read from the Roblox log", () =>
+            {
+                const string job = "0a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d";
+                var parser = new ActivityParser();
+                var joined = new List<GameSession>();
+                var left = new List<GameSession>();
+                parser.Joined += joined.Add;
+                parser.Left += left.Add;
+
+                // Lines as a real 0.746 player log writes them.
+                parser.Feed("2026-11-09T23:02:28.710Z,17.71,1c5c,6 [FLog::SingleSurfaceApp] leaveUGCGame: (stage:LuaApp) blocking=1.");
+                parser.Feed($"2026-11-09T20:03:57.727Z,348.72,1b98,6 [FLog::Output] ! Joining game '{job}' place 2753915549 at 10.1.2.3");
+                parser.Feed($"2026-11-09T20:03:57.727Z,348.72,1b98,6 [FLog::GameJoinLoadTime] Report game_join_loadtime: placeid:2753915549, join_time:1.29, universeid:994732206, referral_page:, sid:{job}");
+                parser.Feed("2026-11-09T20:03:57.775Z,348.77,2fb0,7 [FLog::Network] UDMUX Address = 128.116.1.2, Port = 53260 | RCC Server Address = 10.1.2.3, Port = 53260");
+                Expect(joined.Count == 0, "not joined before the server answers");
+                parser.Feed("2026-11-09T20:03:59.049Z,350.04,1b98,7 [FLog::Network] serverId: 128.116.1.2|53260");
+                Expect(joined.Count == 1, "joined once");
+                var s = joined[0];
+                Expect(s.PlaceId == 2753915549 && s.JobId == job && s.UniverseId == 994732206, "place, server and universe");
+                Expect(s.Address == "128.116.1.2", "public (UDMUX) address, not the internal one");
+                Expect(s.Kind == ServerKind.Public, "public server");
+                parser.Feed("2026-11-09T21:18:05.715Z,4796.71,2d68,6 [FLog::SingleSurfaceApp] leaveUGCGameInternal");
+                parser.Feed("2026-11-09T21:18:06.800Z,4797.80,2d68,7 [FLog::Network] Time to disconnect replication data: 195.33");
+                Expect(left.Count == 1 && parser.Current is null, "left once");
+
+                parser.Feed("[FLog::GameJoinUtil] GameJoinUtil::joinGamePostPrivateServer");
+                parser.Feed($"[FLog::Output] ! Joining game '{job}' place 42 at 128.116.9.9");
+                parser.Feed("[FLog::Network] serverId: 128.116.9.9|1234");
+                Expect(joined.Count == 2 && joined[1].Kind == ServerKind.Private && joined[1].Address == "128.116.9.9", "private server");
+                // A teleport: the next join leaves the previous game first.
+                parser.Feed($"[FLog::Output] ! Joining game '{job}' place 43 at 128.116.9.10");
+                Expect(left.Count == 2, "a new join leaves the old game");
+                parser.Feed("[FLog::Network] serverId: 128.116.9.10|1234");
+                Expect(joined.Count == 3 && joined[2].Kind == ServerKind.Public && joined[2].PlaceId == 43, "teleported game is public again");
+
+                Expect(ServerLocation.Describe("São Paulo", "São Paulo", "BR") == "São Paulo, BR", "location without a repeated region");
+                Expect(ServerLocation.Describe("Frankfurt am Main", "Hesse", "DE") == "Frankfurt am Main, Hesse, DE", "location with region");
+                Expect(ServerLocation.Describe(null, "", null) is null, "no location");
+                Expect(RobloxGames.JoinLink(s) == $"https://www.roblox.com/games/start?placeId=2753915549&gameInstanceId={job}", "join link");
+            });
+
+            Check("the Roblox log is followed as it grows", () =>
+            {
+                string logs = Path.Combine(sandbox, "roblox-logs");
+                Directory.CreateDirectory(logs);
+                var since = DateTime.UtcNow;
+                string log = Path.Combine(logs, "0.746.0_20261109T200000Z_Player_ABCDE_last.log");
+                File.WriteAllText(log, "line 1\n");
+                Expect(RobloxLog.NewestPlayerLog(since, logs) == log, "finds the new player log");
+                File.WriteAllText(Path.Combine(logs, "0.746.0_20261109T200000Z_Studio_ABCDE_last.log"), "");
+                Expect(RobloxLog.NewestPlayerLog(since, logs) == log, "ignores Studio logs");
+
+                var lines = new List<string>();
+                bool caughtUp = false;
+                int polls = 0;
+                var follow = RobloxLog.FollowAsync(log, lines.Add, () =>
+                {
+                    if (++polls == 1)
+                        File.AppendAllText(log, "line 2\n");
+                    return polls < 4;
+                }, since, CancellationToken.None, logs, () => caughtUp = true);
+                Expect(follow.Wait(TimeSpan.FromSeconds(10)), "stops when told to");
+                Expect(caughtUp, "reports catching up");
+                Expect(lines.SequenceEqual(new[] { "line 1", "line 2" }), $"read what was appended ({string.Join("|", lines)})");
+            });
+
+            // Optional live check against Roblox's web APIs and ipinfo.io: BLOXCODE_LIVE_ACTIVITY=1.
+            if (Environment.GetEnvironmentVariable("BLOXCODE_LIVE_ACTIVITY") == "1")
+            {
+                Check("game info and server location (live)", () =>
+                {
+                    using var http = new HttpClient();
+                    http.DefaultRequestHeaders.UserAgent.ParseAdd("BloxCode-SelfTest");
+                    var game = RobloxGames.GetAsync(http, 2753915549, null, CancellationToken.None).GetAwaiter().GetResult();
+                    Expect(game is { UniverseId: 994732206 } && game.Name.Length > 0 && game.IconUrl?.StartsWith("https://") == true,
+                        $"game info ({game})");
+                    string? where = ServerLocation.GetAsync(http, "128.116.1.1", CancellationToken.None).GetAwaiter().GetResult();
+                    Expect(where is { Length: > 0 }, $"server location ({where})");
+                    Console.WriteLine($"     {game!.Name} by {game.Creator} · 128.116.1.1 is in {where}");
+                });
+            }
+
             Check("signed update manifests", () =>
             {
                 using var key = System.Security.Cryptography.ECDsa.Create(System.Security.Cryptography.ECCurve.NamedCurves.nistP256);

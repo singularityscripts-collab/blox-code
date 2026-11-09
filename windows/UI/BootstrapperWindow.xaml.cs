@@ -128,6 +128,8 @@ public partial class BootstrapperWindow : Window
 
             VersionText.Text = $"{Store.State.Channel} · {bootstrapper.VersionGuid}";
             Succeed(_launch!.NoLaunch ? "Roblox is up to date" : "Roblox is running");
+            if (bootstrapper.LaunchedAt is { } launchedAt && ActivityWatcher.IsWanted)
+                WatchRoblox(launchedAt);
             await Task.Delay(1400);
             SafeClose();
         }
@@ -145,6 +147,17 @@ public partial class BootstrapperWindow : Window
             if (entered)
                 gate.Release();
         }
+    }
+
+    /// <summary>Keeps Blox Code running in the background (no window) until Roblox closes, for Discord and the server notice.</summary>
+    private static void WatchRoblox(DateTime launchedAt)
+    {
+        var app = Application.Current;
+        app.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+        var dispatcher = app.Dispatcher;
+        Task.Run(() => ActivityWatcher.RunAsync(App.Http, launchedAt,
+                (title, body) => dispatcher.BeginInvoke(() => ToastWindow.Show(title, body))))
+            .ContinueWith(_ => dispatcher.BeginInvoke(() => app.Shutdown()));
     }
 
     private async Task RunPreviewAsync()

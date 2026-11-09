@@ -45,6 +45,10 @@ public static class Updater
     /// <summary>Where the "Source code" buttons go, or null to hide them.</summary>
     public static string? Homepage { get; } = Metadata("HomepageUrl");
 
+    /// <summary>The Discord application for Rich Presence (DiscordAppId in Directory.Build.props; BLOXCODE_DISCORD_APP overrides it for testing).</summary>
+    public static string? DiscordAppId { get; } =
+        Environment.GetEnvironmentVariable("BLOXCODE_DISCORD_APP") is { Length: > 0 } test ? test.Trim() : Metadata("DiscordAppId");
+
     public static bool IsConfigured => Feeds.Count > 0 && PublicKey is not null;
 
     /// <summary>The host of the first feed, for "updates come from …" lines.</summary>

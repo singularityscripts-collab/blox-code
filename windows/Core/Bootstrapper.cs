@@ -39,6 +39,9 @@ public sealed partial class Bootstrapper(HttpClient http, LaunchSettings launch,
 
     public string? VersionGuid { get; private set; }
 
+    /// <summary>When Roblox was started (UTC); null when nothing was launched.</summary>
+    public DateTime? LaunchedAt { get; private set; }
+
     public async Task RunAsync(CancellationToken ct)
     {
         const string ident = "Bootstrapper::Run";
@@ -532,6 +535,7 @@ public sealed partial class Bootstrapper(HttpClient http, LaunchSettings launch,
         if (launch.RobloxArgs.Length > 0)
             psi.ArgumentList.Add(launch.RobloxArgs);
 
+        LaunchedAt = DateTime.UtcNow;
         using var process = Process.Start(psi) ?? throw new InvalidOperationException("Roblox did not start");
         Logger.Info("Bootstrapper::StartRoblox", $"Started Roblox (PID {process.Id})");
     }

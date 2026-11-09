@@ -1,0 +1,27 @@
+<Window x:Class="BloxCode.UI.ToastWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="clr-namespace:BloxCode.UI"
+        Title="Blox Code" Width="360" SizeToContent="Height"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="NoResize" ShowInTaskbar="False" ShowActivated="False" Topmost="True"
+        FontFamily="{StaticResource Font.Sans}" Opacity="0">
+    <!-- A small card in the corner of the screen; it never takes focus away from the game. -->
+    <Border Margin="10" Background="{DynamicResource Brush.Sidebar}" BorderBrush="{DynamicResource Brush.BorderStrong}"
+            BorderThickness="1" CornerRadius="12" Padding="16,14,18,14" MouseLeftButtonUp="OnClick" Cursor="Hand">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="18" ShadowDepth="4" Opacity="0.35" Color="Black" />
+        </Border.Effect>
+        <DockPanel>
+            <ui:BitMascot x:Name="Mascot" DockPanel.Dock="Left" Unit="1.8" Mood="Happy" VerticalAlignment="Center" Margin="0,0,14,0"
+                          Body="{DynamicResource Brush.Mascot}" Eye="{DynamicResource Brush.MascotEye}" />
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock FontFamily="{StaticResource Font.Mono}" FontSize="11" Foreground="{DynamicResource Brush.TextMuted}"><Run Text="blox code" /><Run Text="_" Foreground="{DynamicResource Brush.Accent}" /></TextBlock>
+                <TextBlock x:Name="TitleText" FontSize="14" FontWeight="Medium" Margin="0,4,0,0" Foreground="{DynamicResource Brush.Text}"
+                           TextTrimming="CharacterEllipsis" />
+                <TextBlock x:Name="BodyText" FontFamily="{StaticResource Font.Mono}" FontSize="12" Margin="0,3,0,0"
+                           Foreground="{DynamicResource Brush.Accent}" TextWrapping="Wrap" />
+            </StackPanel>
+        </DockPanel>
+    </Border>
+</Window>

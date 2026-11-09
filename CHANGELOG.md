@@ -3,6 +3,20 @@
 Todas as versões do Blox Code, da mais nova para a mais antiga. Quem tem o Blox Code instalado
 recebe cada versão automaticamente na próxima vez que abrir.
 
+## 1.10.0 — Discord e localização do servidor
+
+### Novidades (Windows)
+
+- **Jogo no Discord:** enquanto você joga, o seu status no Discord mostra o jogo, o ícone, quem fez e
+  há quanto tempo, com um botão para a página do jogo. Some quando você sai do jogo.
+- **"Join server" no Discord (opcional):** deixa os amigos entrarem no mesmo servidor pelo seu
+  status. Vem desligado e nunca aparece em servidor privado.
+- **Onde fica o servidor:** depois de entrar num jogo, um aviso pequeno com o Bit aparece no canto da
+  tela, por exemplo "Location: São Paulo, BR". Ele não tira o foco do jogo e some sozinho.
+- As três opções ficam em Behaviour → **While you play**.
+- Para isso, o Blox Code fica aberto em segundo plano, sem janela, enquanto o Roblox roda, e lê o log
+  do Roblox. Fecha sozinho quando o Roblox fecha.
+
 ## 1.9.1 — Janela de inicialização sem espaço sobrando
 
 ### Visual
