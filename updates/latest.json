@@ -1,25 +1,25 @@
 {
   "format": 1,
   "product": "BloxCode",
-  "version": "1.9.1",
-  "title": "Janela de inicialização sem espaço sobrando",
-  "published": "2026-11-09T17:23:54.932Z",
-  "notes": "### Visual\n\n- A janela que aparece enquanto o Roblox abre ficou mais baixa, e o Bit, a barra e o texto agora\n  ficam centralizados, sem o espaço vazio que sobrava antes do rodapé. Se der erro, a janela cresce\n  um pouco para a mensagem caber.",
+  "version": "1.10.0",
+  "title": "Discord e localização do servidor",
+  "published": "2026-11-09T23:55:35.499Z",
+  "notes": "### Novidades (Windows)\n\n- **Jogo no Discord:** enquanto você joga, o seu status no Discord mostra o jogo, o ícone, quem fez e\n  há quanto tempo, com um botão para a página do jogo. Some quando você sai do jogo.\n- **\"Join server\" no Discord (opcional):** deixa os amigos entrarem no mesmo servidor pelo seu\n  status. Vem desligado e nunca aparece em servidor privado.\n- **Onde fica o servidor:** depois de entrar num jogo, um aviso pequeno com o Bit aparece no canto da\n  tela, por exemplo \"Location: São Paulo, BR\". Ele não tira o foco do jogo e some sozinho.\n- As três opções ficam em Behaviour → **While you play**.\n- Para isso, o Blox Code fica aberto em segundo plano, sem janela, enquanto o Roblox roda, e lê o log\n  do Roblox. Fecha sozinho quando o Roblox fecha.",
   "assets": {
     "windows-x64": {
       "name": "BloxCode.exe",
-      "size": 62916623,
-      "sha256": "a96a1963207c445b012432d3b1b3290890f2150e16d3bd10e8351a962251b465",
+      "size": 62938912,
+      "sha256": "87a7e7ef254dc758a58473c3115796539bd5c1ffbdcb0e6975640a7e9588aa4f",
       "urls": [
-        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.9.1/BloxCode.exe"
+        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.10.0/BloxCode.exe"
       ]
     },
     "linux-x64": {
       "name": "BloxCode-x86_64.AppImage",
-      "size": 42056184,
-      "sha256": "7b97977d12d48c9d345e87d572fbe2bceb4de56e9bad7e50b8731ac075bd0625",
+      "size": 42072568,
+      "sha256": "977ccc4024347fc62612cd99a14bc96ede86de54061a473ce64da3209875e720",
       "urls": [
-        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.9.1/BloxCode-x86_64.AppImage"
+        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.10.0/BloxCode-x86_64.AppImage"
       ]
     }
   }
