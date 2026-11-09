@@ -1,5 +1,6 @@
 <Styles xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ui="clr-namespace:BloxCode.Linux.UI">
 
     <!-- Base look shared by every Blox Code window -->
     <Style Selector="Window">
@@ -25,17 +26,17 @@
         <Setter Property="FontSize" Value="32" />
         <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
     </Style>
-    <!-- Page titles: Inter, semibold; the monospace stays for the wordmark and code -->
+    <!-- Page titles: JetBrains Mono, medium weight, like a terminal prompt -->
     <Style Selector="TextBlock.h1">
-        <Setter Property="FontFamily" Value="{StaticResource Font.Sans}" />
-        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontFamily" Value="{StaticResource Font.Mono}" />
+        <Setter Property="FontWeight" Value="Medium" />
         <Setter Property="FontSize" Value="26" />
         <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
         <Setter Property="Margin" Value="0,0,0,6" />
     </Style>
     <Style Selector="TextBlock.h2">
-        <Setter Property="FontSize" Value="14.5" />
-        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="Medium" />
         <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
     </Style>
     <Style Selector="TextBlock.body">
@@ -54,11 +55,20 @@
         <Setter Property="FontSize" Value="12" />
         <Setter Property="Foreground" Value="{DynamicResource Brush.TextMuted}" />
     </Style>
+    <!-- Small uppercase mono labels: sidebar groups, and .group for the groups of rows on a page -->
     <Style Selector="TextBlock.section">
-        <Setter Property="FontSize" Value="11.5" />
-        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="FontFamily" Value="{StaticResource Font.Mono}" />
+        <Setter Property="FontSize" Value="11" />
+        <Setter Property="LetterSpacing" Value="0.9" />
         <Setter Property="Foreground" Value="{DynamicResource Brush.TextMuted}" />
-        <Setter Property="Margin" Value="12,22,0,6" />
+        <Setter Property="Margin" Value="10,20,0,6" />
+    </Style>
+    <!-- The sidebar icon of the open page is mint -->
+    <Style Selector="StackPanel#Nav RadioButton:checked ui|IconView">
+        <Setter Property="Foreground" Value="{DynamicResource Brush.Accent}" />
+    </Style>
+    <Style Selector="TextBlock.section.group">
+        <Setter Property="Margin" Value="4,26,0,10" />
     </Style>
     <Style Selector="TextBlock.error">
         <Setter Property="Foreground" Value="{DynamicResource Brush.Danger}" />
@@ -77,9 +87,10 @@
         <Setter Property="Padding" Value="20,16" />
         <Setter Property="Margin" Value="0,0,0,12" />
     </Style>
+    <!-- Things to do on Home: a mint-tinted strip -->
     <Style Selector="Border.banner">
-        <Setter Property="Background" Value="{DynamicResource Brush.CardFill}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource Brush.CardBorder}" />
+        <Setter Property="Background" Value="{DynamicResource Brush.AccentSoft}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.AccentLine}" />
     </Style>
     <Style Selector="Border.divider">
         <Setter Property="Height" Value="1" />
@@ -87,10 +98,10 @@
         <Setter Property="Margin" Value="0,12" />
     </Style>
     <Style Selector="Border.segmented">
-        <Setter Property="Background" Value="{DynamicResource Brush.SurfaceAlt}" />
-        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="Background" Value="{DynamicResource Brush.Bg}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.CardBorder}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource Radius.Pill}" />
+        <Setter Property="CornerRadius" Value="10" />
         <Setter Property="Padding" Value="3" />
         <Setter Property="HorizontalAlignment" Value="Left" />
     </Style>
@@ -159,7 +170,7 @@
         <Setter Property="MinHeight" Value="6" />
         <Setter Property="CornerRadius" Value="3" />
         <Setter Property="Foreground" Value="{DynamicResource Brush.Accent}" />
-        <Setter Property="Background" Value="{DynamicResource Brush.SurfaceAlt}" />
+        <Setter Property="Background" Value="{DynamicResource Brush.ToggleOff}" />
     </Style>
     <Style Selector="ProgressBar.failed">
         <Setter Property="Foreground" Value="{DynamicResource Brush.Danger}" />

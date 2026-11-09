@@ -462,6 +462,14 @@ public static class SelfTest
                     Expect(File.Exists(Path.Combine(Paths.Modifications, "README.txt")), "mods readme");
                     Expect(DesktopIntegration.IsDefaultAsync().GetAwaiter().GetResult(), "roblox:// links open Blox Code");
 
+                    // A Sober update takes the links; the next run takes them back. Another launcher is left alone.
+                    DesktopIntegration.SetHandlerAsync(Sober.DesktopId).GetAwaiter().GetResult();
+                    Expect(DesktopIntegration.ReclaimLinksFromSoberAsync().GetAwaiter().GetResult()
+                           && DesktopIntegration.IsDefaultAsync().GetAwaiter().GetResult(), "links taken back from Sober");
+                    DesktopIntegration.SetHandlerAsync("other-launcher.desktop").GetAwaiter().GetResult();
+                    Expect(!DesktopIntegration.ReclaimLinksFromSoberAsync().GetAwaiter().GetResult(), "another launcher's links are left alone");
+                    DesktopIntegration.RegisterSchemesAsync().GetAwaiter().GetResult();
+
                     DesktopIntegration.UninstallAsync().GetAwaiter().GetResult();
                     Expect(!File.Exists(Paths.Application) && !File.Exists(DesktopIntegration.DesktopFile) && !File.Exists(DesktopIntegration.IconFile(256)), "files removed");
                     Expect(!MimeApps.Read(DesktopIntegration.MimeAppsFile).ContainsKey("x-scheme-handler/roblox")

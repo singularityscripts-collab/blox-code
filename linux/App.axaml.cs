@@ -97,6 +97,9 @@ public partial class App : Application
         }
 
         Updater.CleanupUpdatesFolder();
+        // Sober's updates re-register roblox:// for Sober; an installed Blox Code takes the links back.
+        if (launch.Mode != LaunchMode.Uninstall)
+            await DesktopIntegration.ReclaimLinksFromSoberAsync();
 
         if (await FindUpdateAsync(launch) is { } update)
         {

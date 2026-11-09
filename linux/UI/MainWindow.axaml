@@ -9,45 +9,40 @@
             <Grid ColumnDefinitions="264,*">
                 <!-- ===== Sidebar (the conversation list in Claude desktop) ===== -->
                 <Border Background="{DynamicResource Brush.Sidebar}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,1,0">
-                    <DockPanel Margin="12,0,12,12">
+                    <DockPanel Margin="12,12,12,12">
                         <!-- Brand (also the drag handle for the window) -->
-                        <StackPanel x:Name="Brand" DockPanel.Dock="Top" Orientation="Horizontal" Height="56" Margin="6,0,0,0" Background="Transparent">
-                            <ui:BitMascot x:Name="BrandMascot" Unit="1.5" VerticalAlignment="Center" Margin="0,0,10,0"
+                        <StackPanel x:Name="Brand" DockPanel.Dock="Top" Orientation="Horizontal" Height="36" Margin="8,0,0,0" Background="Transparent">
+                            <ui:BitMascot x:Name="BrandMascot" Unit="1.4" VerticalAlignment="Center" Margin="0,0,10,0"
                                           Body="{DynamicResource Brush.Mascot}" Eye="{DynamicResource Brush.MascotEye}" />
-                            <TextBlock FontFamily="{StaticResource Font.Display}" FontWeight="SemiBold" FontSize="18" VerticalAlignment="Center"><Run Text="blox code" /><Run Text="_" Foreground="{DynamicResource Brush.Accent}" /></TextBlock>
+                            <TextBlock FontFamily="{StaticResource Font.Mono}" FontWeight="Medium" FontSize="15" VerticalAlignment="Center"><Run Text="blox code" /><Run Text="_" Foreground="{DynamicResource Brush.Accent}" /></TextBlock>
                         </StackPanel>
 
-                        <!-- "New chat" -> "Play Roblox" -->
-                        <Button DockPanel.Dock="Top" Classes="primary" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Padding="12,10" Margin="0,2,0,6" Click="OnPlay">
+                        <Button DockPanel.Dock="Top" Classes="primary" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Height="44" Padding="12,0" Margin="0,16,0,0" Click="OnPlay">
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <ui:IconView Data="{StaticResource Icon.Play}" Filled="True" Width="13" Height="13" VerticalAlignment="Center" />
                                 <TextBlock Text="Play Roblox" FontWeight="SemiBold" VerticalAlignment="Center" FontSize="14" />
                             </StackPanel>
                         </Button>
 
-                        <!-- Footer: the account chip, here showing install state -->
-                        <Border DockPanel.Dock="Bottom" Padding="10,8" Margin="0,8,0,0">
-                            <DockPanel>
-                                <Panel Width="32" Height="32" Margin="0,0,10,0">
-                                    <Border CornerRadius="16" Background="{DynamicResource Brush.SurfaceAlt}">
-                                        <TextBlock Text="B" FontFamily="{StaticResource Font.Display}" FontWeight="SemiBold" FontSize="15" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                    </Border>
-                                    <!-- Green when installed, amber while running portable -->
-                                    <Ellipse x:Name="FooterDot" Width="10" Height="10" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-1,-1"
-                                             Stroke="{DynamicResource Brush.Bg}" StrokeThickness="2" Fill="{DynamicResource Brush.Success}" />
-                                </Panel>
-                                <StackPanel VerticalAlignment="Center">
-                                    <TextBlock x:Name="FooterTitle" Text="Blox Code" FontWeight="SemiBold" FontSize="13" />
-                                    <TextBlock x:Name="FooterSubtitle" Classes="muted" FontSize="11.5" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
-                                </StackPanel>
-                            </DockPanel>
-                        </Border>
+                        <!-- Footer: Sober's state, then Blox Code's version -->
+                        <StackPanel DockPanel.Dock="Bottom" Margin="0,12,0,0">
+                            <Border Padding="12,10" CornerRadius="12" BorderThickness="1" BorderBrush="{DynamicResource Brush.Border}" Background="{DynamicResource Brush.Surface}">
+                                <DockPanel>
+                                    <Ellipse x:Name="FooterDot" Width="8" Height="8" Margin="0,0,10,0" VerticalAlignment="Center" Fill="{DynamicResource Brush.Success}" />
+                                    <StackPanel VerticalAlignment="Center">
+                                        <TextBlock x:Name="FooterTitle" Text="Blox Code" FontSize="13" Foreground="{DynamicResource Brush.Text}" />
+                                        <TextBlock x:Name="FooterSubtitle" Classes="mono" FontSize="11" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
+                                    </StackPanel>
+                                </DockPanel>
+                            </Border>
+                            <TextBlock x:Name="FooterVersion" Classes="mono" FontSize="11" Margin="6,10,0,0" />
+                        </StackPanel>
 
-                        <StackPanel x:Name="Nav">
-                            <RadioButton x:Name="NavHome" Theme="{StaticResource NavItem}" Tag="Home" IsCheckedChanged="OnNavigate" Margin="0,8,0,1">
+                        <StackPanel x:Name="Nav" Margin="0,16,0,0">
+                            <RadioButton x:Name="NavHome" Theme="{StaticResource NavItem}" Tag="Home" IsCheckedChanged="OnNavigate">
                                 <StackPanel Orientation="Horizontal" Spacing="12"><ui:IconView Data="{StaticResource Icon.Home}" /><TextBlock Text="Home" /></StackPanel>
                             </RadioButton>
-                            <TextBlock Text="Customize" Classes="section" />
+                            <TextBlock Text="CUSTOMIZE" Classes="section" />
                             <RadioButton Theme="{StaticResource NavItem}" Tag="FastFlags" IsCheckedChanged="OnNavigate">
                                 <StackPanel Orientation="Horizontal" Spacing="12"><ui:IconView Data="{StaticResource Icon.Flag}" /><TextBlock Text="Fast Flags" /></StackPanel>
                             </RadioButton>
@@ -60,7 +55,7 @@
                             <RadioButton Theme="{StaticResource NavItem}" Tag="Appearance" IsCheckedChanged="OnNavigate">
                                 <StackPanel Orientation="Horizontal" Spacing="12"><ui:IconView Data="{StaticResource Icon.Palette}" /><TextBlock Text="Appearance" /></StackPanel>
                             </RadioButton>
-                            <TextBlock Text="App" Classes="section" />
+                            <TextBlock Text="APP" Classes="section" />
                             <RadioButton Theme="{StaticResource NavItem}" Tag="Behaviour" IsCheckedChanged="OnNavigate">
                                 <StackPanel Orientation="Horizontal" Spacing="12"><ui:IconView Data="{StaticResource Icon.Sliders}" /><TextBlock Text="Behaviour" /></StackPanel>
                             </RadioButton>

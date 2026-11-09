@@ -54,9 +54,11 @@ public partial class MainWindow : Window
 
     public void RefreshFooter()
     {
-        FooterTitle.Text = DesktopIntegration.IsInstalled ? "Blox Code" : "Blox Code · portable";
-        FooterSubtitle.Text = $"v{Updater.Current} · Linux · Sober";
-        Res.BindBrush(FooterDot, Avalonia.Controls.Shapes.Shape.FillProperty, DesktopIntegration.IsInstalled ? "Brush.Success" : "Brush.Warning");
+        bool installed = DesktopIntegration.IsInstalled;
+        FooterTitle.Text = installed ? "Opens roblox:// links" : "Not installed yet";
+        FooterSubtitle.Text = $"{Distro.Current.Name} · Sober";
+        FooterVersion.Text = $"Blox Code v{Updater.Current}" + (installed ? "" : " · portable");
+        Res.BindBrush(FooterDot, Avalonia.Controls.Shapes.Shape.FillProperty, installed ? "Brush.Success" : "Brush.Warning");
     }
 
     public void RefreshMascots() => BrandMascot.IsAnimated = Store.Settings.AnimateMascot;

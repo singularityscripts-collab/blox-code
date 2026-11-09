@@ -165,6 +165,31 @@ public static class DesktopIntegration
     public static Task RegisterSchemesAsync() => SetHandlerAsync(DesktopId);
 
     /// <summary>
+    /// Sober registers itself for roblox:// links when Flatpak installs or updates it, which quietly
+    /// undoes Blox Code's. An installed Blox Code takes them back on every run, like Bloxstrap does on
+    /// Windows; any other handler is left alone and the Home banner asks instead.
+    /// </summary>
+    public static async Task<bool> ReclaimLinksFromSoberAsync()
+    {
+        try
+        {
+            if (!IsInstalled)
+                return false;
+            string? handler = await CurrentHandlerAsync();
+            if (handler == DesktopId || (handler is not null && handler != Sober.DesktopId))
+                return false;
+            await RegisterSchemesAsync();
+            Logger.Info("DesktopIntegration::ReclaimLinks", $"roblox:// pointed at {handler ?? "nothing"}; registered Blox Code again");
+            return true;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Logger.Warn("DesktopIntegration::ReclaimLinks", ex.Message);
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Points the link schemes at a desktop entry with xdg-mime, and writes mimeapps.list
     /// directly when xdg-mime is missing or didn't take.
     /// </summary>

@@ -13,7 +13,7 @@ namespace BloxCode.UI.Pages;
 /// </summary>
 public partial class ModsPage : UserControl
 {
-    private const string AllTab = "All", PresetsTab = "Presets", AdvancedTab = "Advanced";
+    private const string AllTab = "All", PresetsTab = "Presets", AdvancedTab = "Your files";
 
     private readonly MainWindow _window;
     private readonly MediaPlayer _player = new();
@@ -97,12 +97,9 @@ public partial class ModsPage : UserControl
         }
 
         ModList.ItemsSource = mods;
-        CountText.Text = mods.Count switch
-        {
-            0 => "No files yet.",
-            1 => "1 file, including the ones picked above:",
-            _ => $"{mods.Count} files, including the ones picked above:",
-        };
+        CountText.Text = mods.Count == 1 ? "1 file" : $"{mods.Count} files";
+        EmptyState.Visibility = mods.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        ModList.Visibility = mods.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
     }
 
     // ===== Presets (Bloxstrap's, see ModPresets) =====
@@ -112,12 +109,11 @@ public partial class ModsPage : UserControl
     private void BuildPresets()
     {
         PresetsHost.Children.Clear();
+        PresetsHost.Children.Add(new TextBlock { Text = "PRESETS · FROM BLOXSTRAP" }.Styled("Text.Group"));
         var rows = new StackPanel();
-        rows.Children.Add(new TextBlock { Text = "Presets" }.Styled("Text.H2"));
-        rows.Children.Add(new TextBlock { Text = "Bloxstrap's one-click mods. Turning one off removes only its own files.", Margin = new Thickness(0, 2, 0, 6) }.Styled("Text.Muted"));
 
         var cursor = ModPresets.CurrentCursor();
-        rows.Children.Add(PresetRow("Mouse cursor", "Roblox's arrow from 2006 or 2013.",
+        rows.Children.Add(PresetRow("", "Mouse cursor", "Roblox's arrow from 2006 or 2013.",
             Segments(ModPresets.CursorOptions.Select(o => (o.Label, o.Style == cursor, (Action)(() => Run(() => ModPresets.SetCursor(o.Style))))))));
 
         foreach (var preset in ModPresets.Toggles)
@@ -126,7 +122,7 @@ public partial class ModsPage : UserControl
             var toggle = new CheckBox { IsChecked = ModPresets.IsOn(preset), VerticalAlignment = VerticalAlignment.Center }.Styled("Toggle");
             toggle.Checked += (_, _) => Run(() => ModPresets.Set(preset, true));
             toggle.Unchecked += (_, _) => Run(() => ModPresets.Set(preset, false));
-            rows.Children.Add(PresetRow(preset.Title, preset.Description, toggle));
+            rows.Children.Add(PresetRow(preset == ModPresets.OldCharacterSounds ? "" : "", preset.Title, preset.Description, toggle));
         }
 
         rows.Children.Add(new Border().Styled("Divider"));
@@ -136,26 +132,35 @@ public partial class ModsPage : UserControl
             : "Emoji in chat and names. The fonts download from Bloxstrap's server when you pick one.";
         var emojiSegments = Segments(ModPresets.EmojiOptions.Select(o => (o.Label, o.Style == emoji, (Action)(() => PickEmoji(o.Style)))));
         emojiSegments.IsEnabled = !_emojiBusy;
-        rows.Children.Add(PresetRow("Emoji style", emojiText, emojiSegments, stacked: true));
+        rows.Children.Add(PresetRow("", "Emoji style", emojiText, emojiSegments, stacked: true));
 
         PresetsHost.Children.Add(new Border { Child = rows }.Styled("Card"));
     }
 
-    private static FrameworkElement PresetRow(string title, string description, FrameworkElement control, bool stacked = false)
+    /// <summary>A preset row: icon tile, title and description, and its control on the right (or below).</summary>
+    private static FrameworkElement PresetRow(string glyph, string title, string description, FrameworkElement control, bool stacked = false)
     {
+        var tile = new Border { Width = 34, Height = 34, CornerRadius = new CornerRadius(9), Margin = new Thickness(0, 0, 14, 0), VerticalAlignment = VerticalAlignment.Top };
+        tile.SetResourceReference(Border.BackgroundProperty, "Brush.AccentSoft");
+        var icon = new TextBlock { Text = glyph, FontSize = 15, HorizontalAlignment = HorizontalAlignment.Center }.Styled("Text.Icon");
+        icon.SetResourceReference(TextBlock.ForegroundProperty, "Brush.Accent");
+        tile.Child = icon;
+        DockPanel.SetDock(tile, Dock.Left);
+
         var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 12, 0) };
-        text.Children.Add(new TextBlock { Text = title, FontWeight = FontWeights.SemiBold });
-        text.Children.Add(new TextBlock { Text = description, TextWrapping = TextWrapping.Wrap }.Styled("Text.Muted"));
+        text.Children.Add(new TextBlock { Text = title }.Styled("Text.H2"));
+        text.Children.Add(new TextBlock { Text = description, Margin = new Thickness(0, 2, 0, 0), TextWrapping = TextWrapping.Wrap }.Styled("Text.Muted"));
+
+        var row = new DockPanel { Margin = new Thickness(0, 4, 0, 4) };
+        row.Children.Add(tile);
         if (stacked)
         {
             control.HorizontalAlignment = HorizontalAlignment.Left;
-            control.Margin = new Thickness(0, 8, 0, 0);
-            var column = new StackPanel { Margin = new Thickness(0, 4, 0, 4) };
-            column.Children.Add(text);
-            column.Children.Add(control);
-            return column;
+            control.Margin = new Thickness(0, 10, 0, 0);
+            text.Children.Add(control);
+            row.Children.Add(text);
+            return row;
         }
-        var row = new DockPanel { Margin = new Thickness(0, 4, 0, 4) };
         control.VerticalAlignment = VerticalAlignment.Center;
         DockPanel.SetDock(control, Dock.Right);
         row.Children.Add(control);
@@ -211,8 +216,9 @@ public partial class ModsPage : UserControl
         Groups.Children.Clear();
         foreach (var group in ModCatalog.Groups.Where(g => _tab == AllTab || g.Key == _tab))
         {
+            Groups.Children.Add(new TextBlock { Text = group.Key.ToUpperInvariant() }.Styled("Text.Group"));
             var rows = new StackPanel();
-            rows.Children.Add(new TextBlock { Text = group.Key, Margin = new Thickness(0, 0, 0, 6) }.Styled("Text.H2"));
+
             bool first = true;
             foreach (var slot in group)
             {

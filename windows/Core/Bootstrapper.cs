@@ -84,6 +84,8 @@ public sealed partial class Bootstrapper(HttpClient http, LaunchSettings launch,
         }
 
         Report(BootstrapPhase.Launching, "Starting Roblox", 1);
+        // Installing or updating Roblox can hand roblox:// links back to Roblox itself; take them back.
+        Installer.ReclaimLinksFromRoblox();
         StartRoblox(versionDir);
         Report(BootstrapPhase.Done, "Roblox is running", 1);
     }

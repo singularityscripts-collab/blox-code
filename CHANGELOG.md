@@ -3,6 +3,32 @@
 Todas as versões do Blox Code, da mais nova para a mais antiga. Quem tem o Blox Code instalado
 recebe cada versão automaticamente na próxima vez que abrir.
 
+## 1.9.0 — Visual "Midnight terminal" e links do Roblox
+
+### Correções
+
+- **"Roblox links don't open Blox Code" voltava sozinho:** o Roblox oficial, quando instala ou se
+  atualiza, registra de novo os links `roblox://` para ele mesmo. Agora o Blox Code instalado pega
+  os links de volta toda vez que abre e antes de iniciar o Roblox, como o Bloxstrap faz. Se outro
+  launcher (Bloxstrap, Fishstrap…) estiver com os links, ele não mexe e o aviso continua perguntando.
+- No Linux, o mesmo vale para o Sober: quando uma atualização dele toma os links, o Blox Code pega de
+  volta.
+- Uma cópia do Blox Code aberta com outra pasta de configurações (portátil ou de teste) não impede
+  mais de abrir o menu da cópia instalada.
+
+### Visual
+
+- Novo visual **Midnight terminal**, nos dois sistemas: fundo quase preto, barra lateral e cartões
+  um tom acima, bordas finas e o menta `#4ADE9A` como única cor de destaque.
+- Títulos das páginas e rótulos em JetBrains Mono; rótulos de grupo em maiúsculas acima dos cartões.
+- Barra lateral: marca em mono, botão Play maior, ícone da página aberta em menta e um cartão de
+  status do Roblox no rodapé, com a versão do Blox Code embaixo.
+- Home: saudação em mono, busca com lupa, botão de enviar com seta, atalhos de Mods e Fast Flags com
+  ícone em menta, e Open Roblox / Reinstall Roblox no rodapé.
+- Mods: cartão da pasta de mods no topo, presets com ícone, todas as seções de arquivos (cursor,
+  sons, fonte) e a lista "Your files" com um aviso quando está vazia.
+- Interruptores e seletores novos, e a janela de inicialização com a porcentagem em menta.
+
 ## 1.8.0 — Visual minimalista e tela inicial
 
 ### Tela inicial

@@ -46,10 +46,11 @@ public partial class MainWindow : Window
 
     public void RefreshFooter()
     {
-        string roblox = Store.State.VersionGuid is { } v ? v : "Roblox not downloaded yet";
-        FooterTitle.Text = Installer.IsInstalled ? "Blox Code" : "Blox Code · portable";
-        FooterSubtitle.Text = $"v{App.Version} · {roblox}";
-        FooterDot.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, Installer.IsInstalled ? "Brush.Success" : "Brush.Warning");
+        bool downloaded = Store.State.VersionGuid is not null;
+        FooterTitle.Text = downloaded ? "Roblox is ready" : "Roblox not downloaded yet";
+        FooterSubtitle.Text = Store.State.VersionGuid ?? "downloads on first launch";
+        FooterVersion.Text = $"Blox Code v{App.Version}" + (Installer.IsInstalled ? "" : " · portable");
+        FooterDot.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, downloaded ? "Brush.Success" : "Brush.Warning");
     }
 
     public void RefreshMascots() => BrandMascot.IsAnimated = Store.Settings.AnimateMascot;

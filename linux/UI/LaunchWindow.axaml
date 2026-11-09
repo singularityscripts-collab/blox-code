@@ -2,44 +2,44 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="clr-namespace:BloxCode.Linux.UI"
         x:Class="BloxCode.Linux.UI.LaunchWindow"
-        Title="Blox Code" Width="520" Height="280" CanResize="False"
+        Title="Blox Code" Width="560" Height="360" CanResize="False"
         SystemDecorations="None" WindowStartupLocation="CenterScreen">
     <Border Classes="frame">
-        <Grid RowDefinitions="44,*,Auto,56">
+        <Grid RowDefinitions="40,*,Auto,*,60" Background="{DynamicResource Brush.Sidebar}">
             <!-- Title bar -->
             <DockPanel x:Name="TitleBar" Background="Transparent" Margin="18,0,0,0">
                 <Button DockPanel.Dock="Right" Classes="caption close" Click="OnCancel" ToolTip.Tip="Cancel" VerticalAlignment="Top">
                     <ui:IconView Data="{StaticResource Icon.Close}" Width="14" Height="14" StrokeThickness="1.4" />
                 </Button>
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                    <ui:BitMascot Unit="0.9" IsAnimated="False" Margin="0,0,8,2" VerticalAlignment="Center"
-                                  Body="{DynamicResource Brush.Mascot}" Eye="{DynamicResource Brush.MascotEye}" />
-                    <TextBlock FontFamily="{StaticResource Font.Display}" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center"><Run Text="blox code" /><Run Text="_" Foreground="{DynamicResource Brush.Accent}" /></TextBlock>
-                </StackPanel>
+                <TextBlock FontFamily="{StaticResource Font.Mono}" FontWeight="Medium" FontSize="13" VerticalAlignment="Center"
+                           Foreground="{DynamicResource Brush.TextMuted}"><Run Text="blox code" /><Run Text="_" Foreground="{DynamicResource Brush.Accent}" /></TextBlock>
             </DockPanel>
 
             <!-- Stage: Bit walks along the progress bar -->
-            <Canvas x:Name="Stage" Grid.Row="1" Margin="36,0,36,0" Height="78" VerticalAlignment="Bottom" ClipToBounds="False">
-                <ui:BitMascot x:Name="Mascot" Unit="3.5" Mood="Walk" Canvas.Bottom="0" Canvas.Left="0"
+            <Canvas x:Name="Stage" Grid.Row="1" Margin="60,0,60,0" Height="60" VerticalAlignment="Bottom" ClipToBounds="False">
+                <ui:BitMascot x:Name="Mascot" Unit="3.2" Mood="Walk" Canvas.Bottom="0" Canvas.Left="0"
                               Body="{DynamicResource Brush.Mascot}" Eye="{DynamicResource Brush.MascotEye}" />
             </Canvas>
 
-            <StackPanel Grid.Row="2" Margin="36,6,36,0">
+            <StackPanel Grid.Row="2" Margin="60,4,60,0">
                 <ProgressBar x:Name="Progress" Minimum="0" Maximum="1" Value="0" />
 
-                <!-- Status line: "▖ Doing the thing… (12s · esc to cancel)" -->
-                <DockPanel Margin="0,16,0,0">
+                <!-- Status line: "▖ Doing the thing…" with the percentage on the right -->
+                <DockPanel Margin="0,18,0,0">
+                    <TextBlock x:Name="PercentText" DockPanel.Dock="Right" FontFamily="{StaticResource Font.Mono}" FontSize="13"
+                               Foreground="{DynamicResource Brush.Accent}" VerticalAlignment="Center" Margin="12,0,0,0" />
                     <Panel DockPanel.Dock="Left" Width="20" VerticalAlignment="Center">
                         <ui:BlockSpinner x:Name="Spinner" FontSize="16" FontFamily="{StaticResource Font.Mono}" Foreground="{DynamicResource Brush.Accent}" />
                         <TextBlock x:Name="ResultGlyph" FontSize="15" IsVisible="False" />
                     </Panel>
-                    <TextBlock x:Name="StatusText" FontSize="15" Text="Waking up Bit…" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                    <TextBlock x:Name="StatusText" FontSize="15" FontWeight="Medium" Text="Waking up Bit…" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
                 </DockPanel>
                 <TextBlock x:Name="DetailText" Classes="mono" Margin="20,5,0,0" Text="(0s · esc to cancel)" TextWrapping="Wrap" MaxHeight="48" />
             </StackPanel>
 
-            <!-- Footer -->
-            <DockPanel Grid.Row="3" Margin="36,0,22,0">
+            <!-- Footer: Sober and version, then Cancel -->
+            <Border Grid.Row="4" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource Brush.Border}" />
+            <DockPanel Grid.Row="4" Margin="18,0,18,0">
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Spacing="6">
                     <Button x:Name="LogButton" Content="Open log" IsVisible="False" Click="OnOpenLog" />
                     <Button x:Name="MenuButton" Content="Open Blox Code" Classes="primary" IsVisible="False" Click="OnOpenMenu" />

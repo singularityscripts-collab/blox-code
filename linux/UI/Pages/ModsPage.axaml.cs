@@ -81,8 +81,8 @@ public partial class ModsPage : UserControl
         Groups.Children.Clear();
         foreach (var group in ModCatalog.Groups.Where(g => _tab == AllTab || g.Key == _tab))
         {
+            Groups.Children.Add(new TextBlock { Text = group.Key.ToUpperInvariant(), Classes = { "section", "group" } });
             var rows = new StackPanel();
-            rows.Children.Add(new TextBlock { Text = group.Key, Classes = { "h2" }, Margin = new Thickness(0, 0, 0, 6) });
             bool first = true;
             foreach (var slot in group)
             {
@@ -102,12 +102,11 @@ public partial class ModsPage : UserControl
     private void BuildPresets()
     {
         PresetsHost.Children.Clear();
+        PresetsHost.Children.Add(new TextBlock { Text = "PRESETS · FROM BLOXSTRAP", Classes = { "section", "group" } });
         var rows = new StackPanel();
-        rows.Children.Add(new TextBlock { Text = "Presets", Classes = { "h2" } });
-        rows.Children.Add(new TextBlock { Text = "Bloxstrap's one-click mods. Turning one off removes only its own files.", Classes = { "muted" }, Margin = new Thickness(0, 2, 0, 6), TextWrapping = TextWrapping.Wrap });
 
         var cursor = ModPresets.CurrentCursor();
-        rows.Children.Add(PresetRow("Mouse cursor", "Roblox's arrow from 2006 or 2013.",
+        rows.Children.Add(PresetRow("Icon.Pointer", "Mouse cursor", "Roblox's arrow from 2006 or 2013.",
             Segments(ModPresets.CursorOptions.Select(o => (o.Label, o.Style == cursor, (Action)(() => PresetChange(() => ModPresets.SetCursor(o.Style))))))));
 
         foreach (var preset in ModPresets.Toggles)
@@ -115,7 +114,7 @@ public partial class ModsPage : UserControl
             rows.Children.Add(new Border { Classes = { "divider" } });
             var toggle = new CheckBox { IsChecked = ModPresets.IsOn(preset), Theme = Res.Theme("Toggle"), VerticalAlignment = VerticalAlignment.Center };
             toggle.IsCheckedChanged += (_, _) => PresetChange(() => ModPresets.Set(preset, toggle.IsChecked == true));
-            rows.Children.Add(PresetRow(preset.Title, preset.Description, toggle));
+            rows.Children.Add(PresetRow(preset == ModPresets.OldCharacterSounds ? "Icon.Sound" : "Icon.Person", preset.Title, preset.Description, toggle));
         }
 
         rows.Children.Add(new Border { Classes = { "divider" } });
@@ -125,26 +124,35 @@ public partial class ModsPage : UserControl
             : "Emoji in chat and names. The fonts download from Bloxstrap's server when you pick one.";
         var emojiSegments = Segments(ModPresets.EmojiOptions.Select(o => (o.Label, o.Style == emoji, (Action)(() => _ = PickEmojiAsync(o.Style)))));
         emojiSegments.IsEnabled = !_emojiBusy;
-        rows.Children.Add(PresetRow("Emoji style", emojiText, emojiSegments, stacked: true));
+        rows.Children.Add(PresetRow("Icon.Smile", "Emoji style", emojiText, emojiSegments, stacked: true));
 
         PresetsHost.Children.Add(new Border { Classes = { "card" }, Child = rows });
     }
 
-    private static Control PresetRow(string title, string description, Control control, bool stacked = false)
+    /// <summary>A preset row: icon tile, title and description, and its control on the right (or below).</summary>
+    private static Control PresetRow(string icon, string title, string description, Control control, bool stacked = false)
     {
+        var tile = new Border { Width = 34, Height = 34, CornerRadius = new CornerRadius(9), Margin = new Thickness(0, 0, 14, 0), VerticalAlignment = VerticalAlignment.Top };
+        Res.BindBrush(tile, Border.BackgroundProperty, "Brush.AccentSoft");
+        var glyph = new IconView { Data = Res.Get<Geometry>(icon), Width = 16, Height = 16 };
+        Res.BindBrush(glyph, IconView.ForegroundProperty, "Brush.Accent");
+        tile.Child = glyph;
+        DockPanel.SetDock(tile, Dock.Left);
+
         var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 12, 0) };
-        text.Children.Add(new TextBlock { Text = title, FontWeight = FontWeight.SemiBold });
-        text.Children.Add(new TextBlock { Text = description, Classes = { "muted" }, TextWrapping = TextWrapping.Wrap });
+        text.Children.Add(new TextBlock { Text = title, Classes = { "h2" } });
+        text.Children.Add(new TextBlock { Text = description, Classes = { "muted" }, Margin = new Thickness(0, 2, 0, 0), TextWrapping = TextWrapping.Wrap });
+
+        var row = new DockPanel { Margin = new Thickness(0, 4) };
+        row.Children.Add(tile);
         if (stacked)
         {
             control.HorizontalAlignment = HorizontalAlignment.Left;
-            control.Margin = new Thickness(0, 8, 0, 0);
-            var column = new StackPanel { Margin = new Thickness(0, 4) };
-            column.Children.Add(text);
-            column.Children.Add(control);
-            return column;
+            control.Margin = new Thickness(0, 10, 0, 0);
+            text.Children.Add(control);
+            row.Children.Add(text);
+            return row;
         }
-        var row = new DockPanel { Margin = new Thickness(0, 4) };
         control.VerticalAlignment = VerticalAlignment.Center;
         DockPanel.SetDock(control, Dock.Right);
         row.Children.Add(control);

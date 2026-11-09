@@ -36,6 +36,40 @@ public static class Installer
     public static bool IsDefaultLauncher =>
         CurrentProtocolHandler()?.Contains(Paths.Application, StringComparison.OrdinalIgnoreCase) == true;
 
+    /// <summary>
+    /// Roblox's own player and updater register roblox-player: for themselves whenever they install
+    /// or update, which silently undoes Blox Code's links. Like Bloxstrap, an installed Blox Code
+    /// takes them back on every run; another launcher (Bloxstrap, Fishstrap…) is left alone and the
+    /// Home banner asks instead. Returns true when the links were taken back.
+    /// </summary>
+    public static bool ReclaimLinksFromRoblox()
+    {
+        const string ident = "Installer::ReclaimLinksFromRoblox";
+        try
+        {
+            if (!IsInstalled || IsDefaultLauncher)
+                return false;
+            string? handler = CurrentProtocolHandler();
+            if (handler is not null && !IsRobloxsOwn(handler))
+                return false;
+
+            RegisterProtocols();
+            Logger.Info(ident, $"Roblox links pointed at {handler ?? "nothing"}; registered Blox Code again");
+            return true;
+        }
+        catch (Exception ex) when (ex is UnauthorizedAccessException or System.Security.SecurityException or IOException)
+        {
+            Logger.Warn(ident, ex.Message);
+            return false;
+        }
+    }
+
+    /// <summary>A command that starts Roblox's own player or launcher rather than another bootstrapper.</summary>
+    public static bool IsRobloxsOwn(string command) =>
+        command.Contains("RobloxPlayerBeta.exe", StringComparison.OrdinalIgnoreCase)
+        || command.Contains("RobloxPlayerLauncher.exe", StringComparison.OrdinalIgnoreCase)
+        || command.Contains(@"\Roblox\Versions\", StringComparison.OrdinalIgnoreCase);
+
     public static void Install(bool desktopShortcut)
     {
         const string ident = "Installer::Install";

@@ -3,12 +3,12 @@
     <!-- Blox Code "Daylight": near-white paper, graphite text, deep mint accent. Flat surfaces and
          hairline borders, like the dark theme. Bit keeps its clay. -->
     <SolidColorBrush x:Key="Brush.Bg" Color="#FAFAFA" />
-    <SolidColorBrush x:Key="Brush.Sidebar" Color="#FAFAFA" />
+    <SolidColorBrush x:Key="Brush.Sidebar" Color="#F4F4F5" />
     <SolidColorBrush x:Key="Brush.Surface" Color="#FFFFFF" />
-    <SolidColorBrush x:Key="Brush.SurfaceAlt" Color="#F3F3F5" />
+    <SolidColorBrush x:Key="Brush.SurfaceAlt" Color="#EFEFF1" />
     <SolidColorBrush x:Key="Brush.Hover" Color="#EFEFF1" />
-    <SolidColorBrush x:Key="Brush.Selected" Color="#E6E6E9" />
-    <SolidColorBrush x:Key="Brush.NavSelected" Color="#EDEDF0" />
+    <SolidColorBrush x:Key="Brush.Selected" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="Brush.NavSelected" Color="#E7E7EA" />
     <SolidColorBrush x:Key="Brush.Border" Color="#E7E7EA" />
     <SolidColorBrush x:Key="Brush.BorderStrong" Color="#D5D5DA" />
     <SolidColorBrush x:Key="Brush.Text" Color="#18181B" />
@@ -17,7 +17,10 @@
     <SolidColorBrush x:Key="Brush.Accent" Color="#077257" />
     <SolidColorBrush x:Key="Brush.AccentHover" Color="#055C46" />
     <SolidColorBrush x:Key="Brush.AccentSoft" Color="#E2F3ED" />
+    <SolidColorBrush x:Key="Brush.AccentLine" Color="#B8E3D2" />
     <SolidColorBrush x:Key="Brush.OnAccent" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="Brush.ToggleOff" Color="#D9D9DE" />
+    <SolidColorBrush x:Key="Brush.Knob" Color="#FFFFFF" />
     <SolidColorBrush x:Key="Brush.Danger" Color="#C53A46" />
     <SolidColorBrush x:Key="Brush.Success" Color="#2F7D4F" />
     <SolidColorBrush x:Key="Brush.Warning" Color="#9A6A12" />

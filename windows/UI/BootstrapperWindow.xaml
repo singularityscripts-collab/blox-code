@@ -3,54 +3,55 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="clr-namespace:BloxCode.UI"
         Style="{StaticResource Window.Claude}"
-        Title="Blox Code" Width="520" Height="280" ResizeMode="NoResize"
+        Title="Blox Code" Width="560" Height="360" ResizeMode="NoResize"
         WindowStartupLocation="CenterScreen" KeyDown="OnKeyDown">
     <WindowChrome.WindowChrome>
-        <WindowChrome CaptionHeight="44" GlassFrameThickness="0,0,0,1" ResizeBorderThickness="0" UseAeroCaptionButtons="False" />
+        <WindowChrome CaptionHeight="40" GlassFrameThickness="0,0,0,1" ResizeBorderThickness="0" UseAeroCaptionButtons="False" />
     </WindowChrome.WindowChrome>
 
-    <Grid>
+    <Grid Background="{DynamicResource Brush.Sidebar}">
         <Grid.RowDefinitions>
-            <RowDefinition Height="44" />
+            <RowDefinition Height="40" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="56" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="60" />
         </Grid.RowDefinitions>
 
         <!-- Title bar -->
         <DockPanel Margin="18,0,0,0">
             <Button DockPanel.Dock="Right" Style="{StaticResource Button.CaptionClose}" Content="&#xE8BB;" Click="OnCancel" ToolTip="Cancel" />
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <ui:BitMascot Unit="0.9" IsAnimated="False" Margin="0,0,8,2" VerticalAlignment="Center"
-                              Body="{DynamicResource Brush.Mascot}" Eye="{DynamicResource Brush.MascotEye}" />
-                <TextBlock FontFamily="{StaticResource Font.Display}" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center"><Run Text="blox code" /><Run Text="_" Foreground="{DynamicResource Brush.Accent}" /></TextBlock>
-            </StackPanel>
+            <TextBlock FontFamily="{StaticResource Font.Mono}" FontWeight="Medium" FontSize="13" VerticalAlignment="Center"
+                       Foreground="{DynamicResource Brush.TextMuted}"><Run Text="blox code" /><Run Text="_" Foreground="{DynamicResource Brush.Accent}" /></TextBlock>
         </DockPanel>
 
         <!-- Stage: Bit walks along the progress bar -->
-        <Grid Grid.Row="1" Margin="36,0,36,0" VerticalAlignment="Bottom">
-            <Canvas x:Name="Stage" Height="78" ClipToBounds="False" SizeChanged="OnStageSizeChanged">
-                <ui:BitMascot x:Name="Mascot" Unit="3.5" Mood="Walk" Canvas.Bottom="0" Canvas.Left="0"
+        <Grid Grid.Row="1" Margin="60,0,60,0" VerticalAlignment="Bottom">
+            <Canvas x:Name="Stage" Height="60" ClipToBounds="False" SizeChanged="OnStageSizeChanged">
+                <ui:BitMascot x:Name="Mascot" Unit="3.2" Mood="Walk" Canvas.Bottom="0" Canvas.Left="0"
                                 Body="{DynamicResource Brush.Mascot}" Eye="{DynamicResource Brush.MascotEye}" />
             </Canvas>
         </Grid>
 
-        <StackPanel Grid.Row="2" Margin="36,6,36,0">
+        <StackPanel Grid.Row="2" Margin="60,4,60,0">
             <ProgressBar x:Name="Progress" Style="{StaticResource Progress}" Minimum="0" Maximum="1" Value="0" />
 
-            <!-- Status line: "▖ Doing the thing… (12s · esc to cancel)" -->
-            <DockPanel Margin="0,16,0,0">
+            <!-- Status line: "▖ Doing the thing…" with the percentage on the right -->
+            <DockPanel Margin="0,18,0,0">
+                <TextBlock x:Name="PercentText" DockPanel.Dock="Right" FontFamily="{StaticResource Font.Mono}" FontSize="13"
+                           Foreground="{DynamicResource Brush.Accent}" VerticalAlignment="Center" Margin="12,0,0,0" />
                 <Grid DockPanel.Dock="Left" Width="20" VerticalAlignment="Center">
                     <ui:BlockSpinner x:Name="Spinner" FontSize="16" Foreground="{DynamicResource Brush.Accent}" />
                     <TextBlock x:Name="ResultGlyph" FontSize="15" FontFamily="{StaticResource Font.Symbols}" Visibility="Collapsed" />
                 </Grid>
-                <TextBlock x:Name="StatusText" FontSize="15" Text="Waking up Bit…" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                <TextBlock x:Name="StatusText" FontSize="15" FontWeight="Medium" Text="Waking up Bit…" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
             </DockPanel>
             <TextBlock x:Name="DetailText" Style="{StaticResource Text.Mono}" Margin="20,5,0,0" Text="(0s · esc to cancel)" />
         </StackPanel>
 
-        <!-- Footer -->
-        <DockPanel Grid.Row="3" Margin="36,0,22,0">
+        <!-- Footer: channel and version, then Cancel -->
+        <Border Grid.Row="4" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource Brush.Border}" />
+        <DockPanel Grid.Row="4" Margin="18,0,18,0">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
                 <Button x:Name="LogButton" Style="{StaticResource Button.Ghost}" Content="Open log" Margin="0,0,6,0" Visibility="Collapsed" Click="OnOpenLog" />
                 <Button x:Name="CancelButton" Style="{StaticResource Button.Secondary}" Content="Cancel" Click="OnCancel" />

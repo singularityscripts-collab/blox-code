@@ -3,108 +3,117 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ui="clr-namespace:BloxCode.UI">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <Grid MaxWidth="700" Margin="40,0,40,0"
-              MinHeight="{Binding ViewportHeight, RelativeSource={RelativeSource AncestorType=ScrollViewer}}">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" MinHeight="40" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="2*" />
-            </Grid.RowDefinitions>
+        <StackPanel MaxWidth="720" Margin="40,18,40,32">
 
-            <!-- Install / default launcher banner -->
-            <Border x:Name="Banner" Style="{StaticResource Card}" Visibility="Collapsed" Margin="0,8,0,0">
+            <!-- Install / default launcher banner: a mint-tinted strip with an icon tile -->
+            <Border x:Name="Banner" Visibility="Collapsed" Margin="0,0,0,40" Padding="16,12,12,12" CornerRadius="14" BorderThickness="1"
+                    Background="{DynamicResource Brush.AccentSoft}" BorderBrush="{DynamicResource Brush.AccentLine}">
                 <DockPanel>
+                    <Border DockPanel.Dock="Left" Width="32" Height="32" CornerRadius="9" Margin="0,0,14,0" VerticalAlignment="Center" Background="{DynamicResource Brush.AccentLine}">
+                        <TextBlock Text="&#xE71B;" Style="{StaticResource Text.Icon}" FontSize="15" Foreground="{DynamicResource Brush.Accent}" HorizontalAlignment="Center" />
+                    </Border>
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
                         <CheckBox x:Name="DesktopShortcut" Style="{StaticResource Toggle}" IsChecked="True" Margin="0,0,8,0" ToolTip="Create a desktop shortcut" />
                         <TextBlock x:Name="DesktopShortcutLabel" Text="Desktop icon" Style="{StaticResource Text.Muted}" VerticalAlignment="Center" Margin="0,0,14,0" />
-                        <Button x:Name="BannerButton" Style="{StaticResource Button.Primary}" Click="OnBannerAction" />
+                        <Button x:Name="BannerButton" Style="{StaticResource Button.Primary}" Padding="14,8" Click="OnBannerAction" />
                     </StackPanel>
-                    <StackPanel>
-                        <TextBlock x:Name="BannerTitle" Style="{StaticResource Text.H2}" />
-                        <TextBlock x:Name="BannerText" Style="{StaticResource Text.Muted}" Margin="0,3,0,0" />
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock x:Name="BannerTitle" FontSize="14" FontWeight="Medium" Foreground="{DynamicResource Brush.Text}" />
+                        <TextBlock x:Name="BannerText" Style="{StaticResource Text.Muted}" FontSize="13" Margin="0,2,0,0" />
                     </StackPanel>
                 </DockPanel>
             </Border>
 
-            <StackPanel Grid.Row="2">
-                <!-- Greeting -->
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,26">
-                    <ui:BitMascot x:Name="Mascot" Unit="2.6" VerticalAlignment="Center" Margin="0,0,18,4"
-                                    Body="{DynamicResource Brush.Mascot}" Eye="{DynamicResource Brush.MascotEye}" />
-                    <TextBlock x:Name="Greeting" Style="{StaticResource Text.Display}" VerticalAlignment="Center" />
-                </StackPanel>
+            <!-- Greeting -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,24,0,0">
+                <ui:BitMascot x:Name="Mascot" Unit="2.4" VerticalAlignment="Center" Margin="0,0,18,2"
+                              Body="{DynamicResource Brush.Mascot}" Eye="{DynamicResource Brush.MascotEye}" />
+                <TextBlock x:Name="Greeting" FontFamily="{StaticResource Font.Mono}" FontWeight="Medium" FontSize="34"
+                           Foreground="{DynamicResource Brush.Text}" VerticalAlignment="Center" />
+            </StackPanel>
+            <TextBlock Text="Paste a game to jump straight in, or just hit Play." HorizontalAlignment="Center" Margin="0,12,0,28"
+                       FontSize="14" Foreground="{DynamicResource Brush.TextMuted}" />
 
-                <!-- Composer -->
-                <Border Background="{DynamicResource Brush.Surface}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"
-                        CornerRadius="14" Padding="18,14,12,12">
-                    <StackPanel>
-                        <TextBox x:Name="Composer" Style="{StaticResource Input.Bare}" Tag="Paste a Roblox game link or place ID…"
-                                 KeyDown="OnComposerKeyDown" TextChanged="OnComposerChanged" />
-                        <DockPanel Margin="0,14,0,0">
-                            <Button x:Name="SendButton" DockPanel.Dock="Right" Style="{StaticResource Button.Send}" Content="↑"
-                                    Click="OnSend" ToolTip="Launch" />
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Border CornerRadius="6" BorderThickness="1" BorderBrush="{DynamicResource Brush.Border}" Padding="8,3" Margin="0,0,8,0">
-                                    <TextBlock x:Name="ChannelPill" Style="{StaticResource Text.Mono}" />
-                                </Border>
-                                <TextBlock x:Name="ComposerHint" Style="{StaticResource Text.Muted}" VerticalAlignment="Center" Text="Enter to launch · empty opens the Roblox app" />
-                            </StackPanel>
-                        </DockPanel>
-                    </StackPanel>
-                </Border>
-
-                <!-- Quick settings: the graphics preset right here, shortcuts to the rest -->
-                <Border Style="{StaticResource Card}" Margin="0,18,0,10" Padding="16,12">
+            <!-- Composer -->
+            <Border Background="{DynamicResource Brush.Surface}" BorderBrush="{DynamicResource Brush.BorderStrong}" BorderThickness="1"
+                    CornerRadius="18" Padding="20,16,14,14">
+                <StackPanel>
                     <DockPanel>
-                        <Border DockPanel.Dock="Right" Style="{StaticResource Segmented}" VerticalAlignment="Center">
-                            <StackPanel x:Name="GraphicsSegments" Orientation="Horizontal" />
-                        </Border>
-                        <StackPanel VerticalAlignment="Center" Margin="0,0,12,0">
-                            <TextBlock Text="Graphics" Style="{StaticResource Text.H2}" />
-                            <TextBlock x:Name="GraphicsSummary" Style="{StaticResource Text.Muted}" />
+                        <TextBlock DockPanel.Dock="Left" Text="&#xE721;" Style="{StaticResource Text.Icon}" FontSize="16" Margin="0,0,12,0"
+                                   Foreground="{DynamicResource Brush.TextMuted}" />
+                        <TextBox x:Name="Composer" Style="{StaticResource Input.Bare}" Tag="Paste a Roblox game link or place ID…" FontSize="16"
+                                 KeyDown="OnComposerKeyDown" TextChanged="OnComposerChanged" />
+                    </DockPanel>
+                    <DockPanel Margin="0,14,0,0">
+                        <Button x:Name="SendButton" DockPanel.Dock="Right" Style="{StaticResource Button.Send}" Width="38" Height="38"
+                                Click="OnSend" ToolTip="Launch">
+                            <TextBlock Text="&#xE72A;" Style="{StaticResource Text.Icon}" FontSize="15" />
+                        </Button>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border CornerRadius="6" BorderThickness="1" BorderBrush="{DynamicResource Brush.BorderStrong}"
+                                    Background="{DynamicResource Brush.SurfaceAlt}" Padding="8,3" Margin="0,0,10,0">
+                                <TextBlock x:Name="ChannelPill" Style="{StaticResource Text.Mono}" FontSize="11" Foreground="{DynamicResource Brush.TextSecondary}" />
+                            </Border>
+                            <TextBlock x:Name="ComposerHint" Style="{StaticResource Text.Mono}" VerticalAlignment="Center" Text="Enter to launch · empty opens Roblox" />
                         </StackPanel>
                     </DockPanel>
-                </Border>
+                </StackPanel>
+            </Border>
 
-                <UniformGrid Columns="2">
-                    <Button Style="{StaticResource Button.Base}" Background="{DynamicResource Brush.Surface}" BorderBrush="{DynamicResource Brush.Border}"
-                            Tag="{DynamicResource Brush.SurfaceAlt}" HorizontalContentAlignment="Stretch" Padding="16,12" Margin="0,0,5,0" Click="OnMods">
-                        <DockPanel>
-                            <Border DockPanel.Dock="Left" Width="36" Height="36" CornerRadius="9" Background="{DynamicResource Brush.SurfaceAlt}" Margin="0,0,12,0">
-                                <TextBlock Text="&#xEA86;" Style="{StaticResource Text.Icon}" Foreground="{DynamicResource Brush.TextSecondary}" HorizontalAlignment="Center" />
-                            </Border>
-                            <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="Mods" Style="{StaticResource Text.H2}" />
-                                <TextBlock x:Name="ModsSummary" Style="{StaticResource Text.Muted}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
-                            </StackPanel>
-                        </DockPanel>
-                    </Button>
-                    <Button Style="{StaticResource Button.Base}" Background="{DynamicResource Brush.Surface}" BorderBrush="{DynamicResource Brush.Border}"
-                            Tag="{DynamicResource Brush.SurfaceAlt}" HorizontalContentAlignment="Stretch" Padding="16,12" Margin="5,0,0,0" Click="OnFastFlags">
-                        <DockPanel>
-                            <Border DockPanel.Dock="Left" Width="36" Height="36" CornerRadius="9" Background="{DynamicResource Brush.SurfaceAlt}" Margin="0,0,12,0">
-                                <TextBlock Text="&#xE7C1;" Style="{StaticResource Text.Icon}" Foreground="{DynamicResource Brush.TextSecondary}" HorizontalAlignment="Center" />
-                            </Border>
-                            <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="Fast Flags" Style="{StaticResource Text.H2}" />
-                                <TextBlock x:Name="FlagsSummary" Style="{StaticResource Text.Muted}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
-                            </StackPanel>
-                        </DockPanel>
-                    </Button>
-                </UniformGrid>
+            <!-- Graphics preset, right on the Home page -->
+            <Border Style="{StaticResource Card}" Margin="0,14,0,0" Padding="20,12,12,12">
+                <DockPanel>
+                    <Border DockPanel.Dock="Right" Style="{StaticResource Segmented}" VerticalAlignment="Center">
+                        <StackPanel x:Name="GraphicsSegments" Orientation="Horizontal" />
+                    </Border>
+                    <StackPanel VerticalAlignment="Center" Margin="0,0,12,0">
+                        <TextBlock Text="Graphics" FontSize="14" FontWeight="Medium" Foreground="{DynamicResource Brush.Text}" />
+                        <TextBlock x:Name="GraphicsSummary" Style="{StaticResource Text.Muted}" FontSize="12" Margin="0,2,0,0" />
+                    </StackPanel>
+                </DockPanel>
+            </Border>
 
-                <WrapPanel HorizontalAlignment="Center" Margin="0,14,0,0">
-                    <Button Style="{StaticResource Button.Ghost}" FontSize="13" Padding="10,6" Click="OnOpenRoblox">
-                        <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE768;" Style="{StaticResource Text.Icon}" FontSize="12" Margin="0,0,7,0" /><TextBlock Text="Open Roblox" /></StackPanel>
+            <UniformGrid Columns="2" Margin="0,12,0,0">
+                <Button Style="{StaticResource Button.Base}" Background="{DynamicResource Brush.Surface}" BorderBrush="{DynamicResource Brush.CardBorder}"
+                        Tag="{DynamicResource Brush.Hover}" HorizontalContentAlignment="Stretch" Padding="16" Margin="0,0,6,0" Click="OnMods">
+                    <DockPanel>
+                        <Border DockPanel.Dock="Left" Width="38" Height="38" CornerRadius="10" Background="{DynamicResource Brush.AccentSoft}" Margin="0,0,14,0">
+                            <TextBlock Text="&#xEA86;" Style="{StaticResource Text.Icon}" FontSize="17" Foreground="{DynamicResource Brush.Accent}" HorizontalAlignment="Center" />
+                        </Border>
+                        <TextBlock DockPanel.Dock="Right" Text="&#xE76C;" Style="{StaticResource Text.Icon}" FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" />
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Mods" FontSize="14" FontWeight="Medium" Foreground="{DynamicResource Brush.Text}" />
+                            <TextBlock x:Name="ModsSummary" Style="{StaticResource Text.Muted}" FontSize="12" Margin="0,2,0,0" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
+                        </StackPanel>
+                    </DockPanel>
+                </Button>
+                <Button Style="{StaticResource Button.Base}" Background="{DynamicResource Brush.Surface}" BorderBrush="{DynamicResource Brush.CardBorder}"
+                        Tag="{DynamicResource Brush.Hover}" HorizontalContentAlignment="Stretch" Padding="16" Margin="6,0,0,0" Click="OnFastFlags">
+                    <DockPanel>
+                        <Border DockPanel.Dock="Left" Width="38" Height="38" CornerRadius="10" Background="{DynamicResource Brush.AccentSoft}" Margin="0,0,14,0">
+                            <TextBlock Text="&#xE7C1;" Style="{StaticResource Text.Icon}" FontSize="17" Foreground="{DynamicResource Brush.Accent}" HorizontalAlignment="Center" />
+                        </Border>
+                        <TextBlock DockPanel.Dock="Right" Text="&#xE76C;" Style="{StaticResource Text.Icon}" FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" />
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Fast Flags" FontSize="14" FontWeight="Medium" Foreground="{DynamicResource Brush.Text}" />
+                            <TextBlock x:Name="FlagsSummary" Style="{StaticResource Text.Muted}" FontSize="12" Margin="0,2,0,0" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
+                        </StackPanel>
+                    </DockPanel>
+                </Button>
+            </UniformGrid>
+
+            <!-- Footer: what's set up, and the Roblox shortcuts -->
+            <DockPanel Margin="0,28,0,0">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <Button Style="{StaticResource Button.Ghost}" FontSize="13" Padding="12,7" Click="OnOpenRoblox">
+                        <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE8A7;" Style="{StaticResource Text.Icon}" FontSize="12" Margin="0,0,7,0" /><TextBlock Text="Open Roblox" /></StackPanel>
                     </Button>
-                    <Button Style="{StaticResource Button.Ghost}" FontSize="13" Padding="10,6" Click="OnReinstall">
+                    <Button Style="{StaticResource Button.Ghost}" FontSize="13" Padding="12,7" Click="OnReinstall">
                         <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE72C;" Style="{StaticResource Text.Icon}" FontSize="12" Margin="0,0,7,0" /><TextBlock Text="Reinstall Roblox" /></StackPanel>
                     </Button>
-                </WrapPanel>
-
-                <TextBlock x:Name="StatusLine" Style="{StaticResource Text.Mono}" HorizontalAlignment="Center" Margin="0,22,0,0" />
-            </StackPanel>
-        </Grid>
+                </StackPanel>
+                <TextBlock x:Name="StatusLine" Style="{StaticResource Text.Mono}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+            </DockPanel>
+        </StackPanel>
     </ScrollViewer>
 </UserControl>

@@ -6,6 +6,7 @@
             <TextBlock Text="Behaviour" Style="{StaticResource Text.H1}" />
             <TextBlock Style="{StaticResource Text.Muted}" Margin="0,0,0,20" Text="How Blox Code updates and launches Roblox." />
 
+            <TextBlock Text="LAUNCHING" Style="{StaticResource Text.Group}" />
             <Border Style="{StaticResource Card}">
                 <StackPanel>
                     <DockPanel Margin="0,4">
@@ -35,6 +36,7 @@
                 </StackPanel>
             </Border>
 
+            <TextBlock Text="MAINTENANCE" Style="{StaticResource Text.Group}" />
             <Border Style="{StaticResource Card}">
                 <StackPanel>
                     <DockPanel Margin="0,4">
@@ -55,6 +57,7 @@
                 </StackPanel>
             </Border>
 
+            <TextBlock Text="BLOX CODE" Style="{StaticResource Text.Group}" />
             <Border Style="{StaticResource Card}">
                 <StackPanel>
                     <DockPanel Margin="0,4">
@@ -75,7 +78,7 @@
                 </StackPanel>
             </Border>
 
-            <Border Style="{StaticResource Card}" BorderBrush="{DynamicResource Brush.Danger}">
+            <Border Style="{StaticResource Card}" Margin="0,24,0,12" BorderBrush="{DynamicResource Brush.Danger}">
                 <DockPanel>
                     <Button x:Name="UninstallButton" DockPanel.Dock="Right" Style="{StaticResource Button.Danger}" Content="Uninstall" Click="OnUninstall" VerticalAlignment="Center" />
                     <StackPanel Margin="0,0,16,0">

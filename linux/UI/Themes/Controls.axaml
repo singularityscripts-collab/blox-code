@@ -29,6 +29,13 @@
     <StreamGeometry x:Key="Icon.Check">M5,10.5 L8.5,14 L15,6.5</StreamGeometry>
     <StreamGeometry x:Key="Icon.Dash">M5.5,10 L14.5,10</StreamGeometry>
     <StreamGeometry x:Key="Icon.Up">M10,15.5 L10,4.5 M5.5,9 L10,4.5 L14.5,9</StreamGeometry>
+    <StreamGeometry x:Key="Icon.Pointer">M6,3.5 L6,15.5 L9,12.5 L11.5,17 L13.5,16 L11,11.5 L15,11.5 Z</StreamGeometry>
+    <StreamGeometry x:Key="Icon.Person">M10,4 A3,3 0 1 0 10,10 A3,3 0 1 0 10,4 M4.5,17 C5,13.5 7.5,12 10,12 C12.5,12 15,13.5 15.5,17</StreamGeometry>
+    <StreamGeometry x:Key="Icon.Smile">M10,3 A7,7 0 1 0 10,17 A7,7 0 1 0 10,3 M7,11.5 C8,13.3 12,13.3 13,11.5 M7.5,8 L7.5,8.5 M12.5,8 L12.5,8.5</StreamGeometry>
+    <StreamGeometry x:Key="Icon.Search">M8.5,3.5 A5,5 0 1 0 8.5,13.5 A5,5 0 1 0 8.5,3.5 M12.2,12.2 L16.5,16.5</StreamGeometry>
+    <StreamGeometry x:Key="Icon.Arrow">M4.5,10 L15.5,10 M11,5.5 L15.5,10 L11,14.5</StreamGeometry>
+    <StreamGeometry x:Key="Icon.Chevron">M8,5 L13,10 L8,15</StreamGeometry>
+    <StreamGeometry x:Key="Icon.Link">M8.5,11.5 A3,3 0 0 0 12.7,11.6 L15,9.3 A3,3 0 0 0 10.7,5 L9.6,6.1 M11.5,8.5 A3,3 0 0 0 7.3,8.4 L5,10.7 A3,3 0 0 0 9.3,15 L10.4,13.9</StreamGeometry>
     <StreamGeometry x:Key="Icon.Back">M15.5,10 L4.5,10 M9,5.5 L4.5,10 L9,14.5</StreamGeometry>
     <StreamGeometry x:Key="Icon.Plus">M10,4.5 L10,15.5 M4.5,10 L15.5,10</StreamGeometry>
     <StreamGeometry x:Key="Icon.Trash">M4,6 L16,6 M8,6 L8,4 L12,4 L12,6 M5.5,6 L6.5,16.5 L13.5,16.5 L14.5,6 M8.5,9 L8.5,13.5 M11.5,9 L11.5,13.5</StreamGeometry>
@@ -163,9 +170,9 @@
 
     <!-- ===== Sidebar navigation ===== -->
     <ControlTheme x:Key="NavItem" TargetType="RadioButton">
-        <Setter Property="Foreground" Value="{DynamicResource Brush.TextMuted}" />
-        <Setter Property="FontSize" Value="13.5" />
-        <Setter Property="Height" Value="34" />
+        <Setter Property="Foreground" Value="{DynamicResource Brush.TextSecondary}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Height" Value="38" />
         <Setter Property="Margin" Value="0,1" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="GroupName" Value="Nav" />
@@ -218,7 +225,7 @@
         <Setter Property="Template">
             <ControlTemplate>
                 <!-- Pill-shaped: the picked option lights up in the accent colour -->
-                <Border x:Name="Chrome" Background="Transparent" CornerRadius="{StaticResource Radius.Pill}" Padding="13,5">
+                <Border x:Name="Chrome" Background="Transparent" CornerRadius="7" Padding="12,6">
                     <Border.Transitions>
                         <Transitions>
                             <BrushTransition Property="Background" Duration="0:0:0.14" />
@@ -247,10 +254,10 @@
         <Setter Property="Template">
             <ControlTemplate>
                 <Panel Background="Transparent">
-                    <Border x:Name="Track" Width="38" Height="22" CornerRadius="11" BorderThickness="1"
-                            Background="{DynamicResource Brush.SurfaceAlt}" BorderBrush="{DynamicResource Brush.BorderStrong}" />
-                    <Ellipse x:Name="Knob" Width="14" Height="14" Margin="4,0" HorizontalAlignment="Left" VerticalAlignment="Center"
-                             Fill="{DynamicResource Brush.TextMuted}" RenderTransform="translateX(0px)">
+                    <Border x:Name="Track" Width="40" Height="22" CornerRadius="11" BorderThickness="0"
+                            Background="{DynamicResource Brush.ToggleOff}" />
+                    <Ellipse x:Name="Knob" Width="16" Height="16" Margin="3,0" HorizontalAlignment="Left" VerticalAlignment="Center"
+                             Fill="{DynamicResource Brush.Knob}" RenderTransform="translateX(0px)">
                         <Ellipse.Transitions>
                             <Transitions>
                                 <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.12" />
@@ -266,7 +273,7 @@
         </Style>
         <Style Selector="^:checked /template/ Ellipse#Knob">
             <Setter Property="Fill" Value="{DynamicResource Brush.OnAccent}" />
-            <Setter Property="RenderTransform" Value="translateX(16px)" />
+            <Setter Property="RenderTransform" Value="translateX(18px)" />
         </Style>
         <Style Selector="^:disabled">
             <Setter Property="Opacity" Value="0.45" />

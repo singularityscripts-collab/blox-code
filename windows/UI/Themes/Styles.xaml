@@ -22,17 +22,17 @@
         <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
         <Setter Property="TextOptions.TextFormattingMode" Value="Ideal" />
     </Style>
-    <!-- Page titles: Inter, semibold and slightly tight; the monospace stays for the wordmark and code -->
+    <!-- Page titles: JetBrains Mono, medium weight, like a terminal prompt -->
     <Style x:Key="Text.H1" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource Font.Sans}" />
-        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontFamily" Value="{StaticResource Font.Mono}" />
+        <Setter Property="FontWeight" Value="Medium" />
         <Setter Property="FontSize" Value="26" />
         <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
         <Setter Property="Margin" Value="0,0,0,6" />
     </Style>
     <Style x:Key="Text.H2" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="14.5" />
-        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="Medium" />
         <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
     </Style>
     <Style x:Key="Text.Body" TargetType="TextBlock">
@@ -51,11 +51,15 @@
         <Setter Property="FontSize" Value="12" />
         <Setter Property="Foreground" Value="{DynamicResource Brush.TextMuted}" />
     </Style>
+    <!-- Small uppercase mono labels: sidebar groups and the groups of rows on a page -->
     <Style x:Key="Text.Section" TargetType="TextBlock">
-        <Setter Property="FontSize" Value="11.5" />
-        <Setter Property="FontWeight" Value="Medium" />
+        <Setter Property="FontFamily" Value="{StaticResource Font.Mono}" />
+        <Setter Property="FontSize" Value="11" />
         <Setter Property="Foreground" Value="{DynamicResource Brush.TextMuted}" />
-        <Setter Property="Margin" Value="12,22,0,6" />
+        <Setter Property="Margin" Value="10,20,0,6" />
+    </Style>
+    <Style x:Key="Text.Group" TargetType="TextBlock" BasedOn="{StaticResource Text.Section}">
+        <Setter Property="Margin" Value="4,26,0,10" />
     </Style>
     <Style x:Key="Text.Icon" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource Font.Icons}" />
@@ -200,7 +204,7 @@
 
     <Style x:Key="Button.Caption" TargetType="Button" BasedOn="{StaticResource Button.Ghost}">
         <Setter Property="Width" Value="46" />
-        <Setter Property="Height" Value="32" />
+        <Setter Property="Height" Value="34" />
         <Setter Property="Padding" Value="0" />
         <Setter Property="FontFamily" Value="{StaticResource Font.Icons}" />
         <Setter Property="FontSize" Value="10" />
@@ -242,9 +246,9 @@
 
     <!-- ===== Sidebar navigation ===== -->
     <Style x:Key="Nav.Item" TargetType="RadioButton">
-        <Setter Property="Foreground" Value="{DynamicResource Brush.TextMuted}" />
-        <Setter Property="FontSize" Value="13.5" />
-        <Setter Property="Height" Value="34" />
+        <Setter Property="Foreground" Value="{DynamicResource Brush.TextSecondary}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Height" Value="38" />
         <Setter Property="Margin" Value="0,1" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
@@ -312,13 +316,24 @@
         </Setter>
     </Style>
 
+    <!-- The sidebar icon of the open page is mint -->
+    <Style x:Key="Nav.Icon" TargetType="TextBlock" BasedOn="{StaticResource Text.Icon}">
+        <Setter Property="Margin" Value="0,0,12,0" />
+        <Setter Property="FontSize" Value="16" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsChecked, RelativeSource={RelativeSource AncestorType=RadioButton}}" Value="True">
+                <Setter Property="Foreground" Value="{DynamicResource Brush.Accent}" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
     <!-- ===== Segmented control (RadioButtons inside a Border.Segmented) ===== -->
     <!-- Pill-shaped: the picked option lights up in the accent colour -->
     <Style x:Key="Segmented" TargetType="Border">
-        <Setter Property="Background" Value="{DynamicResource Brush.SurfaceAlt}" />
-        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="Background" Value="{DynamicResource Brush.Bg}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.CardBorder}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource Radius.Pill}" />
+        <Setter Property="CornerRadius" Value="10" />
         <Setter Property="Padding" Value="3" />
         <Setter Property="HorizontalAlignment" Value="Left" />
     </Style>
@@ -331,9 +346,9 @@
             <Setter.Value>
                 <ControlTemplate TargetType="RadioButton">
                     <Grid>
-                        <Border x:Name="Chrome" Background="Transparent" CornerRadius="{StaticResource Radius.Pill}" />
-                        <Border x:Name="HoverFill" Background="{DynamicResource Brush.Hover}" CornerRadius="{StaticResource Radius.Pill}" Opacity="0" />
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="13,5" />
+                        <Border x:Name="Chrome" Background="Transparent" CornerRadius="7" />
+                        <Border x:Name="HoverFill" Background="{DynamicResource Brush.Hover}" CornerRadius="7" Opacity="0" />
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="12,6" />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
@@ -373,10 +388,10 @@
             <Setter.Value>
                 <ControlTemplate TargetType="CheckBox">
                     <Grid Background="Transparent">
-                        <Border x:Name="Track" Width="38" Height="22" CornerRadius="11" BorderThickness="1"
-                                Background="{DynamicResource Brush.SurfaceAlt}" BorderBrush="{DynamicResource Brush.BorderStrong}" />
-                        <Ellipse x:Name="Knob" Width="14" Height="14" Margin="4,0" HorizontalAlignment="Left"
-                                 Fill="{DynamicResource Brush.TextMuted}">
+                        <Border x:Name="Track" Width="40" Height="22" CornerRadius="11" BorderThickness="0"
+                                Background="{DynamicResource Brush.ToggleOff}" />
+                        <Ellipse x:Name="Knob" Width="16" Height="16" Margin="3,0" HorizontalAlignment="Left"
+                                 Fill="{DynamicResource Brush.Knob}">
                             <Ellipse.RenderTransform>
                                 <TranslateTransform x:Name="KnobShift" X="0" />
                             </Ellipse.RenderTransform>
@@ -390,7 +405,7 @@
                             <Trigger.EnterActions>
                                 <BeginStoryboard>
                                     <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="KnobShift" Storyboard.TargetProperty="X" To="16" Duration="0:0:0.12" />
+                                        <DoubleAnimation Storyboard.TargetName="KnobShift" Storyboard.TargetProperty="X" To="18" Duration="0:0:0.16" />
                                     </Storyboard>
                                 </BeginStoryboard>
                             </Trigger.EnterActions>
@@ -520,11 +535,11 @@
     <Style x:Key="Progress" TargetType="ProgressBar">
         <Setter Property="Height" Value="6" />
         <Setter Property="Foreground" Value="{DynamicResource Brush.Accent}" />
-        <Setter Property="Background" Value="{DynamicResource Brush.SurfaceAlt}" />
+        <Setter Property="Background" Value="{DynamicResource Brush.ToggleOff}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ProgressBar">
-                    <Border CornerRadius="3" Background="{TemplateBinding Background}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" ClipToBounds="True">
+                    <Border CornerRadius="3" Background="{TemplateBinding Background}" ClipToBounds="True">
                         <Grid>
                             <Border x:Name="PART_Track" />
                             <Border x:Name="PART_Indicator" HorizontalAlignment="Left" CornerRadius="3" Background="{TemplateBinding Foreground}" />

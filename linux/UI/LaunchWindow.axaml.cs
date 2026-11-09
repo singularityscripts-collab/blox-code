@@ -205,6 +205,7 @@ public partial class LaunchWindow : Window
         _fraction = p.Fraction;
 
         Progress.Value = p.Fraction ?? 0;
+        PercentText.Text = p.Fraction is { } f ? $"{(int)Math.Round(f * 100)}%" : "";
         Progress.Opacity = p.Fraction is null ? 0.5 : 1;
 
         Mascot.Mood = p.Phase switch
@@ -257,6 +258,7 @@ public partial class LaunchWindow : Window
         _finished = true;
         _fraction = 1;
         Progress.Value = 1;
+        PercentText.Text = "100%";
         Progress.Opacity = 1;
         StatusText.Text = message;
         DetailText.Text = $"({(int)_elapsed.Elapsed.TotalSeconds}s · done)";

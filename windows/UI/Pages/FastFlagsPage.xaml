@@ -49,9 +49,9 @@
                 </DockPanel>
             </Button>
 
+            <TextBlock Text="PRESETS" Style="{StaticResource Text.Group}" />
             <Border Style="{StaticResource Card}">
                 <StackPanel>
-                    <TextBlock Text="Presets" Style="{StaticResource Text.H2}" Margin="0,0,0,12" />
 
                     <DockPanel Margin="0,4">
                         <CheckBox x:Name="ExclusiveFullscreen" DockPanel.Dock="Right" Style="{StaticResource Toggle}" Click="OnPresetChanged" />

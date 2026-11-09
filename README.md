@@ -26,9 +26,11 @@ atualizações automáticas não mostram esse aviso. Veja a [política de assina
 - **Tela inicial** como a do Bloxstrap: ao abrir o Blox Code, escolha **Launch Roblox** (com o
   preset gráfico, os mods e as flags atuais) ou **Configure Blox Code**. `-menu` abre direto as
   configurações.
-- Visual minimalista: **Midnight** (grafite com acento menta `#3EE6B0`) e **Daylight** (quase branco
-  com menta `#077257`), superfícies chapadas com bordas finas, Inter no texto e JetBrains Mono na
-  marca e no código (as duas vêm dentro do programa). Animações suaves, que dá para desligar.
+- Visual **Midnight terminal** (quase preto com acento menta `#4ADE9A`) e **Daylight** (quase branco
+  com menta `#077257`): superfícies chapadas com bordas finas, Inter no texto e JetBrains Mono nos
+  títulos, rótulos e código (as duas vêm dentro do programa). Animações suaves, que dá para desligar.
+- Os links `roblox://` voltam para o Blox Code sozinhos quando o Roblox oficial (ou o Sober, no
+  Linux) os toma de volta numa atualização.
   Cole um link de jogo ou um place ID na Home e aperte Enter.
 - **Preset gráfico** Auto / Lowest / Low / Medium / High, feito só com flags da
   [allowlist do Roblox](https://devforum.roblox.com/t/allowlist-for-local-client-configuration-via-fast-flags/3966569),

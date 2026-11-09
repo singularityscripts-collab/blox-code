@@ -7,6 +7,7 @@
             <TextBlock Text="Appearance" Style="{StaticResource Text.H1}" />
             <TextBlock Style="{StaticResource Text.Muted}" Margin="0,0,0,20" Text="Daylight blueprint or Midnight terminal — the same mint cursor either way." />
 
+            <TextBlock Text="THEME" Style="{StaticResource Text.Group}" />
             <Border Style="{StaticResource Card}">
                 <StackPanel>
                     <DockPanel Margin="0,4">

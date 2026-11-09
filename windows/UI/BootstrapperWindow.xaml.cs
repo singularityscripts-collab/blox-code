@@ -187,6 +187,7 @@ public partial class BootstrapperWindow : Window
         Progress.IsIndeterminate = false;
         Progress.Value = p.Fraction ?? 0;
         Progress.Opacity = p.Fraction is null ? 0.5 : 1;
+        PercentText.Text = p.Fraction is { } f ? $"{(int)Math.Round(f * 100)}%" : "";
 
         Mascot.Mood = p.Phase switch
         {
@@ -247,6 +248,7 @@ public partial class BootstrapperWindow : Window
         _fraction = 1;
         Progress.Value = 1;
         Progress.Opacity = 1;
+        PercentText.Text = "100%";
         StatusText.Text = message;
         DetailText.Text = $"({(int)_elapsed.Elapsed.TotalSeconds}s · done)";
         ShowGlyph("✓", "Brush.Success");

@@ -70,6 +70,9 @@ public partial class App : Application
         }
 
         Updater.CleanupUpdatesFolder();
+        // Roblox's own updater re-registers roblox:// for itself; an installed Blox Code takes it back, as Bloxstrap does.
+        if (launch.Mode != LaunchMode.Uninstall)
+            Installer.ReclaimLinksFromRoblox();
 
         if (await FindUpdateAsync(launch) is { } update)
         {
@@ -118,7 +121,11 @@ public partial class App : Application
                 }
 
                 // One menu at a time: two would overwrite each other's settings. Bring the open one forward.
-                _menuLock = new Mutex(true, "BloxCode-Menu", out bool first);
+                // Per settings folder: two menus on the same settings would overwrite each other, a
+                // separate (test or portable) settings folder can't clash.
+                string scope = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
+                    System.Text.Encoding.UTF8.GetBytes(Paths.Config.ToLowerInvariant())))[..12];
+                _menuLock = new Mutex(true, Paths.Config == Path.Combine(Paths.LocalAppData, "BloxCode") ? "BloxCode-Menu" : "BloxCode-Menu-" + scope, out bool first);
                 if (!first)
                 {
                     Logger.Info("App::Start", "Found an already existing menu window");
