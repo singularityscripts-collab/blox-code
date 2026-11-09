@@ -3,6 +3,14 @@
 Todas as versões do Blox Code, da mais nova para a mais antiga. Quem tem o Blox Code instalado
 recebe cada versão automaticamente na próxima vez que abrir.
 
+## 1.9.1 — Janela de inicialização sem espaço sobrando
+
+### Visual
+
+- A janela que aparece enquanto o Roblox abre ficou mais baixa, e o Bit, a barra e o texto agora
+  ficam centralizados, sem o espaço vazio que sobrava antes do rodapé. Se der erro, a janela cresce
+  um pouco para a mensagem caber.
+
 ## 1.9.0 — Visual "Midnight terminal" e links do Roblox
 
 ### Correções

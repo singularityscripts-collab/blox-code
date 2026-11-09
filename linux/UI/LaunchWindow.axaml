@@ -2,7 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="clr-namespace:BloxCode.Linux.UI"
         x:Class="BloxCode.Linux.UI.LaunchWindow"
-        Title="Blox Code" Width="560" Height="360" CanResize="False"
+        Title="Blox Code" Width="560" Height="300" CanResize="False"
         SystemDecorations="None" WindowStartupLocation="CenterScreen">
     <Border Classes="frame">
         <Grid RowDefinitions="40,*,Auto,*,60" Background="{DynamicResource Brush.Sidebar}">
@@ -15,13 +15,12 @@
                            Foreground="{DynamicResource Brush.TextMuted}"><Run Text="blox code" /><Run Text="_" Foreground="{DynamicResource Brush.Accent}" /></TextBlock>
             </DockPanel>
 
-            <!-- Stage: Bit walks along the progress bar -->
-            <Canvas x:Name="Stage" Grid.Row="1" Margin="60,0,60,0" Height="60" VerticalAlignment="Bottom" ClipToBounds="False">
-                <ui:BitMascot x:Name="Mascot" Unit="3.2" Mood="Walk" Canvas.Bottom="0" Canvas.Left="0"
-                              Body="{DynamicResource Brush.Mascot}" Eye="{DynamicResource Brush.MascotEye}" />
-            </Canvas>
-
-            <StackPanel Grid.Row="2" Margin="60,4,60,0">
+            <!-- Bit walks along the progress bar; the block sits centred between title bar and footer -->
+            <StackPanel Grid.Row="2" Margin="60,0,60,0">
+                <Canvas x:Name="Stage" Height="60" Margin="0,0,0,4" ClipToBounds="False">
+                    <ui:BitMascot x:Name="Mascot" Unit="3.2" Mood="Walk" Canvas.Bottom="0" Canvas.Left="0"
+                                  Body="{DynamicResource Brush.Mascot}" Eye="{DynamicResource Brush.MascotEye}" />
+                </Canvas>
                 <ProgressBar x:Name="Progress" Minimum="0" Maximum="1" Value="0" />
 
                 <!-- Status line: "▖ Doing the thing…" with the percentage on the right -->

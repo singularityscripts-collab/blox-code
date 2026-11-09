@@ -280,7 +280,7 @@ public partial class LaunchWindow : Window
         CancelButton.Content = "Close";
         LogButton.IsVisible = true;
         // The failure message may need more room than the status line has.
-        Height = 320;
+        Height = 340;
     }
 
     private void ShowGlyph(string glyph, string brushKey)

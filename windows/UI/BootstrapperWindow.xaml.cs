@@ -270,6 +270,8 @@ public partial class BootstrapperWindow : Window
         Mascot.Mood = MascotMood.Sad;
         CancelButton.Content = "Close";
         LogButton.Visibility = Visibility.Visible;
+        // The failure message may wrap onto more lines than the status line has room for.
+        Height = 340;
         if (TaskbarItemInfo is not null)
             TaskbarItemInfo.ProgressState = System.Windows.Shell.TaskbarItemProgressState.Error;
     }
