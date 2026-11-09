@@ -1,25 +1,25 @@
 {
   "format": 1,
   "product": "BloxCode",
-  "version": "1.8.0",
-  "title": "Visual minimalista e tela inicial",
-  "published": "2026-11-08T17:23:25.535Z",
-  "notes": "### Tela inicial\n\n- Ao abrir o Blox Code aparece uma tela como a do Bloxstrap: **Launch Roblox**, que já mostra o\n  preset gráfico, os mods e as Fast Flags que vão ser usados, ou **Configure Blox Code**. Fechar a\n  tela fecha o Blox Code. Links do Roblox e o atalho \"Play Roblox\" continuam abrindo o jogo direto, e\n  `-menu` abre as configurações sem passar por ela.\n\n### Visual\n\n- Visual minimalista nos dois sistemas: fundo grafite (ou quase branco no tema claro), cartões\n  chapados com bordas finas, sem brilho de fundo, sem gradientes e sem sombras.\n- O menta fica só no que importa: o botão principal e os interruptores. Opções escolhidas e a página\n  aberta na barra lateral usam um destaque neutro.\n- Títulos um pouco menores e mais leves, seções da barra lateral sem letras maiúsculas e rodapé da\n  barra lateral sem moldura.",
+  "version": "1.9.0",
+  "title": "Visual \"Midnight terminal\" e links do Roblox",
+  "published": "2026-11-09T16:55:00.702Z",
+  "notes": "### Correções\n\n- **\"Roblox links don't open Blox Code\" voltava sozinho:** o Roblox oficial, quando instala ou se\n  atualiza, registra de novo os links `roblox://` para ele mesmo. Agora o Blox Code instalado pega\n  os links de volta toda vez que abre e antes de iniciar o Roblox, como o Bloxstrap faz. Se outro\n  launcher (Bloxstrap, Fishstrap…) estiver com os links, ele não mexe e o aviso continua perguntando.\n- No Linux, o mesmo vale para o Sober: quando uma atualização dele toma os links, o Blox Code pega de\n  volta.\n- Uma cópia do Blox Code aberta com outra pasta de configurações (portátil ou de teste) não impede\n  mais de abrir o menu da cópia instalada.\n\n### Visual\n\n- Novo visual **Midnight terminal**, nos dois sistemas: fundo quase preto, barra lateral e cartões\n  um tom acima, bordas finas e o menta `#4ADE9A` como única cor de destaque.\n- Títulos das páginas e rótulos em JetBrains Mono; rótulos de grupo em maiúsculas acima dos cartões.\n- Barra lateral: marca em mono, botão Play maior, ícone da página aberta em menta e um cartão de\n  status do Roblox no rodapé, com a versão do Blox Code embaixo.\n- Home: saudação em mono, busca com lupa, botão de enviar com seta, atalhos de Mods e Fast Flags com\n  ícone em menta, e Open Roblox / Reinstall Roblox no rodapé.\n- Mods: cartão da pasta de mods no topo, presets com ícone, todas as seções de arquivos (cursor,\n  sons, fonte) e a lista \"Your files\" com um aviso quando está vazia.\n- Interruptores e seletores novos, e a janela de inicialização com a porcentagem em menta.",
   "assets": {
     "windows-x64": {
       "name": "BloxCode.exe",
-      "size": 62914525,
-      "sha256": "a473677660c1a9953e65d00d9885959304140c281b3000e8f2aa5453e1abf44a",
+      "size": 62916537,
+      "sha256": "cdc9f1e90a694af7ec6f83a12a463adff01872c4f1e89436fedf08a279e1abe4",
       "urls": [
-        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.8.0/BloxCode.exe"
+        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.9.0/BloxCode.exe"
       ]
     },
     "linux-x64": {
       "name": "BloxCode-x86_64.AppImage",
       "size": 42056184,
-      "sha256": "5cd50e5b8f5d3accf4d1d07223294d1177059f56fc8f3b07543f1e04a8720451",
+      "sha256": "8a45b73d2b65e416be31e02b9cffaf48105118839858b512e2f0caf9105bc026",
       "urls": [
-        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.8.0/BloxCode-x86_64.AppImage"
+        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.9.0/BloxCode-x86_64.AppImage"
       ]
     }
   }
