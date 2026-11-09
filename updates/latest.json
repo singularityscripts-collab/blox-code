@@ -1,25 +1,25 @@
 {
   "format": 1,
   "product": "BloxCode",
-  "version": "1.9.0",
-  "title": "Visual \"Midnight terminal\" e links do Roblox",
-  "published": "2026-11-09T16:55:00.702Z",
-  "notes": "### Correções\n\n- **\"Roblox links don't open Blox Code\" voltava sozinho:** o Roblox oficial, quando instala ou se\n  atualiza, registra de novo os links `roblox://` para ele mesmo. Agora o Blox Code instalado pega\n  os links de volta toda vez que abre e antes de iniciar o Roblox, como o Bloxstrap faz. Se outro\n  launcher (Bloxstrap, Fishstrap…) estiver com os links, ele não mexe e o aviso continua perguntando.\n- No Linux, o mesmo vale para o Sober: quando uma atualização dele toma os links, o Blox Code pega de\n  volta.\n- Uma cópia do Blox Code aberta com outra pasta de configurações (portátil ou de teste) não impede\n  mais de abrir o menu da cópia instalada.\n\n### Visual\n\n- Novo visual **Midnight terminal**, nos dois sistemas: fundo quase preto, barra lateral e cartões\n  um tom acima, bordas finas e o menta `#4ADE9A` como única cor de destaque.\n- Títulos das páginas e rótulos em JetBrains Mono; rótulos de grupo em maiúsculas acima dos cartões.\n- Barra lateral: marca em mono, botão Play maior, ícone da página aberta em menta e um cartão de\n  status do Roblox no rodapé, com a versão do Blox Code embaixo.\n- Home: saudação em mono, busca com lupa, botão de enviar com seta, atalhos de Mods e Fast Flags com\n  ícone em menta, e Open Roblox / Reinstall Roblox no rodapé.\n- Mods: cartão da pasta de mods no topo, presets com ícone, todas as seções de arquivos (cursor,\n  sons, fonte) e a lista \"Your files\" com um aviso quando está vazia.\n- Interruptores e seletores novos, e a janela de inicialização com a porcentagem em menta.",
+  "version": "1.9.1",
+  "title": "Janela de inicialização sem espaço sobrando",
+  "published": "2026-11-09T17:23:54.932Z",
+  "notes": "### Visual\n\n- A janela que aparece enquanto o Roblox abre ficou mais baixa, e o Bit, a barra e o texto agora\n  ficam centralizados, sem o espaço vazio que sobrava antes do rodapé. Se der erro, a janela cresce\n  um pouco para a mensagem caber.",
   "assets": {
     "windows-x64": {
       "name": "BloxCode.exe",
-      "size": 62916537,
-      "sha256": "cdc9f1e90a694af7ec6f83a12a463adff01872c4f1e89436fedf08a279e1abe4",
+      "size": 62916623,
+      "sha256": "a96a1963207c445b012432d3b1b3290890f2150e16d3bd10e8351a962251b465",
       "urls": [
-        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.9.0/BloxCode.exe"
+        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.9.1/BloxCode.exe"
       ]
     },
     "linux-x64": {
       "name": "BloxCode-x86_64.AppImage",
       "size": 42056184,
-      "sha256": "8a45b73d2b65e416be31e02b9cffaf48105118839858b512e2f0caf9105bc026",
+      "sha256": "7b97977d12d48c9d345e87d572fbe2bceb4de56e9bad7e50b8731ac075bd0625",
       "urls": [
-        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.9.0/BloxCode-x86_64.AppImage"
+        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.9.1/BloxCode-x86_64.AppImage"
       ]
     }
   }
