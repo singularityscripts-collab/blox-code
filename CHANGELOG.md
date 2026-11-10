@@ -3,7 +3,10 @@
 Todas as versões do Blox Code, da mais nova para a mais antiga. Quem tem o Blox Code instalado
 recebe cada versão automaticamente na próxima vez que abrir.
 
-## 1.11.1 — Várias janelas do Roblox funcionando de verdade
+## 1.11.2 — Várias janelas do Roblox funcionando de verdade
+
+A 1.11.1 não chegou a ser publicada (o teste automático no contêiner do Arch Linux falhou antes de
+o Blox Code rodar); esta é a mesma versão.
 
 ### Correções (Windows)
 

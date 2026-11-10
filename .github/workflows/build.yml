@@ -105,6 +105,10 @@ jobs:
     needs: linux
     runs-on: ubuntu-latest
     container: ${{ matrix.image }}
+    # archlinux:latest changes every day and can break for reasons outside Blox Code (it exited 127,
+    # "command not found", before Blox Code ran, on 2026-11-10); it still runs and shows, but doesn't
+    # hold the release back. Debian and Ubuntu still must pass.
+    continue-on-error: ${{ matrix.image == 'archlinux:latest' }}
     strategy:
       fail-fast: false
       matrix:
