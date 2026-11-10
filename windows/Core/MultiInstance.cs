@@ -4,11 +4,24 @@ using System.Runtime.InteropServices;
 namespace BloxCode.Core;
 
 /// <summary>
-/// Lets several Roblox players run side by side. Roblox keeps itself to one window with a named
-/// event, ROBLOX_singletonEvent: each new player creates (or opens) it and the older one closes.
-/// Holding a <em>mutex</em> under that name first makes Roblox's event creation fail, so no player
-/// ever finds another. This is the mechanism MultiBloxy (github.com/Zgoly/MultiBloxy) uses, read
-/// from its 1.1.0 build with REA; reworked here as follows:
+/// Lets several Roblox players run side by side. Roblox 0.746 keeps itself to one window in two ways,
+/// and both have to be beaten:
+/// <list type="number">
+/// <item><b>ROBLOX_singletonEvent</b> (the classic one): each new player creates or opens this named
+/// event and the older player closes ("waitForNewPlayerProcess"). Holding a <em>mutex</em> under that
+/// name first makes the event creation fail ("Cannot create event to secure single process: 0x6"),
+/// so no player finds another. This is MultiBloxy's mechanism (github.com/Zgoly/MultiBloxy, read from
+/// its 1.1.0 build with REA).</item>
+/// <item><b>NoReload</b> (new, and why MultiBloxy 1.1.0 no longer works): a starting player looks for
+/// one already open <em>from the same executable path</em>, through a mutex and shared memory named
+/// after that path ("C:_…_RobloxPlayerBeta.exe.mtx" / ".shm"). If it finds one it hands its launch
+/// over ("NoReload Detector: App NoReload!") and quits. Those objects can't be taken in advance (the
+/// player crashes without them), so every extra window starts from a path of its own instead: a
+/// junction in InstancesN pointing at the same version folder. Same files, mods and Fast Flags,
+/// nothing copied, and each window has its own NoReload channel.</item>
+/// </list>
+/// Found by reading the player's logs and listing the named objects a running player holds, then
+/// confirmed one change at a time with two real players. Further changes from MultiBloxy:
 /// <list type="bullet">
 /// <item>No tray app: the launch that starts Roblox takes the name, and the background watcher keeps
 /// it until the last player closes (a newer launch opens the same mutex before the old one lets go).</item>
@@ -59,7 +72,124 @@ public static class MultiInstance
         return Outcome.Failed;
     }
 
-    /// <summary>Closes every Roblox player (the "Stop all" button).</summary>
+    /// <summary>Extra windows have their own path; this many at most.</summary>
+    public const int MaxWindows = 12;
+
+    public static string InstancesFolder => Path.GetFullPath(Path.Combine(Paths.Base, "Instances"));
+
+    /// <summary>
+    /// The folder the next player should start from: the version folder itself when no player runs
+    /// from it, otherwise the first InstancesN junction (made or re-pointed as needed) that is free.
+    /// </summary>
+    public static string PlayerFolder(string versionDir)
+    {
+        const string ident = "MultiInstance::PlayerFolder";
+        // Full, backslash-only paths: what the player is named after, and what mklink accepts.
+        versionDir = Path.GetFullPath(versionDir);
+        if (!InUse(versionDir))
+            return versionDir;
+        for (int slot = 2; slot <= MaxWindows; slot++)
+        {
+            string folder = Path.Combine(InstancesFolder, slot.ToString());
+            if (InUse(folder))
+                continue;
+            try
+            {
+                EnsureJunction(folder, versionDir);
+                Logger.Info(ident, $"Window {slot} starts from {folder}");
+                return folder;
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or InvalidOperationException)
+            {
+                Logger.Warn(ident, $"Couldn't prepare {folder}: {ex.Message}");
+            }
+        }
+        Logger.Warn(ident, "No free window slot; this launch goes to an open window");
+        return versionDir;
+    }
+
+    /// <summary>
+    /// Waits until the player started from <paramref name="folder"/> has registered its path, so a
+    /// launch right after this one picks the next slot instead of the same one.
+    /// </summary>
+    public static void WaitUntilRegistered(string folder, TimeSpan max)
+    {
+        var until = DateTime.UtcNow + max;
+        while (DateTime.UtcNow < until && !InUse(folder))
+            Thread.Sleep(250);
+    }
+
+    /// <summary>The player's own per-path mutex: it exists exactly while a player runs from <paramref name="folder"/>.</summary>
+    public static string PathMutexName(string folder) =>
+        // Windows hands the player its path normalised (backslashes only), which is what it names this after.
+        Path.Combine(Path.TrimEndingDirectorySeparator(Path.GetFullPath(folder)), PlayerProcess + ".exe").Replace('\\', '_') + ".mtx";
+
+    public static bool InUse(string folder)
+    {
+        try
+        {
+            if (!Mutex.TryOpenExisting(PathMutexName(folder), out var existing))
+                return false;
+            existing.Dispose();
+            return true;
+        }
+        catch (Exception ex) when (ex is UnauthorizedAccessException or WaitHandleCannotBeOpenedException or IOException)
+        {
+            return true;   // Something holds the name: treat it as taken.
+        }
+    }
+
+    /// <summary>InstancesN as a junction to the version folder (re-pointed after a Roblox update).</summary>
+    private static void EnsureJunction(string folder, string versionDir)
+    {
+        var info = new DirectoryInfo(folder);
+        if (info.Exists)
+        {
+            if (info.LinkTarget is { } target
+                && string.Equals(Path.TrimEndingDirectorySeparator(Path.GetFullPath(target)), Path.TrimEndingDirectorySeparator(Path.GetFullPath(versionDir)), StringComparison.OrdinalIgnoreCase)
+                && File.Exists(Path.Combine(folder, PlayerProcess + ".exe")))
+                return;
+            // A junction is removed on its own, never followed; a plain folder here is ours to clear.
+            if (info.LinkTarget is not null)
+                Directory.Delete(folder);
+            else
+                Directory.Delete(folder, recursive: true);
+        }
+        Directory.CreateDirectory(InstancesFolder);
+
+        // mklink /J needs no administrator rights or developer mode, unlike a symbolic link.
+        var psi = new ProcessStartInfo("cmd.exe") { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
+        psi.ArgumentList.Add("/c");
+        psi.ArgumentList.Add("mklink");
+        psi.ArgumentList.Add("/J");
+        psi.ArgumentList.Add(folder);
+        psi.ArgumentList.Add(versionDir);
+        using var mklink = Process.Start(psi) ?? throw new InvalidOperationException("cmd.exe didn't start");
+        string error = mklink.StandardError.ReadToEnd();
+        mklink.WaitForExit(10000);
+        if (!File.Exists(Path.Combine(folder, PlayerProcess + ".exe")))
+            throw new IOException($"mklink /J failed: {error.Trim()}");
+    }
+
+    /// <summary>Removes the Instances junctions no player is using (after "Close all", and on uninstall).</summary>
+    public static void RemoveIdleJunctions()
+    {
+        if (!Directory.Exists(InstancesFolder))
+            return;
+        foreach (var dir in new DirectoryInfo(InstancesFolder).EnumerateDirectories())
+        {
+            if (InUse(dir.FullName))
+                continue;
+            try
+            {
+                if (dir.LinkTarget is not null)
+                    Directory.Delete(dir.FullName);
+            }
+            catch (IOException) { }
+        }
+    }
+
+    /// <summary>Closes every Roblox player (the "Close all" button).</summary>
     public static int CloseAllPlayers()
     {
         int count = 0;
@@ -81,6 +211,7 @@ public static class MultiInstance
         return count;
     }
 
+    /// <summary>How many Roblox players are open, the hidden tray ones included.</summary>
     public static int RunningPlayers()
     {
         var players = Process.GetProcessesByName(PlayerProcess);

@@ -583,9 +583,13 @@ public sealed partial class Bootstrapper(HttpClient http, LaunchSettings launch,
 
     private void StartRoblox(string versionDir)
     {
-        var psi = new ProcessStartInfo(Path.Combine(versionDir, Executable))
+        // Multi-instance: a window already open from this folder would take this launch over
+        // (Roblox's NoReload), so the new one starts from a folder of its own.
+        bool multi = Store.Settings.MultiInstance && !Studio;
+        string folder = multi ? MultiInstance.PlayerFolder(versionDir) : versionDir;
+        var psi = new ProcessStartInfo(Path.Combine(folder, Executable))
         {
-            WorkingDirectory = versionDir,
+            WorkingDirectory = folder,
             UseShellExecute = false,
         };
         // One argument, quoted if needed: a link with a space or quote can't split into several.
@@ -596,7 +600,10 @@ public sealed partial class Bootstrapper(HttpClient http, LaunchSettings launch,
         if (!Studio)
             LaunchedAt = DateTime.UtcNow;
         using var process = Process.Start(psi) ?? throw new InvalidOperationException($"{AppName} did not start");
-        Logger.Info("Bootstrapper::StartRoblox", $"Started {AppName} (PID {process.Id})");
+        Logger.Info("Bootstrapper::StartRoblox", $"Started {AppName} (PID {process.Id}){(string.Equals(Path.GetFullPath(folder), Path.GetFullPath(versionDir), StringComparison.OrdinalIgnoreCase) ? "" : $" from {folder}")}");
+        // Until the player has claimed its folder, a launch right after this one would pick the same.
+        if (multi)
+            MultiInstance.WaitUntilRegistered(folder, TimeSpan.FromSeconds(10));
     }
 
     private static bool IsRunningFrom(string versionDir, string executable)

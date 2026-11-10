@@ -23,6 +23,7 @@ public partial class BehaviourPage : UserControl
         Location.IsChecked = Store.Settings.ShowServerLocation;
         Remember.IsChecked = Store.Settings.RememberGames;
         Multi.IsChecked = Store.Settings.MultiInstance;
+        RefreshMulti();
         PinBox.Text = Store.Settings.PinnedVersion ?? "";
         RefreshPin();
         _ = MeasureCleanupAsync();
@@ -67,6 +68,7 @@ public partial class BehaviourPage : UserControl
         Store.Settings.ShowServerLocation = Location.IsChecked == true;
         Store.Settings.RememberGames = Remember.IsChecked == true;
         Store.Settings.MultiInstance = Multi.IsChecked == true;
+        RefreshMulti();
         RefreshDiscordJoin();
         Store.SaveSettings();
     }
@@ -96,6 +98,16 @@ public partial class BehaviourPage : UserControl
                 : "That isn't a version name: it looks like version-0123456789abcdef. Until it is, Roblox stays up to date.";
     }
 
+    private void RefreshMulti()
+    {
+        int open = MultiInstance.RunningPlayers();
+        string now = open switch { 0 => "", 1 => " 1 Roblox window is open now.", _ => $" {open} Roblox windows are open now." };
+        MultiText.Text = Store.Settings.MultiInstance
+            ? "Every Play, link or recent game opens one more window; the open ones stay." + now
+            : "Every Play, link or recent game opens one more window instead of replacing the open one." + now;
+        CloseAllButton.IsEnabled = open > 0;
+    }
+
     private void OnClearHistory(object sender, RoutedEventArgs e)
     {
         if (MessageDialog.Ask(_window, "Clear your game history?", "Recent games and play time on Home start over.", "Clear", "Cancel", danger: true))
@@ -111,7 +123,11 @@ public partial class BehaviourPage : UserControl
             return;
         }
         if (MessageDialog.Ask(_window, open == 1 ? "Close Roblox?" : $"Close all {open} Roblox windows?", "Anything unsaved in those games is lost.", "Close all", "Cancel", danger: true))
+        {
             MultiInstance.CloseAllPlayers();
+            MultiInstance.RemoveIdleJunctions();
+            RefreshMulti();
+        }
     }
 
     private async Task MeasureCleanupAsync()

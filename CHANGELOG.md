@@ -3,6 +3,23 @@
 Todas as versões do Blox Code, da mais nova para a mais antiga. Quem tem o Blox Code instalado
 recebe cada versão automaticamente na próxima vez que abrir.
 
+## 1.11.1 — Várias janelas do Roblox funcionando de verdade
+
+### Correções (Windows)
+
+- **Várias janelas do Roblox:** a segunda janela fechava sozinha. O Roblox atual tem uma segunda
+  trava ("NoReload") que entrega cada abertura para a janela que já está aberta a partir da mesma
+  pasta. Agora cada janela extra abre por uma pasta própria (um atalho de pasta, sem copiar nada), e
+  as duas travas ficam vencidas. Testado com três janelas ao mesmo tempo, e também com um Roblox que
+  já estava aberto antes do Blox Code.
+- O Blox Code lia o log do "CrashHandler" do Roblox em vez do log do jogo. Agora acompanha todas as
+  janelas abertas: o Discord mostra o jogo mais recente e passa para outro jogo aberto quando você sai
+  de um, e o histórico registra cada janela.
+- Behaviour mostra quantas janelas do Roblox estão abertas.
+
+Para jogar em várias janelas, use uma conta diferente em cada: com a mesma conta em dois jogos, o
+próprio Roblox derruba uma das sessões (erro 273).
+
 ## 1.11.0 — Várias janelas, jogos recentes, perfis e Roblox Studio
 
 ### Novidades (Windows)

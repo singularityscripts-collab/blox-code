@@ -164,11 +164,37 @@ O Blox Code (`windows/Core/MultiInstance.cs`) usa o mesmo mecanismo, reescrito:
 * Testado com um processo falso chamado `RobloxPlayerBeta` que segura o evento: o handle foi fechado
   em ~0,5 s, o nome virou `Mutex` e um segundo processo não conseguiu mais criar o evento.
 
+### Por que só isso já não basta (Roblox 0.746, novembro de 2026)
+
+Com o Mutex no lugar, o primeiro player registra "Cannot create event to secure single process:
+Unknown error code 0x00000006", como esperado, mas o segundo fecha em menos de um segundo com
+"NoReload Detector: App NoReload!" e "RobloxStarter destroyed"; no log do primeiro aparece
+"App NoReload Handler: local app is resuming, inter-proc duration … ms". É um segundo mecanismo, o
+**NoReload** (o player também pode ficar na bandeja: "AppState/TrayMode", "Tray treatment is ON").
+
+* Strings do `RobloxPlayerBeta.exe`: `ROBLOX_singletonEvent`, `ROBLOX_singletonMutex`,
+  "NoReload Detector: …", "App: received inter-proc request from {}", "waitForNewPlayerProcess".
+* Objetos com nome de um player aberto (listados com `NtQuerySystemInformation` + `NtQueryObject`):
+  o evento `ROBLOX_singletonEvent`, o mutex `ROBLOX_singletonMutex`, um mutex e uma seção com o
+  **caminho do executável** no nome (`C:_Users_…_RobloxPlayerBeta.exe.mtx` / `.shm`) e a seção
+  `RBXMAINWND-4DAAC10B-9C9A-4471-9218-07310329FD0D`.
+* Testes com dois players de verdade, um nome por vez:
+  * ocupar `ROBLOX_singletonMutex` (como evento): o segundo ainda sai por NoReload;
+  * ocupar o `.mtx` do caminho: o player quebra ao abrir (`wil::ResultException`), ou seja, ele
+    precisa criar esses objetos;
+  * **abrir o segundo player por outro caminho** (uma junction para a mesma pasta de versão) com o
+    Mutex no lugar: os dois ficam abertos;
+  * a junction sem o Mutex: o primeiro fecha ("waitForNewPlayerProcess"), então os dois são precisos.
+* O Blox Code faz as duas coisas: segura `ROBLOX_singletonEvent` e abre cada janela extra por
+  `Instances\N` (junction feita com `mklink /J`, sem administrador). Uma pasta está ocupada
+  enquanto existir o `.mtx` com o nome dela, o próprio registro do Roblox. Testado com três janelas
+  ao mesmo tempo, e com um player aberto antes, sem o Blox Code: o handle do evento foi fechado nele
+  (o anticheat não impediu `PROCESS_DUP_HANDLE`) e a segunda janela abriu.
+
 ## Desconhecidos
 
-* MultiBloxy: não foi testado contra o Roblox de verdade se o anticheat dele permite abrir o processo
-  com `PROCESS_DUP_HANDLE`. Se não permitir, o Blox Code registra a falha e o lançamento só
-  substitui a janela aberta; com o Roblox fechado antes do primeiro lançamento isso não é preciso.
+* Os nomes `.mtx`/`.shm` e o NoReload podem mudar em versões futuras do Roblox; o log do
+  Blox Code mostra de qual pasta cada janela abriu ("Started Roblox (PID …) from …").
 
 * A lógica exata de `InitializeConnectivity` (ordem/paralelismo dos testes) está num state
   machine assíncrono; o Blox Code testa os espelhos em paralelo e usa o primeiro válido.

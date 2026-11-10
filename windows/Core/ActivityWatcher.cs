@@ -5,9 +5,11 @@ using System.Text.Json.Nodes;
 namespace BloxCode.Core;
 
 /// <summary>
-/// Stays in the background while Roblox runs: reads its log to see which game and server the player
-/// is in, shows that on Discord (Rich Presence) and says roughly where the server is. Ends by itself
-/// when the last Roblox player closes. One watcher at a time: a newer launch takes over.
+/// Stays in the background while Roblox runs: reads every open player's log to see which game and
+/// server it is in, shows that on Discord (Rich Presence), says roughly where the server is and keeps
+/// the history. With several windows open (multi-instance) each log is followed on its own and
+/// Discord shows the latest game. Ends by itself when the last Roblox player closes. One watcher at a
+/// time: a newer launch takes over and picks up the windows that are already open.
 /// </summary>
 public static class ActivityWatcher
 {
@@ -44,22 +46,16 @@ public static class ActivityWatcher
         using var cts = new CancellationTokenSource();
         var stopWait = ThreadPool.RegisterWaitForSingleObject(stopSignal, (_, _) => cts.Cancel(), null, Timeout.Infinite, executeOnlyOnce: true);
         using var discord = Store.Settings.DiscordRichPresence && Updater.DiscordAppId is { } appId ? new DiscordRpc(appId) : null;
+        bool tookOver = false;
 
         try
         {
-            Logger.Info(ident, $"Watching (Discord: {(discord is null ? "off" : "on")}, server location: {(Store.Settings.ShowServerLocation ? "on" : "off")})");
-            await WatchAsync(http, launchedAt, discord, notify, cts.Token);
-
-            // Multi-instance: the singleton name must stay taken while any player is open, log or not.
-            if (MultiInstance.IsHeld)
-            {
-                var running = new RobloxRunning();
-                while (running.Now())
-                    await Task.Delay(2000, cts.Token);
-            }
+            Logger.Info(ident, $"Watching (Discord: {(discord is null ? "off" : "on")}, server location: {(Store.Settings.ShowServerLocation ? "on" : "off")}, multi-instance: {(MultiInstance.IsHeld ? "on" : "off")})");
+            await new Watch(http, launchedAt, discord, notify).RunAsync(cts.Token);
         }
         catch (OperationCanceledException)
         {
+            tookOver = true;
         }
         catch (Exception ex)
         {
@@ -68,118 +64,209 @@ public static class ActivityWatcher
         finally
         {
             stopWait.Unregister(null);
-            if (Store.Settings.RememberGames)
+            // A newer watcher carries on with the same windows; only a real end closes open visits.
+            if (Store.Settings.RememberGames && !tookOver)
                 GameHistory.CloseDangling(DateTime.UtcNow);
-            if (discord?.IsConnected == true)
+            if (discord?.IsConnected == true && !tookOver)
             {
                 try { await discord.SetActivityAsync(null, CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(2)); } catch { }
             }
             gate.Release();
-            Logger.Info(ident, "Stopped");
+            Logger.Info(ident, tookOver ? "Handed over to a newer launch" : "Stopped");
         }
     }
 
-    private static async Task WatchAsync(HttpClient http, DateTime launchedAt, DiscordRpc? discord, Action<string, string> notify, CancellationToken ct)
+    /// <summary>One run of the watcher: a follower per player log, and the sessions they report.</summary>
+    private sealed class Watch(HttpClient http, DateTime launchedAt, DiscordRpc? discord, Action<string, string> notify)
     {
-        var running = new RobloxRunning();
-        var started = DateTime.UtcNow;
-        string? log = null;
+        private readonly Dictionary<string, Follower> _followers = new(StringComparer.OrdinalIgnoreCase);
+        private readonly object _sync = new();
+        private readonly RobloxRunning _running = new();
 
-        while (!ct.IsCancellationRequested)
+        private sealed class Follower
         {
-            log ??= RobloxLog.NewestPlayerLog(launchedAt) ?? (DateTime.UtcNow - started > TimeSpan.FromSeconds(15) ? RecentPlayerLog() : null);
-            if (log is null)
-            {
-                // Roblox writes its log within a second or two; give up if it is gone or never started.
-                if (DateTime.UtcNow - started > TimeSpan.FromSeconds(45) || (DateTime.UtcNow - started > TimeSpan.FromSeconds(10) && !running.Now()))
-                    return;
-                await Task.Delay(1000, ct);
-                continue;
-            }
+            public required string Log;
+            public Task? Task;
+            public GameSession? Session;
+            public CancellationTokenSource? Work;
+            public DateTime LastLine = DateTime.UtcNow;
+            public bool Live;
+        }
 
+        public async Task RunAsync(CancellationToken ct)
+        {
+            var started = DateTime.UtcNow;
+            try
+            {
+                while (true)
+                {
+                    ct.ThrowIfCancellationRequested();
+                    foreach (string log in RobloxLog.PlayerLogs(launchedAt))
+                        lock (_sync)
+                            if (!_followers.ContainsKey(log))
+                                Start(log, ct);
+
+                    int players = _running.Count();
+                    bool any;
+                    lock (_sync) any = _followers.Count > 0;
+                    if (players == 0 && (any || DateTime.UtcNow - started > TimeSpan.FromSeconds(15)))
+                        return;   // Every window closed (or Roblox never really started).
+                    if (players > 0 && !any && DateTime.UtcNow - started > TimeSpan.FromSeconds(60) && !MultiInstance.IsHeld)
+                        return;   // No log to read and nothing to hold for: nothing for us to do.
+
+                    EndSessionsOfClosedWindows(players);
+                    await Task.Delay(2000, ct);
+                }
+            }
+            finally
+            {
+                lock (_sync)
+                    foreach (var f in _followers.Values)
+                        f.Work?.Cancel();
+            }
+        }
+
+        private void Start(string log, CancellationToken ct)
+        {
             Logger.Info("ActivityWatcher::Watch", $"Reading {Path.GetFileName(log)}");
             var parser = new ActivityParser();
-            bool live = false;
-            CancellationTokenSource? sessionWork = null;
+            var follower = new Follower { Log = log };
+            _followers[log] = follower;
+            parser.Joined += session => OnJoined(follower, session, ct);
+            parser.Left += session => OnLeft(follower, session, ct);
 
-            parser.Joined += session =>
+            // On the thread pool, so the first lines (read synchronously) never run under _sync.
+            follower.Task = Task.Run(() => RobloxLog.FollowAsync(log, line =>
             {
-                if (!live)
-                    return;   // An old join in a log we attached to late: only the latest counts.
-                sessionWork?.Cancel();
-                sessionWork = CancellationTokenSource.CreateLinkedTokenSource(ct);
-                _ = OnJoinedAsync(http, session, discord, notify, showNotice: true, sessionWork.Token);
-            };
-            parser.Left += session =>
+                follower.LastLine = DateTime.UtcNow;
+                parser.Feed(line);
+            }, () => true, launchedAt, ct, followNewer: false, onCaughtUp: () =>
             {
-                if (!live)
-                    return;
-                sessionWork?.Cancel();
-                Logger.Info("ActivityWatcher::Left", $"Left place {session.PlaceId}");
-                if (Store.Settings.RememberGames)
-                    GameHistory.Left(session);
-                if (discord is not null)
-                    _ = discord.SetActivityAsync(null, ct);
-            };
-
-            string? next = await RobloxLog.FollowAsync(log, parser.Feed, running.Now, launchedAt, ct, onCaughtUp: () =>
-            {
-                live = true;
+                follower.Live = true;
                 // Already in a game when we started reading (a late attach): show it, without the notice.
                 if (parser.Current is { } current)
-                {
-                    sessionWork = CancellationTokenSource.CreateLinkedTokenSource(ct);
-                    _ = OnJoinedAsync(http, current, discord, notify, showNotice: false, sessionWork.Token);
-                }
-            });
+                    OnJoined(follower, current, ct, lateAttach: true);
+            }));
+        }
 
-            sessionWork?.Cancel();
-            if (discord is not null)
-                await discord.SetActivityAsync(null, ct);
-            if (next is null)
+        private void OnJoined(Follower follower, GameSession session, CancellationToken ct, bool lateAttach = false)
+        {
+            if (!follower.Live && !lateAttach)
+                return;   // An old join in a log read from the start: only the latest counts.
+            lock (_sync)
+            {
+                follower.Work?.Cancel();
+                follower.Work = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                follower.Session = session;
+            }
+            _ = OnJoinedAsync(session, showNotice: !lateAttach, follower.Work.Token);
+        }
+
+        private void OnLeft(Follower follower, GameSession session, CancellationToken ct)
+        {
+            if (!follower.Live)
                 return;
-            log = next;
-            launchedAt = DateTime.UtcNow.AddSeconds(-10);
-        }
-    }
-
-    private static async Task OnJoinedAsync(HttpClient http, GameSession session, DiscordRpc? discord, Action<string, string> notify, bool showNotice, CancellationToken ct)
-    {
-        Logger.Info("ActivityWatcher::Joined", $"Joined place {session.PlaceId} ({session.Kind} server)");
-        try
-        {
-            var location = showNotice && Store.Settings.ShowServerLocation
-                ? ServerLocation.GetAsync(http, session.Address, ct)
-                : Task.FromResult<string?>(null);
-            bool remember = showNotice && Store.Settings.RememberGames;
-            var game = discord is not null || remember
-                ? RobloxGames.GetAsync(http, session.PlaceId, session.UniverseId, ct)
-                : Task.FromResult<GameInfo?>(null);
-
-            if (remember)
-                GameHistory.Joined(session, await game);
-
-            if (showNotice && Store.Settings.ShowServerLocation)
+            lock (_sync)
             {
-                string? where = await location;
-                ct.ThrowIfCancellationRequested();
-                notify(session.Kind == ServerKind.Public ? "Connected to a server" : "Connected to a private server",
-                    where is null ? "Location unknown" : $"Location: {where}");
+                follower.Work?.Cancel();
+                follower.Session = null;
             }
+            Logger.Info("ActivityWatcher::Left", $"Left place {session.PlaceId}");
+            if (Store.Settings.RememberGames)
+                GameHistory.Left(session);
+            _ = ShowLatestAsync(ct);
+        }
 
-            if (discord is not null)
+        /// <summary>
+        /// A window closed without a "leave" in its log (killed, crashed, closed mid-game): when fewer
+        /// players run than sessions are open, the sessions whose logs went quiet longest are over.
+        /// </summary>
+        private void EndSessionsOfClosedWindows(int players)
+        {
+            List<Follower> ended;
+            lock (_sync)
             {
-                var info = await game;
-                ct.ThrowIfCancellationRequested();
-                await discord.SetActivityAsync(BuildActivity(session, info), ct);
+                var open = _followers.Values.Where(f => f.Session is not null).ToList();
+                int extra = open.Count - players;
+                if (extra <= 0)
+                    return;
+                ended = open.Where(f => DateTime.UtcNow - f.LastLine > TimeSpan.FromSeconds(10))
+                    .OrderBy(f => f.LastLine).Take(extra).ToList();
+            }
+            foreach (var f in ended)
+            {
+                var session = f.Session!;
+                lock (_sync)
+                {
+                    f.Work?.Cancel();
+                    f.Session = null;
+                }
+                Logger.Info("ActivityWatcher::Left", $"Window with place {session.PlaceId} closed");
+                if (Store.Settings.RememberGames)
+                    GameHistory.Left(session, f.LastLine);
+            }
+            if (ended.Count > 0)
+                _ = ShowLatestAsync(CancellationToken.None);
+        }
+
+        /// <summary>Discord shows the game joined last among the windows still in one, or nothing.</summary>
+        private async Task ShowLatestAsync(CancellationToken ct)
+        {
+            if (discord is null)
+                return;
+            GameSession? latest;
+            lock (_sync)
+                latest = _followers.Values.Select(f => f.Session).Where(s => s is not null).OrderByDescending(s => s!.JoinedAt).FirstOrDefault();
+            try
+            {
+                if (latest is null)
+                    await discord.SetActivityAsync(null, ct);
+                else
+                    await discord.SetActivityAsync(BuildActivity(latest, await RobloxGames.GetAsync(http, latest.PlaceId, latest.UniverseId, ct)), ct);
+            }
+            catch (Exception ex) when (ex is OperationCanceledException or IOException)
+            {
             }
         }
-        catch (OperationCanceledException)
+
+        private async Task OnJoinedAsync(GameSession session, bool showNotice, CancellationToken ct)
         {
-        }
-        catch (Exception ex)
-        {
-            Logger.Warn("ActivityWatcher::Joined", ex.Message);
+            Logger.Info("ActivityWatcher::Joined", $"Joined place {session.PlaceId} ({session.Kind} server)");
+            try
+            {
+                var location = showNotice && Store.Settings.ShowServerLocation
+                    ? ServerLocation.GetAsync(http, session.Address, ct)
+                    : Task.FromResult<string?>(null);
+                bool remember = showNotice && Store.Settings.RememberGames;
+                var game = discord is not null || remember
+                    ? RobloxGames.GetAsync(http, session.PlaceId, session.UniverseId, ct)
+                    : Task.FromResult<GameInfo?>(null);
+
+                if (remember)
+                    GameHistory.Joined(session, await game);
+
+                if (showNotice && Store.Settings.ShowServerLocation)
+                {
+                    string? where = await location;
+                    ct.ThrowIfCancellationRequested();
+                    notify(session.Kind == ServerKind.Public ? "Connected to a server" : "Connected to a private server",
+                        where is null ? "Location unknown" : $"Location: {where}");
+                }
+
+                if (discord is not null)
+                {
+                    var info = await game;
+                    ct.ThrowIfCancellationRequested();
+                    await discord.SetActivityAsync(BuildActivity(session, info), ct);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn("ActivityWatcher::Joined", ex.Message);
+            }
         }
     }
 
@@ -224,34 +311,19 @@ public static class ActivityWatcher
 
     private static string Clip(string text, int max) => text.Length <= max ? text : text[..(max - 1)] + "…";
 
-    /// <summary>When Roblox was already open, the launch hands over to it and no new log appears.</summary>
-    private static string? RecentPlayerLog()
-    {
-        var dir = new DirectoryInfo(RobloxLog.Directory);
-        if (!dir.Exists)
-            return null;
-        return dir.EnumerateFiles("*_Player_*.log")
-            .Where(f => DateTime.UtcNow - f.LastWriteTimeUtc < TimeSpan.FromMinutes(2))
-            .OrderByDescending(f => f.LastWriteTimeUtc)
-            .FirstOrDefault()?.FullName;
-    }
-
-    /// <summary>Whether a Roblox player is open, asked of Windows at most every two seconds.</summary>
+    /// <summary>How many Roblox players are open, asked of Windows at most every two seconds.</summary>
     private sealed class RobloxRunning
     {
         private DateTime _checked;
-        private bool _running = true;
+        private int _count = 1;
 
-        public bool Now()
+        public int Count()
         {
             if (DateTime.UtcNow - _checked < TimeSpan.FromSeconds(2))
-                return _running;
+                return _count;
             _checked = DateTime.UtcNow;
-            var players = Process.GetProcessesByName("RobloxPlayerBeta");
-            _running = players.Length > 0;
-            foreach (var p in players)
-                p.Dispose();
-            return _running;
+            _count = MultiInstance.RunningPlayers();
+            return _count;
         }
     }
 }

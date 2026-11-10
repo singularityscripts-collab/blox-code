@@ -89,7 +89,7 @@
                         <Button x:Name="CloseAllButton" DockPanel.Dock="Right" Style="{StaticResource Button.Ghost}" Content="Close all" Margin="0,0,10,0" Click="OnCloseAll" VerticalAlignment="Center" />
                         <StackPanel Margin="0,0,16,0">
                             <TextBlock Text="Run several Roblox windows at once" />
-                            <TextBlock Style="{StaticResource Text.Muted}" Text="Every Play opens a new window instead of replacing the open one. Takes effect from the next launch." />
+                            <TextBlock x:Name="MultiText" Style="{StaticResource Text.Muted}" TextWrapping="Wrap" />
                         </StackPanel>
                     </DockPanel>
                 </StackPanel>

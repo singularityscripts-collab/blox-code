@@ -234,6 +234,8 @@ public static class Installer
             try { File.Delete(lnk); } catch { }
         }
 
+        // Junctions first, so nothing can walk through them into the version folders.
+        try { MultiInstance.RemoveIdleJunctions(); } catch (Exception ex) { Logger.Warn(ident, ex.Message); }
         Logger.Info(ident, "Removing install folder after exit");
 
         // The running exe can't delete itself, so let cmd wait for us to exit first. `timeout` refuses

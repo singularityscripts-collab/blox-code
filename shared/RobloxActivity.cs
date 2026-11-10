@@ -119,25 +119,43 @@ public static class RobloxLog
         ? test
         : Path.Combine(Paths.LocalAppData, "Roblox", "logs");
 
-    /// <summary>The newest player log created at or after <paramref name="since"/>, if there is one yet.</summary>
-    public static string? NewestPlayerLog(DateTime since, string? directory = null)
+    /// <summary>
+    /// Player logs only. Roblox's crash handler writes "…_Player_XXXX_CrashHandler_last.log" next to
+    /// each player's own log; it has none of the game lines.
+    /// </summary>
+    private static IEnumerable<FileInfo> PlayerLogFiles(string? directory)
     {
         var dir = new DirectoryInfo(directory ?? Directory);
-        if (!dir.Exists)
-            return null;
-        return dir.EnumerateFiles("*_Player_*.log")
+        return dir.Exists
+            ? dir.EnumerateFiles("*_Player_*.log").Where(f => !f.Name.Contains("CrashHandler", StringComparison.OrdinalIgnoreCase))
+            : Enumerable.Empty<FileInfo>();
+    }
+
+    /// <summary>The newest player log created at or after <paramref name="since"/>, if there is one yet.</summary>
+    public static string? NewestPlayerLog(DateTime since, string? directory = null) =>
+        PlayerLogFiles(directory)
             .Where(f => f.CreationTimeUtc >= since.AddSeconds(-5))
             .OrderByDescending(f => f.CreationTimeUtc)
             .FirstOrDefault()?.FullName;
-    }
+
+    /// <summary>
+    /// The logs of the players that may be open now: created since <paramref name="since"/>, or still
+    /// being written (an open window from before, or one in the tray), oldest first.
+    /// </summary>
+    public static List<string> PlayerLogs(DateTime since, string? directory = null) =>
+        PlayerLogFiles(directory)
+            .Where(f => f.CreationTimeUtc >= since.AddSeconds(-5) || DateTime.UtcNow - f.LastWriteTimeUtc < TimeSpan.FromMinutes(3))
+            .OrderBy(f => f.CreationTimeUtc)
+            .Select(f => f.FullName)
+            .ToList();
 
     /// <summary>
     /// Reads <paramref name="path"/> from the start and keeps reading what Roblox appends, until
-    /// <paramref name="keepGoing"/> says stop or a newer log replaces it (returns that log's path).
+    /// <paramref name="keepGoing"/> says stop or (with <paramref name="followNewer"/>) a newer log replaces it (returns that log's path).
     /// <paramref name="onCaughtUp"/> runs once, when everything already written has been read.
     /// </summary>
     public static async Task<string?> FollowAsync(string path, Action<string> onLine, Func<bool> keepGoing, DateTime since, CancellationToken ct,
-        string? directory = null, Action? onCaughtUp = null)
+        string? directory = null, Action? onCaughtUp = null, bool followNewer = true)
     {
         using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
         using var reader = new StreamReader(stream);
@@ -162,7 +180,7 @@ public static class RobloxLog
                 return null;
 
             // Roblox restarted (a new player process writes a new log): follow that one instead.
-            if (DateTime.UtcNow >= nextCheck)
+            if (followNewer && DateTime.UtcNow >= nextCheck)
             {
                 nextCheck = DateTime.UtcNow.AddSeconds(3);
                 if (NewestPlayerLog(since, directory) is { } newest && !string.Equals(newest, path, StringComparison.OrdinalIgnoreCase))
