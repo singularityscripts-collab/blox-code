@@ -81,7 +81,7 @@ public partial class ModsPage : UserControl
         Groups.Children.Clear();
         foreach (var group in ModCatalog.Groups.Where(g => _tab == AllTab || g.Key == _tab))
         {
-            Groups.Children.Add(new TextBlock { Text = group.Key.ToUpperInvariant(), Classes = { "section", "group" } });
+            Groups.Children.Add(new TextBlock { Text = group.Key.ToLowerInvariant(), Classes = { "section", "group" } });
             var rows = new StackPanel();
             bool first = true;
             foreach (var slot in group)
@@ -102,7 +102,7 @@ public partial class ModsPage : UserControl
     private void BuildPresets()
     {
         PresetsHost.Children.Clear();
-        PresetsHost.Children.Add(new TextBlock { Text = "PRESETS · FROM BLOXSTRAP", Classes = { "section", "group" } });
+        PresetsHost.Children.Add(new TextBlock { Text = "presets · from bloxstrap", Classes = { "section", "group" } });
         var rows = new StackPanel();
 
         var cursor = ModPresets.CurrentCursor();

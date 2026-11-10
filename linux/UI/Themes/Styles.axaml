@@ -26,13 +26,13 @@
         <Setter Property="FontSize" Value="32" />
         <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
     </Style>
-    <!-- Page titles: JetBrains Mono, medium weight, like a terminal prompt -->
+    <!-- Page titles: Inter, medium weight; mono stays for labels and the wordmark -->
     <Style Selector="TextBlock.h1">
-        <Setter Property="FontFamily" Value="{StaticResource Font.Mono}" />
+        <Setter Property="FontFamily" Value="{StaticResource Font.Sans}" />
         <Setter Property="FontWeight" Value="Medium" />
-        <Setter Property="FontSize" Value="26" />
+        <Setter Property="FontSize" Value="28" />
         <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
-        <Setter Property="Margin" Value="0,0,0,6" />
+        <Setter Property="Margin" Value="0,8,0,8" />
     </Style>
     <Style Selector="TextBlock.h2">
         <Setter Property="FontSize" Value="14" />
@@ -55,20 +55,15 @@
         <Setter Property="FontSize" Value="12" />
         <Setter Property="Foreground" Value="{DynamicResource Brush.TextMuted}" />
     </Style>
-    <!-- Small uppercase mono labels: sidebar groups, and .group for the groups of rows on a page -->
+    <!-- Small lower-case mono labels; .group for the groups of rows on a page -->
     <Style Selector="TextBlock.section">
         <Setter Property="FontFamily" Value="{StaticResource Font.Mono}" />
-        <Setter Property="FontSize" Value="11" />
-        <Setter Property="LetterSpacing" Value="0.9" />
+        <Setter Property="FontSize" Value="12" />
         <Setter Property="Foreground" Value="{DynamicResource Brush.TextMuted}" />
-        <Setter Property="Margin" Value="10,20,0,6" />
-    </Style>
-    <!-- The sidebar icon of the open page is mint -->
-    <Style Selector="StackPanel#Nav RadioButton:checked ui|IconView">
-        <Setter Property="Foreground" Value="{DynamicResource Brush.Accent}" />
+        <Setter Property="Margin" Value="0,20,0,6" />
     </Style>
     <Style Selector="TextBlock.section.group">
-        <Setter Property="Margin" Value="4,26,0,10" />
+        <Setter Property="Margin" Value="0,34,0,2" />
     </Style>
     <Style Selector="TextBlock.error">
         <Setter Property="Foreground" Value="{DynamicResource Brush.Danger}" />
@@ -78,19 +73,38 @@
     </Style>
 
     <!-- ===== Containers ===== -->
-    <!-- Cards: a flat surface one step above the background, with a hairline border -->
+    <!-- No boxes: a group of settings is just rows split by hairlines -->
     <Style Selector="Border.card">
-        <Setter Property="Background" Value="{DynamicResource Brush.CardFill}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource Brush.CardBorder}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource Radius.Large}" />
-        <Setter Property="Padding" Value="20,16" />
-        <Setter Property="Margin" Value="0,0,0,12" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}" />
+        <Setter Property="BorderThickness" Value="0,0,0,1" />
+        <Setter Property="CornerRadius" Value="0" />
+        <Setter Property="Padding" Value="0,12" />
+        <Setter Property="Margin" Value="0" />
     </Style>
     <!-- Things to do on Home: a mint-tinted strip -->
     <Style Selector="Border.banner">
         <Setter Property="Background" Value="{DynamicResource Brush.AccentSoft}" />
         <Setter Property="BorderBrush" Value="{DynamicResource Brush.AccentLine}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="14" />
+        <Setter Property="Padding" Value="16,12" />
+        <Setter Property="Margin" Value="0,0,0,12" />
+    </Style>
+    <!-- The Home page's game bar: a pill like a desktop search box. Focused, it firms up and its
+         outline turns to the accent colour. -->
+    <Style Selector="Border.searchbar">
+        <Setter Property="Background" Value="{DynamicResource Brush.Surface}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.BorderStrong}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="26" />
+        <Setter Property="Height" Value="52" />
+        <Setter Property="Padding" Value="18,0,4,0" />
+        <Setter Property="BoxShadow" Value="0 6 28 0 #38000000" />
+    </Style>
+    <Style Selector="Border.searchbar:focus-within">
+        <Setter Property="Background" Value="{DynamicResource Brush.SurfaceAlt}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Accent}" />
     </Style>
     <Style Selector="Border.divider">
         <Setter Property="Height" Value="1" />
@@ -101,7 +115,7 @@
         <Setter Property="Background" Value="{DynamicResource Brush.Bg}" />
         <Setter Property="BorderBrush" Value="{DynamicResource Brush.CardBorder}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="CornerRadius" Value="20" />
         <Setter Property="Padding" Value="3" />
         <Setter Property="HorizontalAlignment" Value="Left" />
     </Style>

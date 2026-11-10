@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="BloxCode.Linux.UI.Pages.SoberPage">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel MaxWidth="720" Margin="40,8,40,40">
+        <StackPanel MaxWidth="640" Margin="40,8,40,40">
             <TextBlock Text="Sober" Classes="h1" />
             <TextBlock Classes="muted" Margin="0,0,0,20"
                        Text="Sober runs Roblox on Linux and keeps it updated. These are its own settings, explained; Blox Code saves them straight into Sober's config.json and they apply the next time Roblox starts." />

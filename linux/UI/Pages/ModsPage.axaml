@@ -4,13 +4,13 @@
              xmlns:pages="clr-namespace:BloxCode.Linux.UI.Pages"
              x:Class="BloxCode.Linux.UI.Pages.ModsPage">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel MaxWidth="760" Margin="40,8,40,40">
+        <StackPanel MaxWidth="640" Margin="40,8,40,40">
             <DockPanel>
                 <Button x:Name="ResetAllButton" DockPanel.Dock="Right" Content="Reset all" VerticalAlignment="Center" Click="OnResetAll" />
                 <TextBlock Text="Mods" Classes="h1" />
             </DockPanel>
             <TextBlock Classes="muted" Margin="0,0,0,16"
-                       Text="Turn on a ready-made preset, or pick a file for anything you want to change (you can drop one onto its row). It goes into Sober's asset overlay right away, and Reset brings Roblox's original back." />
+                       Text="Swap Roblox's own files for yours. They go into Sober's asset overlay right away; Reset brings the originals back." />
 
             <!-- Tabs: everything, one group, or the advanced lists -->
             <Border Classes="segmented" HorizontalAlignment="Left" Margin="0,0,0,14">

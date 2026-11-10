@@ -20,6 +20,13 @@ public partial class AppearancePage : UserControl
             AppTheme.Dark => ThemeDark,
             _ => ThemeSystem,
         }).IsChecked = true;
+        (Store.Settings.Backdrop switch
+        {
+            WindowBackdrop.Off => BackdropOff,
+            WindowBackdrop.Mica => BackdropMica,
+            _ => BackdropAcrylic,
+        }).IsChecked = true;
+        RefreshBackdropText();
         Animate.IsChecked = Store.Settings.AnimateMascot;
         Animations.IsChecked = Store.Settings.Animations;
         Mascot.IsAnimated = Store.Settings.AnimateMascot;
@@ -118,6 +125,30 @@ public partial class AppearancePage : UserControl
         ThemeManager.Apply(Store.Settings.Theme);
         Store.SaveSettings();
     }
+
+    private void OnBackdropChanged(object sender, RoutedEventArgs e)
+    {
+        if (!_ready) return;
+        Store.Settings.Backdrop = BackdropOff.IsChecked == true ? WindowBackdrop.Off
+            : BackdropMica.IsChecked == true ? WindowBackdrop.Mica
+            : WindowBackdrop.Acrylic;
+        foreach (Window window in Application.Current.Windows)
+            ThemeManager.ApplyChrome(window);
+        RefreshBackdropText();
+        Store.SaveSettings();
+    }
+
+    private void RefreshBackdropText() =>
+        BackdropText.Text = !ThemeManager.BackdropSupported
+            ? Environment.OSVersion.Version.Build >= 22621
+                ? "Turn on Transparency effects in Windows' colour settings to use it."
+                : "Needs Windows 11 (22H2 or later)."
+            : Store.Settings.Backdrop switch
+            {
+                WindowBackdrop.Mica => "Your wallpaper's colours show through the window.",
+                WindowBackdrop.Acrylic => "What's behind the window shows through, blurred.",
+                _ => "A solid window.",
+            };
 
     private void OnAnimateChanged(object sender, RoutedEventArgs e)
     {

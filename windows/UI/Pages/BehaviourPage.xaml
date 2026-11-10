@@ -2,11 +2,11 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel MaxWidth="720" Margin="40,8,40,40">
-            <TextBlock Text="Behaviour" Style="{StaticResource Text.H1}" />
+        <StackPanel MaxWidth="640" Margin="40,8,40,40">
+            <TextBlock Text="Settings" Style="{StaticResource Text.H1}" />
             <TextBlock Style="{StaticResource Text.Muted}" Margin="0,0,0,20" Text="How Blox Code updates and launches Roblox." />
 
-            <TextBlock Text="LAUNCHING" Style="{StaticResource Text.Group}" />
+            <TextBlock Text="launching" Style="{StaticResource Text.Group}" />
             <Border Style="{StaticResource Card}">
                 <StackPanel>
                     <DockPanel Margin="0,4">
@@ -48,7 +48,7 @@
                 </StackPanel>
             </Border>
 
-            <TextBlock Text="WHILE YOU PLAY" Style="{StaticResource Text.Group}" />
+            <TextBlock Text="while you play" Style="{StaticResource Text.Group}" />
             <Border Style="{StaticResource Card}">
                 <StackPanel>
                     <DockPanel Margin="0,4">
@@ -95,7 +95,7 @@
                 </StackPanel>
             </Border>
 
-            <TextBlock Text="MAINTENANCE" Style="{StaticResource Text.Group}" />
+            <TextBlock Text="maintenance" Style="{StaticResource Text.Group}" />
             <Border Style="{StaticResource Card}">
                 <StackPanel>
                     <DockPanel Margin="0,4">
@@ -124,7 +124,7 @@
                 </StackPanel>
             </Border>
 
-            <TextBlock Text="BLOX CODE" Style="{StaticResource Text.Group}" />
+            <TextBlock Text="blox code" Style="{StaticResource Text.Group}" />
             <Border Style="{StaticResource Card}">
                 <StackPanel>
                     <DockPanel Margin="0,4">

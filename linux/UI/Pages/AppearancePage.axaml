@@ -3,9 +3,9 @@
              xmlns:ui="clr-namespace:BloxCode.Linux.UI"
              x:Class="BloxCode.Linux.UI.Pages.AppearancePage">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel MaxWidth="720" Margin="40,8,40,40">
-            <TextBlock Text="Appearance" Classes="h1" />
-            <TextBlock Classes="muted" Margin="0,0,0,20" Text="How Blox Code looks. System follows your desktop's light or dark setting." />
+        <StackPanel MaxWidth="640" Margin="40,8,40,40">
+            <TextBlock Text="Look" Classes="h1" />
+            <TextBlock Classes="muted" Margin="0,0,0,20" Text="Theme, colour and motion. System follows your desktop's light or dark setting." />
 
             <Border Classes="card">
                 <StackPanel>

@@ -6,87 +6,52 @@
         Title="Blox Code" Width="1040" Height="680" MinWidth="820" MinHeight="540"
         WindowStartupLocation="CenterScreen" StateChanged="OnStateChanged">
     <WindowChrome.WindowChrome>
-        <WindowChrome CaptionHeight="44" GlassFrameThickness="0,0,0,1" ResizeBorderThickness="6" UseAeroCaptionButtons="False" />
+        <WindowChrome CaptionHeight="52" GlassFrameThickness="0,0,0,1" ResizeBorderThickness="6" UseAeroCaptionButtons="False" />
     </WindowChrome.WindowChrome>
 
     <Grid x:Name="Root">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="240" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="52" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
 
-        <!-- ===== Sidebar ===== -->
-        <Border Background="{DynamicResource Brush.Sidebar}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,1,0">
-            <DockPanel Margin="12,16,12,12">
-                <!-- Brand -->
-                <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Height="32" Margin="8,0,0,0">
-                    <ui:BitMascot x:Name="BrandMascot" Unit="1.4" VerticalAlignment="Center" Margin="0,0,10,0"
-                                    Body="{DynamicResource Brush.Mascot}" Eye="{DynamicResource Brush.MascotEye}" />
-                    <TextBlock FontFamily="{StaticResource Font.Mono}" FontWeight="Medium" FontSize="15" VerticalAlignment="Center"><Run Text="blox code" /><Run Text="_" Foreground="{DynamicResource Brush.Accent}" /></TextBlock>
-                </StackPanel>
-
-                <Button DockPanel.Dock="Top" Style="{StaticResource Button.Primary}" HorizontalContentAlignment="Center" Height="44" Padding="12,0" Margin="0,18,0,0" Click="OnPlay"
-                        WindowChrome.IsHitTestVisibleInChrome="True">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="&#xE768;" Style="{StaticResource Text.Icon}" FontSize="13" Margin="0,0,9,0" />
-                        <TextBlock Text="Play Roblox" FontWeight="SemiBold" VerticalAlignment="Center" FontSize="14" />
-                    </StackPanel>
-                </Button>
-
-                <!-- Footer: Roblox's state, then Blox Code's version -->
-                <StackPanel DockPanel.Dock="Bottom" Margin="0,12,0,0">
-                    <Border Padding="12,10" CornerRadius="12" BorderThickness="1" BorderBrush="{DynamicResource Brush.Border}" Background="{DynamicResource Brush.Surface}">
-                        <DockPanel>
-                            <!-- Mint once Roblox is downloaded, amber before -->
-                            <Ellipse x:Name="FooterDot" Width="8" Height="8" Margin="0,0,10,0" VerticalAlignment="Center" Fill="{DynamicResource Brush.Success}" />
-                            <StackPanel VerticalAlignment="Center">
-                                <TextBlock x:Name="FooterTitle" Text="Roblox is up to date" FontSize="13" Foreground="{DynamicResource Brush.Text}" />
-                                <TextBlock x:Name="FooterSubtitle" Style="{StaticResource Text.Mono}" FontSize="11" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
-                            </StackPanel>
-                        </DockPanel>
-                    </Border>
-                    <TextBlock x:Name="FooterVersion" Style="{StaticResource Text.Mono}" FontSize="11" Margin="6,10,0,0" />
-                </StackPanel>
-
-                <StackPanel Margin="0,20,0,0">
-                    <RadioButton x:Name="NavHome" Style="{StaticResource Nav.Item}" Tag="Home" Checked="OnNavigate" IsChecked="True">
-                        <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE80F;" Style="{StaticResource Nav.Icon}" /><TextBlock Text="Home" VerticalAlignment="Center" /></StackPanel>
-                    </RadioButton>
-                    <TextBlock Text="CUSTOMIZE" Style="{StaticResource Text.Section}" />
-                    <RadioButton Style="{StaticResource Nav.Item}" Tag="FastFlags" Checked="OnNavigate">
-                        <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE7C1;" Style="{StaticResource Nav.Icon}" /><TextBlock Text="Fast Flags" VerticalAlignment="Center" /></StackPanel>
-                    </RadioButton>
-                    <RadioButton Style="{StaticResource Nav.Item}" Tag="Mods" Checked="OnNavigate">
-                        <StackPanel Orientation="Horizontal"><TextBlock Text="&#xEA86;" Style="{StaticResource Nav.Icon}" /><TextBlock Text="Mods" VerticalAlignment="Center" /></StackPanel>
-                    </RadioButton>
-                    <RadioButton Style="{StaticResource Nav.Item}" Tag="Appearance" Checked="OnNavigate">
-                        <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE790;" Style="{StaticResource Nav.Icon}" /><TextBlock Text="Appearance" VerticalAlignment="Center" /></StackPanel>
-                    </RadioButton>
-                    <TextBlock Text="APP" Style="{StaticResource Text.Section}" />
-                    <RadioButton Style="{StaticResource Nav.Item}" Tag="Behaviour" Checked="OnNavigate">
-                        <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE713;" Style="{StaticResource Nav.Icon}" /><TextBlock Text="Behaviour" VerticalAlignment="Center" /></StackPanel>
-                    </RadioButton>
-                    <RadioButton Style="{StaticResource Nav.Item}" Tag="About" Checked="OnNavigate">
-                        <StackPanel Orientation="Horizontal"><TextBlock Text="&#xE946;" Style="{StaticResource Nav.Icon}" /><TextBlock Text="About" VerticalAlignment="Center" /></StackPanel>
-                    </RadioButton>
-                </StackPanel>
-            </DockPanel>
-        </Border>
-
-        <!-- ===== Main area ===== -->
-        <Grid Grid.Column="1">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="34" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
-
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
-                <Button Style="{StaticResource Button.Caption}" Content="&#xE921;" Click="OnMinimize" ToolTip="Minimize" />
-                <Button x:Name="MaximizeButton" Style="{StaticResource Button.Caption}" Content="&#xE922;" Click="OnMaximize" ToolTip="Maximize" />
-                <Button Style="{StaticResource Button.CaptionClose}" Content="&#xE8BB;" Click="OnClose" ToolTip="Close" />
+        <!-- ===== Top bar: brand, page tabs, window buttons (the empty space drags the window) ===== -->
+        <DockPanel>
+            <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Margin="22,0,26,0" VerticalAlignment="Center">
+                <ui:BitMascot x:Name="BrandMascot" Unit="1.2" VerticalAlignment="Center" Margin="0,0,10,0"
+                              Body="{DynamicResource Brush.Mascot}" Eye="{DynamicResource Brush.MascotEye}" />
+                <TextBlock FontFamily="{StaticResource Font.Mono}" FontWeight="Medium" FontSize="14" VerticalAlignment="Center"><Run Text="blox code" /><Run Text="_" Foreground="{DynamicResource Brush.Accent}" /></TextBlock>
             </StackPanel>
 
-            <ContentControl x:Name="PageHost" Grid.Row="1" Focusable="False" />
-        </Grid>
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Top">
+                <Button Style="{StaticResource Button.Caption}" Content="&#xE921;" Click="OnMinimize" ToolTip="Minimize" Height="40" />
+                <Button x:Name="MaximizeButton" Style="{StaticResource Button.Caption}" Content="&#xE922;" Click="OnMaximize" ToolTip="Maximize" Height="40" />
+                <Button Style="{StaticResource Button.CaptionClose}" Content="&#xE8BB;" Click="OnClose" ToolTip="Close" Height="40" />
+            </StackPanel>
+
+            <StackPanel x:Name="Nav" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
+                <RadioButton x:Name="NavHome" Style="{StaticResource Nav.Tab}" Tag="Home" Checked="OnNavigate" IsChecked="True" Content="Home" />
+                <RadioButton Style="{StaticResource Nav.Tab}" Tag="FastFlags" Checked="OnNavigate" Content="Flags" />
+                <RadioButton Style="{StaticResource Nav.Tab}" Tag="Mods" Checked="OnNavigate" Content="Mods" />
+                <RadioButton Style="{StaticResource Nav.Tab}" Tag="Appearance" Checked="OnNavigate" Content="Look" />
+                <RadioButton Style="{StaticResource Nav.Tab}" Tag="Behaviour" Checked="OnNavigate" Content="Settings" />
+                <RadioButton Style="{StaticResource Nav.Tab}" Tag="About" Checked="OnNavigate" Content="About" />
+            </StackPanel>
+        </DockPanel>
+
+        <ContentControl x:Name="PageHost" Grid.Row="1" Focusable="False" />
+
+        <!-- ===== Status line: Roblox's state, then Blox Code's version ===== -->
+        <DockPanel Grid.Row="2" Margin="24,8,24,12">
+            <TextBlock x:Name="FooterVersion" DockPanel.Dock="Right" Style="{StaticResource Text.Mono}" FontSize="11.5" VerticalAlignment="Center" Margin="16,0,0,0" />
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <!-- Mint once Roblox is downloaded, amber before -->
+                <Ellipse x:Name="FooterDot" Width="6" Height="6" Margin="0,0,9,0" VerticalAlignment="Center" Fill="{DynamicResource Brush.Success}" />
+                <TextBlock x:Name="FooterTitle" Text="Roblox is up to date" FontFamily="{StaticResource Font.Mono}" FontSize="11.5" Foreground="{DynamicResource Brush.TextSecondary}" VerticalAlignment="Center" />
+                <TextBlock x:Name="FooterSubtitle" Style="{StaticResource Text.Mono}" FontSize="11.5" Margin="10,0,0,0" VerticalAlignment="Center"
+                           TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
+            </StackPanel>
+        </DockPanel>
     </Grid>
 </Window>

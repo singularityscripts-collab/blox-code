@@ -44,7 +44,7 @@ public partial class MainWindow : Window
                 item.IsChecked = true;
     }
 
-    /// <summary>Shows a sub-page (e.g. the Fast Flag editor) without changing the sidebar selection.</summary>
+    /// <summary>Shows a sub-page (e.g. the Fast Flag editor) without changing the selected tab.</summary>
     public void ShowPage(Control page)
     {
         Store.SaveSettings();
@@ -78,8 +78,6 @@ public partial class MainWindow : Window
             ShowPage(create());
         }
     }
-
-    private void OnPlay(object? sender, RoutedEventArgs e) => LaunchRoblox();
 
     private void OnMinimize(object? sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
 

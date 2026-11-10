@@ -13,6 +13,8 @@
     <CornerRadius x:Key="Radius.Medium">9</CornerRadius>
     <CornerRadius x:Key="Radius.Large">14</CornerRadius>
     <CornerRadius x:Key="Radius.Pill">999</CornerRadius>
+    <!-- Buttons are pills -->
+    <CornerRadius x:Key="Radius.Button">18</CornerRadius>
 
     <!-- ===== Text ===== -->
     <Style x:Key="Text.Display" TargetType="TextBlock">
@@ -24,11 +26,11 @@
     </Style>
     <!-- Page titles: JetBrains Mono, medium weight, like a terminal prompt -->
     <Style x:Key="Text.H1" TargetType="TextBlock">
-        <Setter Property="FontFamily" Value="{StaticResource Font.Mono}" />
+        <Setter Property="FontFamily" Value="{StaticResource Font.Sans}" />
         <Setter Property="FontWeight" Value="Medium" />
-        <Setter Property="FontSize" Value="26" />
+        <Setter Property="FontSize" Value="28" />
         <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
-        <Setter Property="Margin" Value="0,0,0,6" />
+        <Setter Property="Margin" Value="0,8,0,8" />
     </Style>
     <Style x:Key="Text.H2" TargetType="TextBlock">
         <Setter Property="FontSize" Value="14" />
@@ -54,12 +56,12 @@
     <!-- Small uppercase mono labels: sidebar groups and the groups of rows on a page -->
     <Style x:Key="Text.Section" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource Font.Mono}" />
-        <Setter Property="FontSize" Value="11" />
+        <Setter Property="FontSize" Value="12" />
         <Setter Property="Foreground" Value="{DynamicResource Brush.TextMuted}" />
-        <Setter Property="Margin" Value="10,20,0,6" />
+        <Setter Property="Margin" Value="0,20,0,6" />
     </Style>
     <Style x:Key="Text.Group" TargetType="TextBlock" BasedOn="{StaticResource Text.Section}">
-        <Setter Property="Margin" Value="4,26,0,10" />
+        <Setter Property="Margin" Value="0,34,0,2" />
     </Style>
     <Style x:Key="Text.Icon" TargetType="TextBlock">
         <Setter Property="FontFamily" Value="{StaticResource Font.Icons}" />
@@ -70,17 +72,17 @@
     <!-- ===== Containers ===== -->
     <!-- Cards: a flat surface one step above the background, with a hairline border -->
     <Style x:Key="Card" TargetType="Border">
-        <Setter Property="Background" Value="{DynamicResource Brush.CardFill}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource Brush.CardBorder}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource Radius.Large}" />
-        <Setter Property="Padding" Value="20,16" />
-        <Setter Property="Margin" Value="0,0,0,12" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}" />
+        <Setter Property="BorderThickness" Value="0,0,0,1" />
+        <Setter Property="CornerRadius" Value="0" />
+        <Setter Property="Padding" Value="0,12" />
+        <Setter Property="Margin" Value="0" />
     </Style>
     <Style x:Key="Divider" TargetType="Border">
         <Setter Property="Height" Value="1" />
         <Setter Property="Background" Value="{DynamicResource Brush.Border}" />
-        <Setter Property="Margin" Value="0,12" />
+        <Setter Property="Margin" Value="0,14" />
     </Style>
 
     <!-- ===== Buttons ===== -->
@@ -98,14 +100,14 @@
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
                     <Border x:Name="Chrome" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{StaticResource Radius.Medium}"
+                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{StaticResource Radius.Button}"
                             SnapsToDevicePixels="True" RenderTransformOrigin="0.5,0.5">
                         <Border.RenderTransform>
                             <ScaleTransform x:Name="Press" />
                         </Border.RenderTransform>
                         <Grid>
                             <!-- The hover colour fades in over the background instead of snapping -->
-                            <Border x:Name="HoverFill" Background="{TemplateBinding Tag}" CornerRadius="{StaticResource Radius.Medium}" Opacity="0" IsHitTestVisible="False" />
+                            <Border x:Name="HoverFill" Background="{TemplateBinding Tag}" CornerRadius="{StaticResource Radius.Button}" Opacity="0" IsHitTestVisible="False" />
                             <ContentPresenter Margin="{TemplateBinding Padding}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                               VerticalAlignment="{TemplateBinding VerticalContentAlignment}" RecognizesAccessKey="True" />
                         </Grid>
@@ -316,6 +318,69 @@
         </Setter>
     </Style>
 
+    <!-- Top bar tabs: plain text; the open page is brighter, with an accent dot in front of it -->
+    <Style x:Key="Nav.Tab" TargetType="RadioButton">
+        <Setter Property="Foreground" Value="{DynamicResource Brush.TextSecondary}" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Height" Value="44" />
+        <Setter Property="Padding" Value="11,0" />
+        <Setter Property="Cursor" Value="Hand" />
+        <!-- A ring only when reached with the keyboard -->
+        <Setter Property="FocusVisualStyle">
+            <Setter.Value>
+                <Style>
+                    <Setter Property="Control.Template">
+                        <Setter.Value>
+                            <ControlTemplate>
+                                <Border CornerRadius="8" BorderThickness="1.5" Margin="0,6" BorderBrush="{DynamicResource Brush.Accent}" />
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="GroupName" Value="Nav" />
+        <Setter Property="WindowChrome.IsHitTestVisibleInChrome" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <Border x:Name="Chrome" Background="Transparent" Padding="{TemplateBinding Padding}" CornerRadius="8">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Ellipse x:Name="Dot" Width="4" Height="4" Margin="0,1,7,0" VerticalAlignment="Center" Fill="{DynamicResource Brush.Accent}"
+                                     Visibility="Collapsed" />
+                            <ContentPresenter VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Dot" Property="Visibility" Value="Visible" />
+                            <Setter Property="Foreground" Value="{DynamicResource Brush.Text}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- The Home page's game bar: a pill like the Windows search box. Focused, it firms up and
+         gets an accent line along the bottom. -->
+    <Style x:Key="SearchBar" TargetType="Border">
+        <Setter Property="Background" Value="{DynamicResource Brush.Surface}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.BorderStrong}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="26" />
+        <Setter Property="Height" Value="52" />
+        <Setter Property="Padding" Value="18,0,4,0" />
+        <Setter Property="Effect">
+            <Setter.Value>
+                <DropShadowEffect BlurRadius="28" ShadowDepth="6" Direction="270" Opacity="0.22" Color="Black" />
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- The sidebar icon of the open page is mint -->
     <Style x:Key="Nav.Icon" TargetType="TextBlock" BasedOn="{StaticResource Text.Icon}">
         <Setter Property="Margin" Value="0,0,12,0" />
@@ -330,10 +395,10 @@
     <!-- ===== Segmented control (RadioButtons inside a Border.Segmented) ===== -->
     <!-- Pill-shaped: the picked option lights up in the accent colour -->
     <Style x:Key="Segmented" TargetType="Border">
-        <Setter Property="Background" Value="{DynamicResource Brush.Bg}" />
+        <Setter Property="Background" Value="{DynamicResource Brush.Well}" />
         <Setter Property="BorderBrush" Value="{DynamicResource Brush.CardBorder}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="CornerRadius" Value="20" />
         <Setter Property="Padding" Value="3" />
         <Setter Property="HorizontalAlignment" Value="Left" />
     </Style>
@@ -346,9 +411,9 @@
             <Setter.Value>
                 <ControlTemplate TargetType="RadioButton">
                     <Grid>
-                        <Border x:Name="Chrome" Background="Transparent" CornerRadius="7" />
-                        <Border x:Name="HoverFill" Background="{DynamicResource Brush.Hover}" CornerRadius="7" Opacity="0" />
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="12,6" />
+                        <Border x:Name="Chrome" Background="Transparent" CornerRadius="16" />
+                        <Border x:Name="HoverFill" Background="{DynamicResource Brush.Hover}" CornerRadius="16" Opacity="0" />
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="13,7" />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">

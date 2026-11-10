@@ -3,10 +3,10 @@
              xmlns:ui="clr-namespace:BloxCode.Linux.UI"
              x:Class="BloxCode.Linux.UI.Pages.FastFlagsPage">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel MaxWidth="720" Margin="40,8,40,40">
+        <StackPanel MaxWidth="640" Margin="40,8,40,40">
             <TextBlock Text="Fast Flags" Classes="h1" />
             <TextBlock Classes="muted" Margin="0,0,0,20"
-                       Text="Fast Flags tweak how Roblox renders. Blox Code writes them into Sober's config.json as soon as you change them, so they apply however you start Roblox. Roblox only honours flags on its allow-list; the presets here use nothing else." />
+                       Text="Engine switches, written into Sober's config as soon as you change them. Only flags on Roblox's allow-list." />
 
             <!-- One-click graphics presets, built only from allow-listed flags -->
             <Border Classes="card">

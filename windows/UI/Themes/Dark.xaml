@@ -4,6 +4,8 @@
          hairline borders and one mint accent, with JetBrains Mono for titles and labels. -->
     <SolidColorBrush x:Key="Brush.Bg" Color="#0E0F11" />
     <SolidColorBrush x:Key="Brush.Sidebar" Color="#121316" />
+    <!-- Sunken track behind segmented choices -->
+    <SolidColorBrush x:Key="Brush.Well" Color="#0E0F11" />
     <SolidColorBrush x:Key="Brush.Surface" Color="#16171A" />
     <SolidColorBrush x:Key="Brush.SurfaceAlt" Color="#1F2126" />
     <SolidColorBrush x:Key="Brush.Hover" Color="#1A1B1F" />

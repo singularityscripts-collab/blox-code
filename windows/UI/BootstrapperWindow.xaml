@@ -3,13 +3,13 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:ui="clr-namespace:BloxCode.UI"
         Style="{StaticResource Window.Claude}"
-        Title="Blox Code" Width="560" Height="300" ResizeMode="NoResize"
+        Title="Blox Code" Width="560" Height="300" ResizeMode="NoResize" Background="{DynamicResource Brush.Sidebar}"
         WindowStartupLocation="CenterScreen" KeyDown="OnKeyDown">
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="40" GlassFrameThickness="0,0,0,1" ResizeBorderThickness="0" UseAeroCaptionButtons="False" />
     </WindowChrome.WindowChrome>
 
-    <Grid Background="{DynamicResource Brush.Sidebar}">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="40" />
             <RowDefinition Height="*" />

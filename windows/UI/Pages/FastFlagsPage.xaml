@@ -2,10 +2,10 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel MaxWidth="720" Margin="40,8,40,40">
+        <StackPanel MaxWidth="640" Margin="40,8,40,40">
             <TextBlock Text="Fast Flags" Style="{StaticResource Text.H1}" />
             <TextBlock Style="{StaticResource Text.Muted}" Margin="0,0,0,20"
-                       Text="Engine switches written to ClientSettings\ClientAppSettings.json on every launch. Roblox only honours flags on its allow-list; the presets here use nothing else." />
+                       Text="Engine switches written on every launch. Only flags on Roblox's allow-list." />
 
             <!-- One-click graphics presets, built only from allow-listed flags -->
             <Border Style="{StaticResource Card}">
@@ -49,7 +49,7 @@
                 </DockPanel>
             </Button>
 
-            <TextBlock Text="PROFILES" Style="{StaticResource Text.Group}" Margin="4,8,0,10" />
+            <TextBlock Text="profiles" Style="{StaticResource Text.Group}" />
             <Border Style="{StaticResource Card}">
                 <StackPanel>
                     <TextBlock x:Name="ProfilesHint" Style="{StaticResource Text.Muted}" TextWrapping="Wrap" Margin="0,2,0,0" />
@@ -61,7 +61,7 @@
                 </StackPanel>
             </Border>
 
-            <TextBlock Text="PRESETS" Style="{StaticResource Text.Group}" />
+            <TextBlock Text="presets" Style="{StaticResource Text.Group}" />
             <Border Style="{StaticResource Card}">
                 <StackPanel>
 

@@ -7,6 +7,9 @@ public enum AppTheme { System, Light, Dark }
 
 public enum AccentColor { Mint, Sky, Violet, Rose, Amber }
 
+/// <summary>What shows through the window: nothing, the wallpaper (Mica) or what is behind it, blurred (Acrylic).</summary>
+public enum WindowBackdrop { Off, Mica, Acrylic }
+
 public sealed class Settings
 {
     public const string DefaultChannel = "production";
@@ -33,6 +36,8 @@ public sealed class Settings
     public string? PinnedVersion { get; set; }
     /// <summary>The highlight colour across the app and the launch window.</summary>
     public AccentColor Accent { get; set; } = AccentColor.Mint;
+    /// <summary>The see-through window background, where the system supports it.</summary>
+    public WindowBackdrop Backdrop { get; set; } = WindowBackdrop.Acrylic;
     /// <summary>Windows: an .ico for the Blox Code shortcuts and windows; null keeps Bit.</summary>
     public string? CustomIcon { get; set; }
     /// <summary>Saved sets of Fast Flags, by name, to switch between with one click.</summary>

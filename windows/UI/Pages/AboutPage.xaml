@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ui="clr-namespace:BloxCode.UI">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel MaxWidth="720" Margin="40,8,40,40">
+        <StackPanel MaxWidth="640" Margin="40,8,40,40">
             <StackPanel HorizontalAlignment="Center" Margin="0,24,0,28">
                 <ui:BitMascot x:Name="Mascot" Unit="6.5" HorizontalAlignment="Center" Cursor="Hand" MouseLeftButtonUp="OnPoke"
                                 Body="{DynamicResource Brush.Mascot}" Eye="{DynamicResource Brush.MascotEye}" ToolTip="Hi, I'm Bit" />

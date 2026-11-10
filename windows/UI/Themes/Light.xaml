@@ -4,6 +4,7 @@
          hairline borders, like the dark theme. Bit keeps its clay. -->
     <SolidColorBrush x:Key="Brush.Bg" Color="#FAFAFA" />
     <SolidColorBrush x:Key="Brush.Sidebar" Color="#F4F4F5" />
+    <SolidColorBrush x:Key="Brush.Well" Color="#FAFAFA" />
     <SolidColorBrush x:Key="Brush.Surface" Color="#FFFFFF" />
     <SolidColorBrush x:Key="Brush.SurfaceAlt" Color="#EFEFF1" />
     <SolidColorBrush x:Key="Brush.Hover" Color="#EFEFF1" />

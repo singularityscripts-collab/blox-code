@@ -3,6 +3,23 @@
 Todas as versões do Blox Code, da mais nova para a mais antiga. Quem tem o Blox Code instalado
 recebe cada versão automaticamente na próxima vez que abrir.
 
+## 1.12.0 — Visual novo, minimalista e transparente
+
+### Novidades
+
+- **Visual novo:** a barra lateral virou abas no topo (Home, Flags, Mods, Look, Settings, About; no
+  Linux também Sober), e embaixo fica só uma linha com o estado do Roblox e a versão do Blox Code.
+- **Home:** só uma barra de jogo no estilo da pesquisa do Windows. Cole o link e aperte Enter, ou
+  clique no Play redondo com ela vazia para abrir o Roblox. Os jogos recentes ficam logo abaixo.
+- **Páginas mais limpas:** sem cartões; cada grupo de opções é uma lista separada por linhas finas,
+  com títulos maiores, botões arredondados e textos mais curtos. Appearance agora se chama Look, e
+  Behaviour se chama Settings.
+- **Transparência (Windows 11):** em Look → Transparency, escolha Acrylic (o que está atrás da
+  janela aparece desfocado, o padrão), Mica (as cores do papel de parede) ou Off. Vale também para a
+  janela de abertura do Roblox. Precisa do Windows 11 22H2 ou mais novo e de "Efeitos de
+  transparência" ligado em Configurações → Personalização → Cores; sem isso a janela fica sólida, e
+  a página diz o motivo.
+
 ## 1.11.2 — Várias janelas do Roblox funcionando de verdade
 
 A 1.11.1 não chegou a ser publicada (o teste automático no contêiner do Arch Linux falhou antes de

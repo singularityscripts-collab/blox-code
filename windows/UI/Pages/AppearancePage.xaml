@@ -3,11 +3,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ui="clr-namespace:BloxCode.UI">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel MaxWidth="720" Margin="40,8,40,40">
-            <TextBlock Text="Appearance" Style="{StaticResource Text.H1}" />
-            <TextBlock Style="{StaticResource Text.Muted}" Margin="0,0,0,20" Text="Daylight blueprint or Midnight terminal, in the accent colour you pick." />
+        <StackPanel MaxWidth="640" Margin="40,8,40,40">
+            <TextBlock Text="Look" Style="{StaticResource Text.H1}" />
+            <TextBlock Style="{StaticResource Text.Muted}" Margin="0,0,0,20" Text="Theme, colour and motion." />
 
-            <TextBlock Text="THEME" Style="{StaticResource Text.Group}" />
+            <TextBlock Text="theme" Style="{StaticResource Text.Group}" />
             <Border Style="{StaticResource Card}">
                 <StackPanel>
                     <DockPanel Margin="0,4">
@@ -21,6 +21,20 @@
                         <StackPanel>
                             <TextBlock Text="Theme" />
                             <TextBlock Style="{StaticResource Text.Muted}" Text="System follows Windows' app mode." />
+                        </StackPanel>
+                    </DockPanel>
+                    <Border Style="{StaticResource Divider}" />
+                    <DockPanel Margin="0,4">
+                        <Border DockPanel.Dock="Right" Style="{StaticResource Segmented}" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal">
+                                <RadioButton x:Name="BackdropOff" Style="{StaticResource Segment}" GroupName="Backdrop" Content="Off" Checked="OnBackdropChanged" />
+                                <RadioButton x:Name="BackdropMica" Style="{StaticResource Segment}" GroupName="Backdrop" Content="Mica" Checked="OnBackdropChanged" />
+                                <RadioButton x:Name="BackdropAcrylic" Style="{StaticResource Segment}" GroupName="Backdrop" Content="Acrylic" Checked="OnBackdropChanged" />
+                            </StackPanel>
+                        </Border>
+                        <StackPanel Margin="0,0,16,0">
+                            <TextBlock Text="Transparency" />
+                            <TextBlock x:Name="BackdropText" Style="{StaticResource Text.Muted}" TextWrapping="Wrap" />
                         </StackPanel>
                     </DockPanel>
                     <Border Style="{StaticResource Divider}" />

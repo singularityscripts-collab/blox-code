@@ -8,8 +8,10 @@ using BloxCode.Core;
 
 namespace BloxCode.UI;
 
-public partial class BootstrapperWindow : Window
+public partial class BootstrapperWindow : Window, IGlassWindow
 {
+    public string SolidBackground => "Brush.Sidebar";
+
     private readonly LaunchSettings? _launch;
     private readonly CancellationTokenSource _cts = new();
     private readonly Stopwatch _elapsed = Stopwatch.StartNew();

@@ -5,8 +5,10 @@ using BloxCode.UI.Pages;
 
 namespace BloxCode.UI;
 
-public partial class MainWindow : Window
+public partial class MainWindow : Window, IGlassWindow
 {
+    public string SolidBackground => "Brush.Bg";
+
     private readonly Dictionary<string, Func<UserControl>> _pages;
 
     public MainWindow()
@@ -36,7 +38,7 @@ public partial class MainWindow : Window
                 child.IsChecked = true;
     }
 
-    /// <summary>Shows a sub-page (e.g. the Fast Flag editor) without changing the sidebar selection.</summary>
+    /// <summary>Shows a sub-page (e.g. the Fast Flag editor) without changing the selected tab.</summary>
     public void ShowPage(UserControl page)
     {
         Store.SaveSettings();
@@ -82,8 +84,6 @@ public partial class MainWindow : Window
             ShowPage(create());
         }
     }
-
-    private void OnPlay(object sender, RoutedEventArgs e) => LaunchRoblox();
 
     private void OnMinimize(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
 

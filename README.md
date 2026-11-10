@@ -95,7 +95,7 @@ O que muda em relação ao Windows:
 - A tela **Sober** explica as opções do próprio Sober (gráficos, OpenGL/Vulkan, HiDPI, Discord…) e
   tem botões para restaurá-lo.
 - Avisa quando o driver da NVIDIA não bate com a extensão GL do Flatpak, e exporta um zip de
-  diagnóstico em Behaviour.
+  diagnóstico em Settings.
 
 Se o AppImage não abrir, falta o FUSE: `sudo pacman -S --needed fuse3` (Arch) ou
 `sudo apt install fuse3` (Debian/Ubuntu); ou rode com `--appimage-extract-and-run`. O Sober precisa
@@ -108,7 +108,7 @@ roteiro de teste em [docs/LINUX_TESTING.md](docs/LINUX_TESTING.md).
 Toda vez que a cópia instalada abre (menu ou link do Roblox), ela lê o `latest.json` do feed de
 atualização (no máximo 4 s). Se houver versão nova, baixa o arquivo do seu sistema, confere o
 SHA-256, reinicia com `-upgrade`, se substitui e continua o que você tinha pedido (abrir o jogo, o
-menu…). Mesmo fluxo do Bloxstrap. Dá para desligar em Behaviour.
+menu…). Mesmo fluxo do Bloxstrap. Dá para desligar em Settings.
 
 O feed não depende de nenhum site:
 
@@ -210,7 +210,7 @@ falta de visibilidade do projeto; dá para pedir de novo quando o projeto cresce
 - **Mudanças no sistema:** o instalador avisa o que vai fazer antes de fazer (pasta do usuário em
   `%LocalAppData%BloxCode`, atalhos no menu Iniciar e na área de trabalho, links `roblox://` e uma
   entrada em Aplicativos). O Blox Code se desinstala por Configurações → Aplicativos ou pela página
-  Behaviour.
+  Settings.
 
 ## Privacy
 
@@ -218,7 +218,7 @@ Blox Code has no accounts, ads, analytics or telemetry, and sends no personal da
 connects to these services, to do what you ask it to:
 
 - **The update feed** (the addresses in `<UpdateFeeds>`): to check for and download Blox Code
-  updates. You can turn this off in Behaviour.
+  updates. You can turn this off in Settings.
 - **Roblox**, on Windows: `clientsettingscdn.roblox.com` / `clientsettings.roblox.com` to find the
   current Roblox version, and Roblox's download mirrors (`setup.rbxcdn.com`, `setup-aws.rbxcdn.com`,
   `setup-ak.rbxcdn.com`, `s3.amazonaws.com/setup.roblox.com`) to
@@ -227,7 +227,7 @@ connects to these services, to do what you ask it to:
 - **While you play**, on Windows: Roblox's public game APIs (`apis.roblox.com`, `games.roblox.com`,
   `thumbnails.roblox.com`) for the name and icon of the game you joined, and `ipinfo.io` with the
   Roblox server's address (not yours) to say where that server is. Rich Presence talks only to the
-  Discord app on your own computer. Each of these can be turned off in Behaviour.
+  Discord app on your own computer. Each of these can be turned off in Settings.
 
 These requests carry nothing about you beyond what any download does (your IP address and a
 `BloxCode/<version>` user agent). Roblox and Sober, once started, are separate programs with their

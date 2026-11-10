@@ -16,58 +16,12 @@ public partial class HomePage : UserControl
         _window = window;
         InitializeComponent();
 
-        Mascot.IsAnimated = Store.Settings.AnimateMascot;
-        Greeting.Text = DateTime.Now.Hour switch
-        {
-            < 5 => "Up late?",
-            < 12 => "Good morning",
-            < 18 => "Good afternoon",
-            _ => "Good evening",
-        };
-        ChannelPill.Text = Store.Settings.Channel;
-        StatusLine.Text = Store.State.VersionGuid is { } v
-            ? $"roblox {v} · {Store.Settings.FastFlags.Count} fast flags · {Store.State.ModManifest.Count} mods"
-            : "Roblox will be downloaded on first launch";
-
-        foreach (var (label, value) in GraphicsPresetText.Options)
-        {
-            var segment = new RadioButton { Content = label, GroupName = "homeGraphics" + GetHashCode(), Tag = value };
-            segment.SetResourceReference(StyleProperty, "Segment");
-            segment.Checked += (_, _) =>
-            {
-                if (_syncing) return;
-                FastFlagPresets.ApplyGraphicsPreset(Enum.Parse<GraphicsPreset>(value!));
-                Store.SaveSettings();
-                RefreshQuickSettings();
-            };
-            GraphicsSegments.Children.Add(segment);
-        }
-        RefreshQuickSettings();
-
         RefreshBanner();
         RefreshRecent();
         Loaded += (_, _) => Composer.Focus();
     }
 
     private string? _updatedNotice;
-    private bool _syncing;
-
-    /// <summary>The graphics preset, which mods are swapped and how many flags are set.</summary>
-    private void RefreshQuickSettings()
-    {
-        _syncing = true;
-        var preset = FastFlagPresets.CurrentGraphicsPreset;
-        foreach (var segment in GraphicsSegments.Children.OfType<RadioButton>())
-            segment.IsChecked = (string?)segment.Tag == preset?.ToString();
-        GraphicsSummary.Text = GraphicsPresetText.Short(preset)
-            + (GraphicsAdvisor.Recommended is { } suggested && suggested != preset ? $" · suggested: {suggested}" : "");
-        _syncing = false;
-
-        var swapped = ModCatalog.Slots.Where(s => ModCatalog.CurrentFile(s) is not null).Select(s => s.Title.ToLowerInvariant()).ToList();
-        ModsSummary.Text = swapped.Count == 0 ? "Cursor, sounds and font" : "Custom " + string.Join(", ", swapped);
-        int custom = Store.Settings.FastFlags.Keys.Count(k => !FastFlagPresets.PresetFlags.Contains(k));
-        FlagsSummary.Text = custom switch { 0 => "Presets and the editor", 1 => "1 custom flag", _ => $"{custom} custom flags" };
-    }
 
     private void RefreshBanner()
     {
@@ -173,7 +127,7 @@ public partial class HomePage : UserControl
 
     private Button GameCard(PlayedGame game)
     {
-        var icon = new Border { Height = 112, CornerRadius = new CornerRadius(10), Margin = new Thickness(0, 0, 0, 10) };
+        var icon = new Border { Height = 118, CornerRadius = new CornerRadius(12), Margin = new Thickness(0, 0, 0, 10) };
         icon.SetResourceReference(Border.BackgroundProperty, "Brush.SurfaceAlt");
         if (game.IconUrl is { } url && Uri.TryCreate(url, UriKind.Absolute, out var uri))
         {
@@ -201,15 +155,17 @@ public partial class HomePage : UserControl
         var card = new Button
         {
             Content = new StackPanel { Children = { icon, name, when } },
-            Padding = new Thickness(10),
-            Margin = new Thickness(5, 0, 5, 0),
+            Padding = new Thickness(6),
+            Margin = new Thickness(0),
+            BorderThickness = new Thickness(0),
             HorizontalContentAlignment = HorizontalAlignment.Stretch,
             VerticalContentAlignment = VerticalAlignment.Top,
             ToolTip = $"Play {game.Name}" + (game.Creator is { Length: > 0 } by ? $" by {by}" : ""),
         };
         card.SetResourceReference(StyleProperty, "Button.Base");
-        card.SetResourceReference(BackgroundProperty, "Brush.Surface");
-        card.SetResourceReference(BorderBrushProperty, "Brush.CardBorder");
+        // Flat until hovered: just the game's icon, its name and when it was played
+        card.Background = System.Windows.Media.Brushes.Transparent;
+        card.BorderBrush = System.Windows.Media.Brushes.Transparent;
         card.SetResourceReference(TagProperty, "Brush.Hover");
         card.Click += (_, _) => _window.LaunchRoblox($"roblox://experiences/start?placeId={game.PlaceId}");
 
@@ -236,11 +192,29 @@ public partial class HomePage : UserControl
 
     private void OnComposerChanged(object sender, TextChangedEventArgs e)
     {
+        bool empty = Composer.Text.Trim().Length == 0;
         bool valid = RobloxLink.ToLaunchArgs(Composer.Text) is not null;
-        SendButton.IsEnabled = valid;
-        ComposerHint.Text = Composer.Text.Trim().Length == 0
-            ? "Enter to launch · empty opens the Roblox app"
+        SendButton.IsEnabled = empty || valid;
+        ComposerHint.Text = empty
+            ? "Enter to launch · empty opens Roblox"
             : valid ? "Enter to join this experience" : "That doesn't look like a Roblox game link";
+    }
+
+    /// <summary>Focused, the bar firms up and gets an accent line along its bottom, like Windows' search box.</summary>
+    private void OnComposerFocus(object sender, KeyboardFocusChangedEventArgs e)
+    {
+        bool focused = Composer.IsKeyboardFocusWithin;
+        Bar.SetResourceReference(Border.BackgroundProperty, focused ? "Brush.SurfaceAlt" : "Brush.Surface");
+        if (focused)
+        {
+            Bar.BorderThickness = new Thickness(1, 1, 1, 2);
+            Bar.SetResourceReference(Border.BorderBrushProperty, "Brush.Accent");
+        }
+        else
+        {
+            Bar.BorderThickness = new Thickness(1);
+            Bar.SetResourceReference(Border.BorderBrushProperty, "Brush.BorderStrong");
+        }
     }
 
     private void OnComposerKeyDown(object sender, KeyEventArgs e)
@@ -251,17 +225,13 @@ public partial class HomePage : UserControl
 
     private void OnSend(object sender, RoutedEventArgs e)
     {
-        if (RobloxLink.ToLaunchArgs(Composer.Text) is { } args)
+        if (Composer.Text.Trim().Length == 0)
+            _window.LaunchRoblox();
+        else if (RobloxLink.ToLaunchArgs(Composer.Text) is { } args)
             _window.LaunchRoblox(args);
     }
 
-    private void OnOpenRoblox(object sender, RoutedEventArgs e) => _window.LaunchRoblox();
-
     private void OnOpenStudio(object sender, RoutedEventArgs e) => _window.LaunchStudio();
-
-    private void OnFastFlags(object sender, RoutedEventArgs e) => _window.Navigate("FastFlags");
-
-    private void OnMods(object sender, RoutedEventArgs e) => _window.Navigate("Mods");
 
     private void OnReinstall(object sender, RoutedEventArgs e)
     {

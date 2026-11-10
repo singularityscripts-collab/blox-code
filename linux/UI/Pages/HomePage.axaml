@@ -3,102 +3,33 @@
              xmlns:ui="clr-namespace:BloxCode.Linux.UI"
              x:Class="BloxCode.Linux.UI.Pages.HomePage">
     <ScrollViewer x:Name="Scroller" VerticalScrollBarVisibility="Auto">
-        <Grid x:Name="Layout" MaxWidth="720" Margin="40,0,40,0" RowDefinitions="Auto,*,Auto,2*">
+        <Grid x:Name="Layout" Margin="40,0,40,0" RowDefinitions="Auto,*,Auto">
             <!-- Things that need doing: Sober, the install, the link handler, NVIDIA -->
-            <StackPanel x:Name="Banners" Margin="0,8,0,0" />
+            <StackPanel x:Name="Banners" MaxWidth="640" Margin="0,8,0,0" />
 
-            <StackPanel Grid.Row="2">
-                <!-- Greeting -->
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                    <ui:BitMascot x:Name="Mascot" Unit="2.4" VerticalAlignment="Center" Margin="0,0,18,2"
-                                  Body="{DynamicResource Brush.Mascot}" Eye="{DynamicResource Brush.MascotEye}" />
-                    <TextBlock x:Name="Greeting" FontFamily="{StaticResource Font.Mono}" FontWeight="Medium" FontSize="34"
-                               Foreground="{DynamicResource Brush.Text}" VerticalAlignment="Center" />
-                </StackPanel>
-                <TextBlock Text="Paste a game to jump straight in, or just hit Play." HorizontalAlignment="Center" Margin="0,12,0,28"
-                           FontSize="14" Foreground="{DynamicResource Brush.TextMuted}" />
-
-                <!-- Composer -->
-                <Border Background="{DynamicResource Brush.Surface}" BorderBrush="{DynamicResource Brush.BorderStrong}" BorderThickness="1"
-                        CornerRadius="18" Padding="20,14,14,14">
-                    <StackPanel>
-                        <DockPanel>
-                            <ui:IconView DockPanel.Dock="Left" Data="{StaticResource Icon.Search}" Width="18" Height="18" Margin="0,0,10,0"
-                                         VerticalAlignment="Center" Foreground="{DynamicResource Brush.TextMuted}" />
-                            <TextBox x:Name="Composer" Classes="bare" FontSize="16" Watermark="Paste a Roblox game link or place ID…"
-                                     KeyDown="OnComposerKeyDown" TextChanged="OnComposerChanged" />
-                        </DockPanel>
-                        <DockPanel Margin="0,14,0,0">
-                            <Button x:Name="SendButton" DockPanel.Dock="Right" Classes="primary send" Width="38" Height="38" Click="OnSend" ToolTip.Tip="Launch">
-                                <ui:IconView Data="{StaticResource Icon.Arrow}" Width="16" Height="16" StrokeThickness="2" />
-                            </Button>
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10">
-                                <Border CornerRadius="6" BorderThickness="1" BorderBrush="{DynamicResource Brush.BorderStrong}"
-                                        Background="{DynamicResource Brush.SurfaceAlt}" Padding="8,3">
-                                    <TextBlock Text="sober" Classes="mono" FontSize="11" Foreground="{DynamicResource Brush.TextSecondary}" />
-                                </Border>
-                                <TextBlock x:Name="ComposerHint" Classes="mono" VerticalAlignment="Center" Text="Enter to launch · empty opens Roblox" />
-                            </StackPanel>
-                        </DockPanel>
-                    </StackPanel>
-                </Border>
-
-                <!-- Graphics preset, right on the Home page -->
-                <Border Classes="card" Margin="0,14,0,0" Padding="20,12,12,12">
+            <StackPanel Grid.Row="1" MaxWidth="600" VerticalAlignment="Center" Margin="0,8,0,24">
+                <!-- The game bar, like a desktop search box: paste a link and press Enter, or just Play -->
+                <Border x:Name="Bar" Classes="searchbar">
                     <DockPanel>
-                        <Border DockPanel.Dock="Right" Classes="segmented" VerticalAlignment="Center">
-                            <StackPanel x:Name="GraphicsSegments" Orientation="Horizontal" />
-                        </Border>
-                        <StackPanel VerticalAlignment="Center" Margin="0,0,12,0">
-                            <TextBlock Text="Graphics" Classes="h2" />
-                            <TextBlock x:Name="GraphicsSummary" Classes="muted" FontSize="12" Margin="0,2,0,0" />
-                        </StackPanel>
+                        <ui:IconView DockPanel.Dock="Left" Data="{StaticResource Icon.Search}" Width="17" Height="17" Margin="0,0,12,0"
+                                     VerticalAlignment="Center" Foreground="{DynamicResource Brush.TextSecondary}" />
+                        <Button x:Name="SendButton" DockPanel.Dock="Right" Classes="primary send" Width="44" Height="44" CornerRadius="22" Padding="0"
+                                Click="OnSend" ToolTip.Tip="Play" AutomationProperties.Name="Play">
+                            <ui:IconView Data="{StaticResource Icon.Play}" Filled="True" Width="14" Height="14" Margin="2,0,0,0" />
+                        </Button>
+                        <TextBox x:Name="Composer" Classes="bare" FontSize="15" Margin="0,0,8,0" Watermark="Paste a game link"
+                                 AutomationProperties.Name="Game link"
+                                 KeyDown="OnComposerKeyDown" TextChanged="OnComposerChanged" />
                     </DockPanel>
                 </Border>
+                <TextBlock x:Name="ComposerHint" Classes="mono" HorizontalAlignment="Center" Margin="0,14,0,0"
+                           Text="Enter to launch · empty opens Roblox" />
+            </StackPanel>
 
-                <UniformGrid Columns="2" Margin="0,12,0,0">
-                    <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="0" Margin="0,0,6,0" CornerRadius="14" Click="OnMods">
-                        <Border Classes="card" Margin="0" Padding="16">
-                            <DockPanel>
-                                <Border DockPanel.Dock="Left" Width="38" Height="38" CornerRadius="10" Background="{DynamicResource Brush.AccentSoft}" Margin="0,0,14,0">
-                                    <ui:IconView Data="{StaticResource Icon.Box}" Width="18" Height="18" Foreground="{DynamicResource Brush.Accent}" />
-                                </Border>
-                                <ui:IconView DockPanel.Dock="Right" Data="{StaticResource Icon.Chevron}" Width="14" Height="14" Foreground="{DynamicResource Brush.TextMuted}" />
-                                <StackPanel VerticalAlignment="Center">
-                                    <TextBlock Text="Mods" Classes="h2" />
-                                    <TextBlock x:Name="ModsSummary" Classes="muted" FontSize="12" Margin="0,2,0,0" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
-                                </StackPanel>
-                            </DockPanel>
-                        </Border>
-                    </Button>
-                    <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="0" Margin="6,0,0,0" CornerRadius="14" Click="OnFastFlags">
-                        <Border Classes="card" Margin="0" Padding="16">
-                            <DockPanel>
-                                <Border DockPanel.Dock="Left" Width="38" Height="38" CornerRadius="10" Background="{DynamicResource Brush.AccentSoft}" Margin="0,0,14,0">
-                                    <ui:IconView Data="{StaticResource Icon.Flag}" Width="18" Height="18" Foreground="{DynamicResource Brush.Accent}" />
-                                </Border>
-                                <ui:IconView DockPanel.Dock="Right" Data="{StaticResource Icon.Chevron}" Width="14" Height="14" Foreground="{DynamicResource Brush.TextMuted}" />
-                                <StackPanel VerticalAlignment="Center">
-                                    <TextBlock Text="Fast Flags" Classes="h2" />
-                                    <TextBlock x:Name="FlagsSummary" Classes="muted" FontSize="12" Margin="0,2,0,0" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
-                                </StackPanel>
-                            </DockPanel>
-                        </Border>
-                    </Button>
-                </UniformGrid>
-
-                <!-- Footer: what's set up, and the Roblox shortcuts -->
-                <DockPanel Margin="0,28,0,0">
-                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="4">
-                        <Button Classes="ghost" FontSize="13" Click="OnOpenRoblox">
-                            <StackPanel Orientation="Horizontal" Spacing="7"><ui:IconView Data="{StaticResource Icon.Play}" Width="13" Height="13" /><TextBlock Text="Open Roblox" /></StackPanel>
-                        </Button>
-                        <Button Classes="ghost" FontSize="13" Click="OnSober">
-                            <StackPanel Orientation="Horizontal" Spacing="7"><ui:IconView Data="{StaticResource Icon.Sober}" Width="13" Height="13" /><TextBlock Text="Sober settings" /></StackPanel>
-                        </Button>
-                    </StackPanel>
-                    <TextBlock x:Name="StatusLine" Classes="mono" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                </DockPanel>
+            <!-- Sober's state and its settings, out of the way -->
+            <StackPanel Grid.Row="2" HorizontalAlignment="Center" Margin="0,0,0,16" Spacing="6">
+                <TextBlock x:Name="StatusLine" Classes="mono" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                <Button Classes="ghost" FontSize="12.5" HorizontalAlignment="Center" Click="OnSober" Content="Sober settings" />
             </StackPanel>
         </Grid>
     </ScrollViewer>

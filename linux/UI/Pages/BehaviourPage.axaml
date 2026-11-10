@@ -2,8 +2,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="BloxCode.Linux.UI.Pages.BehaviourPage">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel MaxWidth="720" Margin="40,8,40,40">
-            <TextBlock Text="Behaviour" Classes="h1" />
+        <StackPanel MaxWidth="640" Margin="40,8,40,40">
+            <TextBlock Text="Settings" Classes="h1" />
             <TextBlock Classes="muted" Margin="0,0,0,20" Text="How Blox Code starts Roblox, keeps itself updated and fits into your desktop." />
 
             <Border Classes="card">

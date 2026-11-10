@@ -109,7 +109,7 @@ public partial class ModsPage : UserControl
     private void BuildPresets()
     {
         PresetsHost.Children.Clear();
-        PresetsHost.Children.Add(new TextBlock { Text = "PRESETS · FROM BLOXSTRAP" }.Styled("Text.Group"));
+        PresetsHost.Children.Add(new TextBlock { Text = "presets · from bloxstrap" }.Styled("Text.Group"));
         var rows = new StackPanel();
 
         var cursor = ModPresets.CurrentCursor();
@@ -216,7 +216,7 @@ public partial class ModsPage : UserControl
         Groups.Children.Clear();
         foreach (var group in ModCatalog.Groups.Where(g => _tab == AllTab || g.Key == _tab))
         {
-            Groups.Children.Add(new TextBlock { Text = group.Key.ToUpperInvariant() }.Styled("Text.Group"));
+            Groups.Children.Add(new TextBlock { Text = group.Key.ToLowerInvariant() }.Styled("Text.Group"));
             var rows = new StackPanel();
 
             bool first = true;
