@@ -1,25 +1,25 @@
 {
   "format": 1,
   "product": "BloxCode",
-  "version": "1.11.0",
-  "title": "Várias janelas, jogos recentes, perfis e Roblox Studio",
-  "published": "2026-11-10T00:38:20.907Z",
-  "notes": "### Novidades (Windows)\n\n- **Várias janelas do Roblox ao mesmo tempo:** em Behaviour → \"Run several Roblox windows at once\",\n  cada Play abre uma janela nova em vez de substituir a aberta. Tem um botão \"Close all\" para fechar\n  todas. O jeito de fazer vem do MultiBloxy, estudado e reescrito.\n- **Jogos recentes na Home:** os últimos jogos aparecem com ícone, há quanto tempo e por quanto tempo\n  você jogou. Clique para jogar de novo; com o botão direito dá para voltar ao mesmo servidor, abrir a\n  página do jogo ou tirar da lista. Ao lado fica o tempo jogado na semana e o jogo mais jogado.\n- **Perfis de Fast Flags:** salve o conjunto atual com um nome (\"Max FPS\", \"Bonito\"…) e troque com um\n  clique. Também dá para renomear, atualizar, exportar e importar como arquivo .json.\n- **Roblox Studio:** \"Launch Roblox Studio\" no menu de abertura e \"Open Studio\" na Home. O Blox Code\n  baixa, atualiza e abre o Studio com as suas Fast Flags.\n- **Fixar a versão do Roblox:** em Behaviour, para ficar numa versão em vez de atualizar.\n- **Liberar espaço:** em Behaviour, apaga versões antigas do Roblox, downloads em cache e logs com\n  mais de uma semana.\n- **Cor de destaque:** menta, azul, violeta, rosa ou âmbar, no app inteiro e na janela de\n  inicialização (Appearance).\n- **Ícone dos atalhos:** escolha um .ico para os atalhos do Blox Code (Appearance).",
+  "version": "1.11.2",
+  "title": "Várias janelas do Roblox funcionando de verdade",
+  "published": "2026-11-10T17:07:09.220Z",
+  "notes": "A 1.11.1 não chegou a ser publicada (o teste automático no contêiner do Arch Linux falhou antes de\no Blox Code rodar); esta é a mesma versão.\n\n### Correções (Windows)\n\n- **Várias janelas do Roblox:** a segunda janela fechava sozinha. O Roblox atual tem uma segunda\n  trava (\"NoReload\") que entrega cada abertura para a janela que já está aberta a partir da mesma\n  pasta. Agora cada janela extra abre por uma pasta própria (um atalho de pasta, sem copiar nada), e\n  as duas travas ficam vencidas. Testado com três janelas ao mesmo tempo, e também com um Roblox que\n  já estava aberto antes do Blox Code.\n- O Blox Code lia o log do \"CrashHandler\" do Roblox em vez do log do jogo. Agora acompanha todas as\n  janelas abertas: o Discord mostra o jogo mais recente e passa para outro jogo aberto quando você sai\n  de um, e o histórico registra cada janela.\n- Behaviour mostra quantas janelas do Roblox estão abertas.\n\nPara jogar em várias janelas, use uma conta diferente em cada: com a mesma conta em dois jogos, o\npróprio Roblox derruba uma das sessões (erro 273).",
   "assets": {
     "windows-x64": {
       "name": "BloxCode.exe",
-      "size": 62958215,
-      "sha256": "1328ef47286f928e018f8907f426cadccb5f364d9c6e26e745eb6eaaa66dadbd",
+      "size": 62964360,
+      "sha256": "b02ebfefbba2fcb2619e9301a1c1870578257b2a7877aa818dd2adf0fbe39c52",
       "urls": [
-        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.11.0/BloxCode.exe"
+        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.11.2/BloxCode.exe"
       ]
     },
     "linux-x64": {
       "name": "BloxCode-x86_64.AppImage",
-      "size": 42084856,
-      "sha256": "1e739a7c080d05b6575f54b757ded7afa7529f4af9bcb810435a921fd7d92fcf",
+      "size": 42076664,
+      "sha256": "48f12e035e910b70faf31b7f6979ba293569b192ff52fdb56862e8ed2a148689",
       "urls": [
-        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.11.0/BloxCode-x86_64.AppImage"
+        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.11.2/BloxCode-x86_64.AppImage"
       ]
     }
   }
