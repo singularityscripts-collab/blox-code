@@ -1,25 +1,25 @@
 {
   "format": 1,
   "product": "BloxCode",
-  "version": "1.11.2",
-  "title": "Várias janelas do Roblox funcionando de verdade",
-  "published": "2026-11-10T17:07:09.220Z",
-  "notes": "A 1.11.1 não chegou a ser publicada (o teste automático no contêiner do Arch Linux falhou antes de\no Blox Code rodar); esta é a mesma versão.\n\n### Correções (Windows)\n\n- **Várias janelas do Roblox:** a segunda janela fechava sozinha. O Roblox atual tem uma segunda\n  trava (\"NoReload\") que entrega cada abertura para a janela que já está aberta a partir da mesma\n  pasta. Agora cada janela extra abre por uma pasta própria (um atalho de pasta, sem copiar nada), e\n  as duas travas ficam vencidas. Testado com três janelas ao mesmo tempo, e também com um Roblox que\n  já estava aberto antes do Blox Code.\n- O Blox Code lia o log do \"CrashHandler\" do Roblox em vez do log do jogo. Agora acompanha todas as\n  janelas abertas: o Discord mostra o jogo mais recente e passa para outro jogo aberto quando você sai\n  de um, e o histórico registra cada janela.\n- Behaviour mostra quantas janelas do Roblox estão abertas.\n\nPara jogar em várias janelas, use uma conta diferente em cada: com a mesma conta em dois jogos, o\npróprio Roblox derruba uma das sessões (erro 273).",
+  "version": "1.12.0",
+  "title": "Visual novo, minimalista e transparente",
+  "published": "2026-11-10T22:03:48.619Z",
+  "notes": "### Novidades\n\n- **Visual novo:** a barra lateral virou abas no topo (Home, Flags, Mods, Look, Settings, About; no\n  Linux também Sober), e embaixo fica só uma linha com o estado do Roblox e a versão do Blox Code.\n- **Home:** só uma barra de jogo no estilo da pesquisa do Windows. Cole o link e aperte Enter, ou\n  clique no Play redondo com ela vazia para abrir o Roblox. Os jogos recentes ficam logo abaixo.\n- **Páginas mais limpas:** sem cartões; cada grupo de opções é uma lista separada por linhas finas,\n  com títulos maiores, botões arredondados e textos mais curtos. Appearance agora se chama Look, e\n  Behaviour se chama Settings.\n- **Transparência (Windows 11):** em Look → Transparency, escolha Acrylic (o que está atrás da\n  janela aparece desfocado, o padrão), Mica (as cores do papel de parede) ou Off. Vale também para a\n  janela de abertura do Roblox. Precisa do Windows 11 22H2 ou mais novo e de \"Efeitos de\n  transparência\" ligado em Configurações → Personalização → Cores; sem isso a janela fica sólida, e\n  a página diz o motivo.",
   "assets": {
     "windows-x64": {
       "name": "BloxCode.exe",
-      "size": 62964360,
-      "sha256": "b02ebfefbba2fcb2619e9301a1c1870578257b2a7877aa818dd2adf0fbe39c52",
+      "size": 62965623,
+      "sha256": "e53b0ea9ac15e77b7214a555b517c37036789fbc082ee7c367e1e4fa6781c7cf",
       "urls": [
-        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.11.2/BloxCode.exe"
+        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.12.0/BloxCode.exe"
       ]
     },
     "linux-x64": {
       "name": "BloxCode-x86_64.AppImage",
       "size": 42076664,
-      "sha256": "48f12e035e910b70faf31b7f6979ba293569b192ff52fdb56862e8ed2a148689",
+      "sha256": "9477e66fd1c4e5d23a213e1f783ad816512601461cd7119c794900c03b37b80e",
       "urls": [
-        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.11.2/BloxCode-x86_64.AppImage"
+        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.12.0/BloxCode-x86_64.AppImage"
       ]
     }
   }
