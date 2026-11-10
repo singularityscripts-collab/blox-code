@@ -3,6 +3,27 @@
 Todas as versões do Blox Code, da mais nova para a mais antiga. Quem tem o Blox Code instalado
 recebe cada versão automaticamente na próxima vez que abrir.
 
+## 1.11.0 — Várias janelas, jogos recentes, perfis e Roblox Studio
+
+### Novidades (Windows)
+
+- **Várias janelas do Roblox ao mesmo tempo:** em Behaviour → "Run several Roblox windows at once",
+  cada Play abre uma janela nova em vez de substituir a aberta. Tem um botão "Close all" para fechar
+  todas. O jeito de fazer vem do MultiBloxy, estudado e reescrito.
+- **Jogos recentes na Home:** os últimos jogos aparecem com ícone, há quanto tempo e por quanto tempo
+  você jogou. Clique para jogar de novo; com o botão direito dá para voltar ao mesmo servidor, abrir a
+  página do jogo ou tirar da lista. Ao lado fica o tempo jogado na semana e o jogo mais jogado.
+- **Perfis de Fast Flags:** salve o conjunto atual com um nome ("Max FPS", "Bonito"…) e troque com um
+  clique. Também dá para renomear, atualizar, exportar e importar como arquivo .json.
+- **Roblox Studio:** "Launch Roblox Studio" no menu de abertura e "Open Studio" na Home. O Blox Code
+  baixa, atualiza e abre o Studio com as suas Fast Flags.
+- **Fixar a versão do Roblox:** em Behaviour, para ficar numa versão em vez de atualizar.
+- **Liberar espaço:** em Behaviour, apaga versões antigas do Roblox, downloads em cache e logs com
+  mais de uma semana.
+- **Cor de destaque:** menta, azul, violeta, rosa ou âmbar, no app inteiro e na janela de
+  inicialização (Appearance).
+- **Ícone dos atalhos:** escolha um .ico para os atalhos do Blox Code (Appearance).
+
 ## 1.10.0 — Discord e localização do servidor
 
 ### Novidades (Windows)

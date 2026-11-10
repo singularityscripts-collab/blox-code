@@ -19,6 +19,18 @@
                     </DockPanel>
                     <Border Style="{StaticResource Divider}" />
                     <DockPanel Margin="0,4">
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button x:Name="PinButton" Style="{StaticResource Button.Ghost}" Content="Pin current" Margin="0,0,6,0" Click="OnPinCurrent" />
+                            <TextBox x:Name="PinBox" Width="200" Style="{StaticResource Input}" FontFamily="{StaticResource Font.Mono}"
+                                     Tag="latest" TextChanged="OnPinChanged" VerticalAlignment="Center" />
+                        </StackPanel>
+                        <StackPanel Margin="0,0,16,0">
+                            <TextBlock Text="Roblox version" />
+                            <TextBlock x:Name="PinText" Style="{StaticResource Text.Muted}" />
+                        </StackPanel>
+                    </DockPanel>
+                    <Border Style="{StaticResource Divider}" />
+                    <DockPanel Margin="0,4">
                         <CheckBox x:Name="Cleanup" DockPanel.Dock="Right" Style="{StaticResource Toggle}" Click="OnToggle" />
                         <StackPanel>
                             <TextBlock Text="Clean up old versions" />
@@ -62,6 +74,24 @@
                             <TextBlock Style="{StaticResource Text.Muted}" Text="A small notice in the corner after you join, e.g. &quot;São Paulo, BR&quot;. The server's address is looked up on ipinfo.io." />
                         </StackPanel>
                     </DockPanel>
+                    <Border Style="{StaticResource Divider}" />
+                    <DockPanel Margin="0,4">
+                        <CheckBox x:Name="Remember" DockPanel.Dock="Right" Style="{StaticResource Toggle}" Click="OnToggle" />
+                        <Button x:Name="ClearHistoryButton" DockPanel.Dock="Right" Style="{StaticResource Button.Ghost}" Content="Clear" Margin="0,0,10,0" Click="OnClearHistory" VerticalAlignment="Center" />
+                        <StackPanel Margin="0,0,16,0">
+                            <TextBlock Text="Remember the games I play" />
+                            <TextBlock Style="{StaticResource Text.Muted}" Text="Recent games and play time on Home. Kept only on this PC; clear it any time." />
+                        </StackPanel>
+                    </DockPanel>
+                    <Border Style="{StaticResource Divider}" />
+                    <DockPanel Margin="0,4">
+                        <CheckBox x:Name="Multi" DockPanel.Dock="Right" Style="{StaticResource Toggle}" Click="OnToggle" />
+                        <Button x:Name="CloseAllButton" DockPanel.Dock="Right" Style="{StaticResource Button.Ghost}" Content="Close all" Margin="0,0,10,0" Click="OnCloseAll" VerticalAlignment="Center" />
+                        <StackPanel Margin="0,0,16,0">
+                            <TextBlock Text="Run several Roblox windows at once" />
+                            <TextBlock Style="{StaticResource Text.Muted}" Text="Every Play opens a new window instead of replacing the open one. Takes effect from the next launch." />
+                        </StackPanel>
+                    </DockPanel>
                 </StackPanel>
             </Border>
 
@@ -73,6 +103,14 @@
                         <StackPanel Margin="0,0,16,0">
                             <TextBlock Text="Default Roblox launcher" />
                             <TextBlock x:Name="HandlerText" Style="{StaticResource Text.Muted}" />
+                        </StackPanel>
+                    </DockPanel>
+                    <Border Style="{StaticResource Divider}" />
+                    <DockPanel Margin="0,4">
+                        <Button x:Name="CleanButton" DockPanel.Dock="Right" Style="{StaticResource Button.Secondary}" Content="Clean up" Click="OnCleanUp" VerticalAlignment="Center" />
+                        <StackPanel Margin="0,0,16,0">
+                            <TextBlock Text="Free up space" />
+                            <TextBlock x:Name="CleanText" Style="{StaticResource Text.Muted}" Text="Measuring…" />
                         </StackPanel>
                     </DockPanel>
                     <Border Style="{StaticResource Divider}" />

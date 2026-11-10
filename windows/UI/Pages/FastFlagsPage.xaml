@@ -49,6 +49,18 @@
                 </DockPanel>
             </Button>
 
+            <TextBlock Text="PROFILES" Style="{StaticResource Text.Group}" Margin="4,8,0,10" />
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock x:Name="ProfilesHint" Style="{StaticResource Text.Muted}" TextWrapping="Wrap" Margin="0,2,0,0" />
+                    <WrapPanel x:Name="ProfileChips" Margin="-4,8,0,0" />
+                    <StackPanel Orientation="Horizontal" Margin="0,10,0,2">
+                        <Button Style="{StaticResource Button.Secondary}" Content="Save current as…" Click="OnSaveProfile" Margin="0,0,8,0" />
+                        <Button Style="{StaticResource Button.Ghost}" Content="Import file…" Click="OnImportProfile" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
             <TextBlock Text="PRESETS" Style="{StaticResource Text.Group}" />
             <Border Style="{StaticResource Card}">
                 <StackPanel>

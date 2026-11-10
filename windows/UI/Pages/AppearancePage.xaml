@@ -5,7 +5,7 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel MaxWidth="720" Margin="40,8,40,40">
             <TextBlock Text="Appearance" Style="{StaticResource Text.H1}" />
-            <TextBlock Style="{StaticResource Text.Muted}" Margin="0,0,0,20" Text="Daylight blueprint or Midnight terminal — the same mint cursor either way." />
+            <TextBlock Style="{StaticResource Text.Muted}" Margin="0,0,0,20" Text="Daylight blueprint or Midnight terminal, in the accent colour you pick." />
 
             <TextBlock Text="THEME" Style="{StaticResource Text.Group}" />
             <Border Style="{StaticResource Card}">
@@ -21,6 +21,26 @@
                         <StackPanel>
                             <TextBlock Text="Theme" />
                             <TextBlock Style="{StaticResource Text.Muted}" Text="System follows Windows' app mode." />
+                        </StackPanel>
+                    </DockPanel>
+                    <Border Style="{StaticResource Divider}" />
+                    <DockPanel Margin="0,4">
+                        <StackPanel x:Name="AccentSwatches" DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" />
+                        <StackPanel>
+                            <TextBlock Text="Accent colour" />
+                            <TextBlock Style="{StaticResource Text.Muted}" Text="Buttons, toggles and the launch window's progress bar." />
+                        </StackPanel>
+                    </DockPanel>
+                    <Border Style="{StaticResource Divider}" />
+                    <DockPanel Margin="0,4">
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button x:Name="ResetIconButton" Style="{StaticResource Button.Ghost}" Content="Use Bit" Margin="0,0,6,0" Click="OnResetIcon" />
+                            <Button Style="{StaticResource Button.Secondary}" Content="Choose .ico…" Click="OnChooseIcon" />
+                        </StackPanel>
+                        <Image x:Name="IconPreview" DockPanel.Dock="Left" Width="32" Height="32" Margin="0,0,14,0" VerticalAlignment="Center" />
+                        <StackPanel Margin="0,0,16,0">
+                            <TextBlock Text="Shortcut icon" />
+                            <TextBlock x:Name="IconText" Style="{StaticResource Text.Muted}" />
                         </StackPanel>
                     </DockPanel>
                     <Border Style="{StaticResource Divider}" />

@@ -6,13 +6,13 @@ namespace BloxCode.Core;
 /// <summary>Minimal IShellLinkW wrapper for creating .lnk shortcuts without extra dependencies.</summary>
 public static class ShellLink
 {
-    public static void Create(string lnkPath, string target, string arguments, string description)
+    public static void Create(string lnkPath, string target, string arguments, string description, string? icon = null)
     {
         var link = (IShellLinkW)new CShellLink();
         link.SetPath(target);
         link.SetArguments(arguments);
         link.SetWorkingDirectory(Path.GetDirectoryName(target)!);
-        link.SetIconLocation(target, 0);
+        link.SetIconLocation(icon ?? target, 0);
         link.SetDescription(description);
         ((IPersistFile)link).Save(lnkPath, true);
         Marshal.FinalReleaseComObject(link);

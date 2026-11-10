@@ -84,6 +84,7 @@ public partial class App : Application
         switch (launch.Mode)
         {
             case LaunchMode.Player:
+            case LaunchMode.Studio:
                 if (Store.Settings.ConfirmLaunches && !launch.Quiet &&
                     !MessageDialog.Ask(null, "Launch Roblox?", "Something asked Blox Code to start Roblox.", "Launch", "Not now"))
                 {
@@ -112,6 +113,10 @@ public partial class App : Application
                     {
                         case LaunchMenuChoice.LaunchRoblox:
                             new BootstrapperWindow(LaunchSettings.ForPlayer()).Show();
+                            ShutdownMode = ShutdownMode.OnLastWindowClose;
+                            return;
+                        case LaunchMenuChoice.LaunchStudio:
+                            new BootstrapperWindow(LaunchSettings.ForStudio()).Show();
                             ShutdownMode = ShutdownMode.OnLastWindowClose;
                             return;
                         case LaunchMenuChoice.None:

@@ -23,6 +23,135 @@ public partial class FastFlagsPage : UserControl
         Sync();
     }
 
+    // ---- Profiles: named copies of the whole flag set -------------------------------------------
+
+    private static bool SameFlags(Dictionary<string, string> a, Dictionary<string, string> b) =>
+        a.Count == b.Count && a.All(kv => b.TryGetValue(kv.Key, out var v) && v == kv.Value);
+
+    private void RefreshProfiles()
+    {
+        var profiles = Store.Settings.FastFlagProfiles;
+        string? active = profiles.FirstOrDefault(p => SameFlags(p.Value, Store.Settings.FastFlags)).Key;
+        ProfilesHint.Text = profiles.Count == 0
+            ? "Save the flags you have now under a name (say \"Max FPS\" or \"Pretty\") and switch between sets with one click."
+            : active is null
+                ? "Your current flags don't match a saved profile. Click one to switch; right-click for more."
+                : $"Using {active}. Click another to switch; right-click for more.";
+        ProfileChips.Children.Clear();
+        foreach (var (name, flags) in profiles.OrderBy(p => p.Key, StringComparer.CurrentCultureIgnoreCase))
+            ProfileChips.Children.Add(ProfileChip(name, flags, name == active));
+    }
+
+    private Button ProfileChip(string name, Dictionary<string, string> flags, bool active)
+    {
+        var chip = new Button
+        {
+            Content = $"{name}  ·  {flags.Count}",
+            Margin = new Thickness(4),
+            Padding = new Thickness(12, 6, 12, 6),
+            ToolTip = active ? "In use" : $"Switch to {name} ({flags.Count} flags)",
+        };
+        chip.SetResourceReference(StyleProperty, active ? "Button.Primary" : "Button.Secondary");
+        chip.Click += (_, _) => ApplyProfile(name);
+
+        var menu = new ContextMenu();
+        void Add(string header, Action action) { var item = new MenuItem { Header = header }; item.Click += (_, _) => action(); menu.Items.Add(item); }
+        Add("Use this profile", () => ApplyProfile(name));
+        Add("Update with current flags", () =>
+        {
+            Store.Settings.FastFlagProfiles[name] = new(Store.Settings.FastFlags);
+            Store.SaveSettings();
+            RefreshProfiles();
+        });
+        Add("Rename…", () =>
+        {
+            if (MessageDialog.Prompt(_window, "Rename profile", "A new name for this set of flags.", name, "Rename") is not { } renamed || renamed == name)
+                return;
+            Store.Settings.FastFlagProfiles.Remove(name);
+            Store.Settings.FastFlagProfiles[renamed] = flags;
+            Store.SaveSettings();
+            RefreshProfiles();
+        });
+        Add("Export to a file…", () => ExportProfile(name, flags));
+        Add("Delete", () =>
+        {
+            if (!MessageDialog.Ask(_window, $"Delete {name}?", "Only the saved profile goes; the flags you have now stay as they are.", "Delete", "Cancel", danger: true))
+                return;
+            Store.Settings.FastFlagProfiles.Remove(name);
+            Store.SaveSettings();
+            RefreshProfiles();
+        });
+        chip.ContextMenu = menu;
+        return chip;
+    }
+
+    private void ApplyProfile(string name)
+    {
+        if (!Store.Settings.FastFlagProfiles.TryGetValue(name, out var flags))
+            return;
+        // Unsaved flags would be lost: offer to keep them first.
+        bool saved = Store.Settings.FastFlags.Count == 0 || Store.Settings.FastFlagProfiles.Values.Any(p => SameFlags(p, Store.Settings.FastFlags));
+        if (!saved && !MessageDialog.Ask(_window, $"Switch to {name}?",
+                "The flags you have now aren't saved in a profile and will be replaced. Save them first with \"Save current as…\" if you want them back later.",
+                "Switch", "Cancel"))
+            return;
+        Store.Settings.FastFlags = new(flags);
+        Store.SaveSettings();
+        Sync();
+    }
+
+    private void OnSaveProfile(object sender, RoutedEventArgs e)
+    {
+        if (MessageDialog.Prompt(_window, "Save as a profile", $"A name for the {Store.Settings.FastFlags.Count} flags you have now.", "", "Save") is not { } name)
+            return;
+        if (Store.Settings.FastFlagProfiles.ContainsKey(name) &&
+            !MessageDialog.Ask(_window, $"Replace {name}?", "A profile with this name already exists.", "Replace", "Cancel"))
+            return;
+        Store.Settings.FastFlagProfiles[name] = new(Store.Settings.FastFlags);
+        Store.SaveSettings();
+        RefreshProfiles();
+    }
+
+    private void ExportProfile(string name, Dictionary<string, string> flags)
+    {
+        var dialog = new Microsoft.Win32.SaveFileDialog
+        {
+            FileName = string.Concat(name.Split(Path.GetInvalidFileNameChars())) + ".json",
+            Filter = "Fast Flags (*.json)|*.json",
+        };
+        if (dialog.ShowDialog(_window) != true)
+            return;
+        try
+        {
+            File.WriteAllText(dialog.FileName, System.Text.Json.JsonSerializer.Serialize(flags, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+        }
+        catch (Exception ex)
+        {
+            MessageDialog.Show(_window, "Couldn't export", ex.Message);
+        }
+    }
+
+    private void OnImportProfile(object sender, RoutedEventArgs e)
+    {
+        var dialog = new Microsoft.Win32.OpenFileDialog { Filter = "Fast Flags (*.json;*.txt)|*.json;*.txt|All files|*.*" };
+        if (dialog.ShowDialog(_window) != true)
+            return;
+        try
+        {
+            var flags = FastFlagValidator.ParseJson(File.ReadAllText(dialog.FileName));
+            if (MessageDialog.Prompt(_window, "Import as a profile", $"{flags.Count} flags found. A name for this profile:",
+                    Path.GetFileNameWithoutExtension(dialog.FileName), "Import") is not { } name)
+                return;
+            Store.Settings.FastFlagProfiles[name] = flags;
+            Store.SaveSettings();
+            RefreshProfiles();
+        }
+        catch (Exception ex)
+        {
+            MessageDialog.Show(_window, "Couldn't import", $"That file isn't a Fast Flags JSON: {ex.Message}");
+        }
+    }
+
     private void BuildSegments(Panel host, string group, (string Label, string? Value)[] options, Action<string?> apply)
     {
         foreach (var (label, value) in options)
@@ -73,6 +202,7 @@ public partial class FastFlagsPage : UserControl
             1 => "1 custom flag set · add, edit, import or export",
             _ => $"{custom} custom flags set · add, edit, import or export",
         };
+        RefreshProfiles();
     }
 
     /// <summary>Checks the segment for the value; with no match, the first one, or none at all for a hand-mixed preset.</summary>

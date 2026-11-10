@@ -22,6 +22,7 @@ public static class Deployment
 {
     public const string DefaultChannel = Settings.DefaultChannel;
     public const string BinaryType = "WindowsPlayer";
+    public const string StudioBinaryType = "WindowsStudio64";
 
     // Best first for big downloads (measured Nov 2026: Akamai 5.7 MB/s, Roblox's CDN 4.0-4.6, S3 3.3).
     // cachefly is gone: it still answers /versionStudio but returns 404 for every package.
@@ -109,13 +110,13 @@ public static class Deployment
         return mirror;
     }
 
-    public static async Task<ClientVersion> GetInfo(HttpClient http, string channel, CancellationToken ct)
+    public static async Task<ClientVersion> GetInfo(HttpClient http, string channel, CancellationToken ct, string binaryType = BinaryType)
     {
         const string ident = "Deployment::GetInfo";
         // Production has no channel segment; ".../channel/production" answers 401 like an unknown channel.
         string path = channel == DefaultChannel
-            ? $"/v2/client-version/{BinaryType}"
-            : $"/v2/client-version/{BinaryType}/channel/{channel}";
+            ? $"/v2/client-version/{binaryType}"
+            : $"/v2/client-version/{binaryType}/channel/{channel}";
         HttpStatusCode? lastStatus = null;
         Exception? lastError = null;
 

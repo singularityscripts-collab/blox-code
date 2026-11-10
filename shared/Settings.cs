@@ -5,6 +5,8 @@ namespace BloxCode.Core;
 
 public enum AppTheme { System, Light, Dark }
 
+public enum AccentColor { Mint, Sky, Violet, Rose, Amber }
+
 public sealed class Settings
 {
     public const string DefaultChannel = "production";
@@ -23,6 +25,18 @@ public sealed class Settings
     public bool DiscordJoinButton { get; set; }
     /// <summary>Windows: say roughly where the server is after joining a game.</summary>
     public bool ShowServerLocation { get; set; } = true;
+    /// <summary>Windows: keep the games played (History.json) for the Home page and the stats.</summary>
+    public bool RememberGames { get; set; } = true;
+    /// <summary>Windows: let several Roblox players run at once (see MultiInstance).</summary>
+    public bool MultiInstance { get; set; }
+    /// <summary>Windows: a Roblox version-… to stay on instead of the channel's latest; null follows the channel.</summary>
+    public string? PinnedVersion { get; set; }
+    /// <summary>The highlight colour across the app and the launch window.</summary>
+    public AccentColor Accent { get; set; } = AccentColor.Mint;
+    /// <summary>Windows: an .ico for the Blox Code shortcuts and windows; null keeps Bit.</summary>
+    public string? CustomIcon { get; set; }
+    /// <summary>Saved sets of Fast Flags, by name, to switch between with one click.</summary>
+    public Dictionary<string, Dictionary<string, string>> FastFlagProfiles { get; set; } = new();
     public Dictionary<string, string> FastFlags { get; set; } = new();
 }
 
@@ -46,6 +60,9 @@ public sealed class State
     /// (frm.cfg, filled at that fixed level while it was on) is cleared before the next launch.
     /// </summary>
     public bool ResetQualityCache { get; set; }
+    /// <summary>Windows: the Roblox Studio version installed next to the player, and its package hashes.</summary>
+    public string? StudioVersionGuid { get; set; }
+    public Dictionary<string, string> StudioPackageHashes { get; set; } = new();
 }
 
 public static class Store
@@ -72,6 +89,8 @@ public static class Store
 
         // Hand-edited or older files can carry explicit nulls; never let them reach the rest of the app.
         Settings.FastFlags ??= new();
+        Settings.FastFlagProfiles ??= new();
+        Settings.PinnedVersion = string.IsNullOrWhiteSpace(Settings.PinnedVersion) ? null : Settings.PinnedVersion.Trim();
         Settings.Channel = string.IsNullOrWhiteSpace(Settings.Channel) ? Settings.DefaultChannel : Settings.Channel.Trim();
         State.PackageHashes ??= new();
         State.ModManifest ??= new();

@@ -21,6 +21,11 @@ public partial class BehaviourPage : UserControl
         Discord.IsChecked = Store.Settings.DiscordRichPresence && ActivityWatcher.DiscordAvailable;
         DiscordJoin.IsChecked = Store.Settings.DiscordJoinButton;
         Location.IsChecked = Store.Settings.ShowServerLocation;
+        Remember.IsChecked = Store.Settings.RememberGames;
+        Multi.IsChecked = Store.Settings.MultiInstance;
+        PinBox.Text = Store.Settings.PinnedVersion ?? "";
+        RefreshPin();
+        _ = MeasureCleanupAsync();
         Discord.IsEnabled = ActivityWatcher.DiscordAvailable;
         if (!ActivityWatcher.DiscordAvailable)
             DiscordText.Text = "This build has no Discord app (set DiscordAppId in Directory.Build.props).";
@@ -60,8 +65,70 @@ public partial class BehaviourPage : UserControl
             Store.Settings.DiscordRichPresence = Discord.IsChecked == true;
         Store.Settings.DiscordJoinButton = DiscordJoin.IsChecked == true;
         Store.Settings.ShowServerLocation = Location.IsChecked == true;
+        Store.Settings.RememberGames = Remember.IsChecked == true;
+        Store.Settings.MultiInstance = Multi.IsChecked == true;
         RefreshDiscordJoin();
         Store.SaveSettings();
+    }
+
+    private void OnPinChanged(object sender, TextChangedEventArgs e)
+    {
+        if (!_ready) return;
+        string pin = PinBox.Text.Trim().ToLowerInvariant();
+        Store.Settings.PinnedVersion = pin.Length == 0 ? null : pin;
+        RefreshPin();
+    }
+
+    private void OnPinCurrent(object sender, RoutedEventArgs e)
+    {
+        if (Store.State.VersionGuid is { } current)
+            PinBox.Text = current;
+    }
+
+    private void RefreshPin()
+    {
+        string? pin = Store.Settings.PinnedVersion;
+        PinButton.IsEnabled = Store.State.VersionGuid is { } current && current != pin;
+        PinText.Text = pin is null
+            ? "Stay on one version (version-…) instead of updating. Roblox may refuse old versions after a while."
+            : Bootstrapper.PinnedVersionRegex().IsMatch(pin)
+                ? $"Pinned: Roblox stays on {pin}. Clear the box to follow {Store.Settings.Channel} again."
+                : "That isn't a version name: it looks like version-0123456789abcdef. Until it is, Roblox stays up to date.";
+    }
+
+    private void OnClearHistory(object sender, RoutedEventArgs e)
+    {
+        if (MessageDialog.Ask(_window, "Clear your game history?", "Recent games and play time on Home start over.", "Clear", "Cancel", danger: true))
+            GameHistory.Clear();
+    }
+
+    private void OnCloseAll(object sender, RoutedEventArgs e)
+    {
+        int open = MultiInstance.RunningPlayers();
+        if (open == 0)
+        {
+            MessageDialog.Show(_window, "No Roblox open", "There's no Roblox window to close.");
+            return;
+        }
+        if (MessageDialog.Ask(_window, open == 1 ? "Close Roblox?" : $"Close all {open} Roblox windows?", "Anything unsaved in those games is lost.", "Close all", "Cancel", danger: true))
+            MultiInstance.CloseAllPlayers();
+    }
+
+    private async Task MeasureCleanupAsync()
+    {
+        long bytes = await Task.Run(DiskCleanup.Measure);
+        CleanText.Text = bytes < 1 << 20
+            ? "Nothing worth cleaning: no old Roblox versions, downloads or logs piling up."
+            : $"{DiskCleanup.Size(bytes)} in old Roblox versions, cached downloads and old logs.";
+        CleanButton.IsEnabled = bytes >= 1 << 20;
+    }
+
+    private async void OnCleanUp(object sender, RoutedEventArgs e)
+    {
+        CleanButton.IsEnabled = false;
+        CleanText.Text = "Cleaning…";
+        long freed = await Task.Run(DiskCleanup.Run);
+        CleanText.Text = $"Freed {DiskCleanup.Size(freed)}.";
     }
 
     private void RefreshDiscordJoin() => DiscordJoin.IsEnabled = Discord.IsEnabled && Discord.IsChecked == true;

@@ -64,6 +64,9 @@ atalhos e uma entrada em Aplicativos, e passa a abrir os links do Roblox.
 - Mods: tudo em `Modifications\` é copiado por cima do Roblox; os originais ficam guardados.
 - Enquanto você joga: o jogo no seu status do Discord (Rich Presence) e um aviso com a localização
   do servidor. O Blox Code lê o log do Roblox em segundo plano e fecha junto com ele.
+- Várias janelas do Roblox ao mesmo tempo (opcional), jogos recentes e tempo jogado na Home,
+  perfis de Fast Flags, versão fixa do Roblox, limpeza de espaço, cor de destaque e ícone dos atalhos.
+- Roblox Studio: baixado, atualizado e aberto pelo Blox Code, com as suas Fast Flags.
 
 O fluxo de atualização e launch foi obtido por engenharia reversa do Bloxstrap 2.11.4 com o REA MCP e
 reescrito do zero em C#/WPF — veja [docs/REVERSE_ENGINEERING.md](docs/REVERSE_ENGINEERING.md).
@@ -190,7 +193,7 @@ tools/
 updates/         latest.json + latest.json.sig: o feed que as cópias instaladas leem
 ```
 
-Fora do escopo por enquanto: Roblox Studio.
+Fora do escopo por enquanto: abrir os links "Edit in Studio" do site pelo Blox Code.
 
 ## Code signing policy
 
@@ -230,7 +233,8 @@ These requests carry nothing about you beyond what any download does (your IP ad
 `BloxCode/<version>` user agent). Roblox and Sober, once started, are separate programs with their
 own privacy policies. Logs and the Linux diagnostics zip stay on your computer unless you share them.
 
-Projeto de fã — sem afiliação com Roblox Corporation, Anthropic, a equipe do Bloxstrap ou a
-VinegarHQ (Sober) (MIT). As fontes [Inter](https://github.com/rsms/inter) e
+Projeto de fã — sem afiliação com Roblox Corporation, Anthropic, a equipe do Bloxstrap, o MultiBloxy
+(Zgoly) ou a VinegarHQ (Sober) (MIT). O jeito de abrir várias janelas do Roblox vem do MultiBloxy,
+estudado com o REA e reescrito (veja [docs/REVERSE_ENGINEERING.md](docs/REVERSE_ENGINEERING.md)). As fontes [Inter](https://github.com/rsms/inter) e
 [JetBrains Mono](https://github.com/JetBrains/JetBrainsMono) são distribuídas sob a SIL Open Font
 License 1.1; as licenças estão em [shared/Fonts](shared/Fonts).

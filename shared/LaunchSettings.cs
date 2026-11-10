@@ -1,6 +1,6 @@
 namespace BloxCode.Core;
 
-public enum LaunchMode { Menu, Player, Uninstall }
+public enum LaunchMode { Menu, Player, Studio, Uninstall }
 
 public sealed class LaunchSettings
 {
@@ -40,6 +40,13 @@ public sealed class LaunchSettings
         {
             string arg = args[i];
 
+            if (RobloxLink.IsStudioUri(arg))
+            {
+                s.Mode = LaunchMode.Studio;
+                s.RobloxArgs = arg;
+                continue;
+            }
+
             if (RobloxLink.IsRobloxUri(arg))
             {
                 s.Mode = LaunchMode.Player;
@@ -51,6 +58,11 @@ public sealed class LaunchSettings
             {
                 case "player":
                     s.Mode = LaunchMode.Player;
+                    if (i + 1 < args.Length && !args[i + 1].StartsWith('-'))
+                        s.RobloxArgs = args[++i];
+                    break;
+                case "studio":
+                    s.Mode = LaunchMode.Studio;
                     if (i + 1 < args.Length && !args[i + 1].StartsWith('-'))
                         s.RobloxArgs = args[++i];
                     break;
@@ -96,4 +108,7 @@ public sealed class LaunchSettings
 
     public static LaunchSettings ForPlayer(string robloxArgs = "") =>
         new() { Mode = LaunchMode.Player, RobloxArgs = robloxArgs };
+
+    public static LaunchSettings ForStudio(string studioArgs = "") =>
+        new() { Mode = LaunchMode.Studio, RobloxArgs = studioArgs };
 }

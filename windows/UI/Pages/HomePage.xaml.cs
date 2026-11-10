@@ -45,6 +45,7 @@ public partial class HomePage : UserControl
         RefreshQuickSettings();
 
         RefreshBanner();
+        RefreshRecent();
         Loaded += (_, _) => Composer.Focus();
     }
 
@@ -152,6 +153,87 @@ public partial class HomePage : UserControl
         _window.RefreshFooter();
     }
 
+    /// <summary>The last games played, as cards that jump straight back in, and this week's play time.</summary>
+    private void RefreshRecent()
+    {
+        var history = Store.Settings.RememberGames ? GameHistory.Load() : new();
+        var recent = GameHistory.Recent(4, history);
+        RecentSection.Visibility = recent.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+        RecentGames.Children.Clear();
+        foreach (var game in recent)
+            RecentGames.Children.Add(GameCard(game));
+
+        var week = GameHistory.Stats(TimeSpan.FromDays(7), history);
+        StatsText.Text = week.Total < TimeSpan.FromMinutes(1)
+            ? ""
+            : $"{GameHistory.Duration(week.Total)} this week" + (week.TopGame is { } top && recent.Count > 1 ? $" · mostly {Trim(GameHistory.PlainName(top), 22)}" : "");
+    }
+
+    private static string Trim(string text, int max) => text.Length <= max ? text : text[..(max - 1)] + "…";
+
+    private Button GameCard(PlayedGame game)
+    {
+        var icon = new Border { Height = 112, CornerRadius = new CornerRadius(10), Margin = new Thickness(0, 0, 0, 10) };
+        icon.SetResourceReference(Border.BackgroundProperty, "Brush.SurfaceAlt");
+        if (game.IconUrl is { } url && Uri.TryCreate(url, UriKind.Absolute, out var uri))
+        {
+            try
+            {
+                var image = new System.Windows.Media.Imaging.BitmapImage();
+                image.BeginInit();
+                image.UriSource = uri;
+                image.DecodePixelWidth = 224;
+                image.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
+                image.EndInit();
+                icon.Background = new System.Windows.Media.ImageBrush(image) { Stretch = System.Windows.Media.Stretch.UniformToFill };
+            }
+            catch (Exception ex)
+            {
+                Logger.Warn("HomePage::GameCard", ex.Message);
+            }
+        }
+
+        var name = new TextBlock { Text = GameHistory.PlainName(game.Name), FontSize = 13, FontWeight = FontWeights.Medium, TextTrimming = TextTrimming.CharacterEllipsis };
+        name.SetResourceReference(TextBlock.ForegroundProperty, "Brush.Text");
+        var when = new TextBlock { Text = $"{GameHistory.Ago(game.LeftAt ?? game.JoinedAt)} · {GameHistory.Duration(game.Played)}", Margin = new Thickness(0, 3, 0, 0), TextTrimming = TextTrimming.CharacterEllipsis };
+        when.SetResourceReference(StyleProperty, "Text.Mono");
+
+        var card = new Button
+        {
+            Content = new StackPanel { Children = { icon, name, when } },
+            Padding = new Thickness(10),
+            Margin = new Thickness(5, 0, 5, 0),
+            HorizontalContentAlignment = HorizontalAlignment.Stretch,
+            VerticalContentAlignment = VerticalAlignment.Top,
+            ToolTip = $"Play {game.Name}" + (game.Creator is { Length: > 0 } by ? $" by {by}" : ""),
+        };
+        card.SetResourceReference(StyleProperty, "Button.Base");
+        card.SetResourceReference(BackgroundProperty, "Brush.Surface");
+        card.SetResourceReference(BorderBrushProperty, "Brush.CardBorder");
+        card.SetResourceReference(TagProperty, "Brush.Hover");
+        card.Click += (_, _) => _window.LaunchRoblox($"roblox://experiences/start?placeId={game.PlaceId}");
+
+        var menu = new ContextMenu();
+        var play = new MenuItem { Header = "Play" };
+        play.Click += (_, _) => _window.LaunchRoblox($"roblox://experiences/start?placeId={game.PlaceId}");
+        menu.Items.Add(play);
+        // The same server is only worth trying while it may still be up, and only public ones take a server id.
+        if (game.Kind == ServerKind.Public && game.JobId is { } job && DateTime.UtcNow - (game.LeftAt ?? game.JoinedAt) < TimeSpan.FromHours(6))
+        {
+            var rejoin = new MenuItem { Header = "Rejoin the same server" };
+            rejoin.Click += (_, _) => _window.LaunchRoblox($"roblox://experiences/start?placeId={game.PlaceId}&gameInstanceId={job}");
+            menu.Items.Add(rejoin);
+        }
+        var page = new MenuItem { Header = "Open the game page" };
+        page.Click += (_, _) => Process.Start(new ProcessStartInfo(RobloxGames.GamePage(game.PlaceId)) { UseShellExecute = true });
+        menu.Items.Add(page);
+        var forget = new MenuItem { Header = "Remove from recent" };
+        forget.Click += (_, _) => { GameHistory.Forget(game.PlaceId); RefreshRecent(); };
+        menu.Items.Add(forget);
+        card.ContextMenu = menu;
+        return card;
+    }
+
     private void OnComposerChanged(object sender, TextChangedEventArgs e)
     {
         bool valid = RobloxLink.ToLaunchArgs(Composer.Text) is not null;
@@ -174,6 +256,8 @@ public partial class HomePage : UserControl
     }
 
     private void OnOpenRoblox(object sender, RoutedEventArgs e) => _window.LaunchRoblox();
+
+    private void OnOpenStudio(object sender, RoutedEventArgs e) => _window.LaunchStudio();
 
     private void OnFastFlags(object sender, RoutedEventArgs e) => _window.Navigate("FastFlags");
 

@@ -17,7 +17,8 @@ public static class ActivityWatcher
     public static bool DiscordAvailable => Updater.DiscordAppId is not null;
 
     public static bool IsWanted =>
-        Store.Settings.ShowServerLocation || (Store.Settings.DiscordRichPresence && DiscordAvailable);
+        Store.Settings.ShowServerLocation || Store.Settings.RememberGames || Store.Settings.MultiInstance
+        || (Store.Settings.DiscordRichPresence && DiscordAvailable);
 
     /// <param name="launchedAt">When Roblox was started; its log is the first one created after this.</param>
     /// <param name="notify">Shows a notice (title, text); called from a worker thread.</param>
@@ -48,6 +49,14 @@ public static class ActivityWatcher
         {
             Logger.Info(ident, $"Watching (Discord: {(discord is null ? "off" : "on")}, server location: {(Store.Settings.ShowServerLocation ? "on" : "off")})");
             await WatchAsync(http, launchedAt, discord, notify, cts.Token);
+
+            // Multi-instance: the singleton name must stay taken while any player is open, log or not.
+            if (MultiInstance.IsHeld)
+            {
+                var running = new RobloxRunning();
+                while (running.Now())
+                    await Task.Delay(2000, cts.Token);
+            }
         }
         catch (OperationCanceledException)
         {
@@ -59,6 +68,8 @@ public static class ActivityWatcher
         finally
         {
             stopWait.Unregister(null);
+            if (Store.Settings.RememberGames)
+                GameHistory.CloseDangling(DateTime.UtcNow);
             if (discord?.IsConnected == true)
             {
                 try { await discord.SetActivityAsync(null, CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(2)); } catch { }
@@ -105,6 +116,8 @@ public static class ActivityWatcher
                     return;
                 sessionWork?.Cancel();
                 Logger.Info("ActivityWatcher::Left", $"Left place {session.PlaceId}");
+                if (Store.Settings.RememberGames)
+                    GameHistory.Left(session);
                 if (discord is not null)
                     _ = discord.SetActivityAsync(null, ct);
             };
@@ -138,9 +151,13 @@ public static class ActivityWatcher
             var location = showNotice && Store.Settings.ShowServerLocation
                 ? ServerLocation.GetAsync(http, session.Address, ct)
                 : Task.FromResult<string?>(null);
-            var game = discord is not null
+            bool remember = showNotice && Store.Settings.RememberGames;
+            var game = discord is not null || remember
                 ? RobloxGames.GetAsync(http, session.PlaceId, session.UniverseId, ct)
                 : Task.FromResult<GameInfo?>(null);
+
+            if (remember)
+                GameHistory.Joined(session, await game);
 
             if (showNotice && Store.Settings.ShowServerLocation)
             {

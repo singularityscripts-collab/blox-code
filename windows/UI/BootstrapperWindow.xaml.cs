@@ -127,7 +127,8 @@ public partial class BootstrapperWindow : Window
             }
 
             VersionText.Text = $"{Store.State.Channel} · {bootstrapper.VersionGuid}";
-            Succeed(_launch!.NoLaunch ? "Roblox is up to date" : "Roblox is running");
+            string app = _launch!.Mode == LaunchMode.Studio ? "Roblox Studio" : "Roblox";
+            Succeed(_launch.NoLaunch ? $"{app} is up to date" : $"{app} is running");
             if (bootstrapper.LaunchedAt is { } launchedAt && ActivityWatcher.IsWanted)
                 WatchRoblox(launchedAt);
             await Task.Delay(1400);

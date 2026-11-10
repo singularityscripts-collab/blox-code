@@ -10,6 +10,9 @@ public static partial class RobloxLink
     [GeneratedRegex(@"^\d+$")]
     private static partial Regex PlaceId();
 
+    public static bool IsStudioUri(string arg) =>
+        arg.StartsWith("roblox-studio:", StringComparison.OrdinalIgnoreCase) || arg.StartsWith("roblox-studio-auth:", StringComparison.OrdinalIgnoreCase);
+
     public static bool IsRobloxUri(string arg) =>
         arg.StartsWith("roblox:", StringComparison.OrdinalIgnoreCase) || arg.StartsWith("roblox-player:", StringComparison.OrdinalIgnoreCase);
 

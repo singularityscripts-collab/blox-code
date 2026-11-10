@@ -19,6 +19,7 @@ public partial class LaunchMenuWindow : Window
         ThemeManager.ApplyChrome(this);
         VersionText.Text = $"v{App.Version}";
         LaunchSummary.Text = LaunchMenu.Summary();
+        StudioSummary.Text = Store.State.StudioVersionGuid is null ? "Downloads Studio the first time" : "With your Fast Flags";
         Mascot.IsAnimated = Store.Settings.AnimateMascot;
         SourceButton.Visibility = Updater.Homepage is null ? Visibility.Collapsed : Visibility.Visible;
         KeyDown += (_, e) =>
@@ -42,6 +43,8 @@ public partial class LaunchMenuWindow : Window
     private void OnLaunch(object sender, RoutedEventArgs e) => Finish(LaunchMenuChoice.LaunchRoblox);
 
     private void OnConfigure(object sender, RoutedEventArgs e) => Finish(LaunchMenuChoice.Configure);
+
+    private void OnStudio(object sender, RoutedEventArgs e) => Finish(LaunchMenuChoice.LaunchStudio);
 
     private void OnClose(object sender, RoutedEventArgs e) => Close();
 

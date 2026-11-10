@@ -383,6 +383,35 @@ public static class SelfTest
                 Expect(RobloxGames.JoinLink(s) == $"https://www.roblox.com/games/start?placeId=2753915549&gameInstanceId={job}", "join link");
             });
 
+            Check("Studio links and play history", () =>
+            {
+                var studio = LaunchSettings.Parse(new[] { "roblox-studio:1+launchmode:edit+task:EditPlace+placeId:123" });
+                Expect(studio.Mode == LaunchMode.Studio && studio.RobloxArgs.Contains("placeId:123"), "roblox-studio: opens Studio");
+                Expect(LaunchSettings.Parse(new[] { "roblox-studio-auth:abc" }).Mode == LaunchMode.Studio, "roblox-studio-auth: opens Studio");
+                Expect(LaunchSettings.Parse(new[] { "-studio" }) is { Mode: LaunchMode.Studio, RobloxArgs: "" }, "-studio");
+                Expect(LaunchSettings.Parse(new[] { "roblox://placeId=1" }).Mode == LaunchMode.Player, "roblox:// still opens the player");
+
+                var now = DateTime.UtcNow;
+                var history = new List<PlayedGame>
+                {
+                    new() { PlaceId = 1, Name = "Obby", JoinedAt = now.AddMinutes(-50), LeftAt = now.AddMinutes(-20) },
+                    new() { PlaceId = 2, Name = "Tycoon", JoinedAt = now.AddDays(-2), LeftAt = now.AddDays(-2).AddHours(2) },
+                    new() { PlaceId = 1, Name = "Obby", JoinedAt = now.AddDays(-3), LeftAt = now.AddDays(-3).AddMinutes(10) },
+                    new() { PlaceId = 3, Name = "Old", JoinedAt = now.AddDays(-20), LeftAt = now.AddDays(-20).AddHours(5) },
+                };
+                var week = GameHistory.Stats(TimeSpan.FromDays(7), history);
+                Expect(week.Sessions == 3, $"3 visits this week ({week.Sessions})");
+                Expect(Math.Abs(week.Total.TotalMinutes - 160) < 1, $"2h 40m this week ({week.Total})");
+                Expect(week.TopGame == "Tycoon", $"most played ({week.TopGame})");
+                var recent = GameHistory.Recent(4, history);
+                Expect(recent.Select(g => g.PlaceId).SequenceEqual(new long[] { 1, 2, 3 }), "recent: one card per game, newest first");
+                Expect(GameHistory.Duration(TimeSpan.FromMinutes(185)) == "3h 05m" && GameHistory.Duration(TimeSpan.FromMinutes(42)) == "42m", "durations");
+                Expect(GameHistory.Ago(now.AddHours(-3)) == "3h ago" && GameHistory.Ago(now.AddDays(-1.5)) == "yesterday", "ages");
+                Expect(GameHistory.PlainName("[🎃] Blox Fruits") == "Blox Fruits" && GameHistory.PlainName("[⚡] Adopt Me!") == "Adopt Me!"
+                       && GameHistory.PlainName("Brookhaven 🏡RP") == "Brookhaven RP" && GameHistory.PlainName("🍁🍁") == "🍁🍁",
+                    $"names without emoji ({GameHistory.PlainName("Brookhaven 🏡RP")})");
+            });
+
             Check("the Roblox log is followed as it grows", () =>
             {
                 string logs = Path.Combine(sandbox, "roblox-logs");

@@ -84,7 +84,7 @@ public static class Installer
         {
             string version = typeof(Installer).Assembly.GetName().Version?.ToString(3) ?? "1.0.0";
             key.SetValue("DisplayName", "Blox Code");
-            key.SetValue("DisplayIcon", $"{Paths.Application},0");
+            key.SetValue("DisplayIcon", IconLocation);
             key.SetValue("DisplayVersion", version);
             key.SetValue("Publisher", "Blox Code");
             key.SetValue("InstallLocation", Paths.Base);
@@ -110,11 +110,51 @@ public static class Installer
         Logger.Info(ident, "Installation finished");
     }
 
+    /// <summary>The icon picked in Appearance (copied next to Blox Code), when there is one.</summary>
+    public static string? CustomIcon => Store.Settings.CustomIcon is { } icon && File.Exists(icon) ? icon : null;
+
+    private static string IconLocation => CustomIcon is { } icon ? $"{icon},0" : $"{Paths.Application},0";
+
+    /// <summary>Uses <paramref name="source"/> (an .ico) for the shortcuts and the Apps entry; null goes back to Bit.</summary>
+    public static void SetCustomIcon(string? source)
+    {
+        string target = Path.Combine(Paths.Base, "CustomIcon.ico");
+        if (source is null)
+        {
+            Store.Settings.CustomIcon = null;
+            try { File.Delete(target); } catch (IOException) { }
+        }
+        else
+        {
+            if (!string.Equals(Path.GetFullPath(source), target, StringComparison.OrdinalIgnoreCase))
+                File.Copy(source, target, overwrite: true);
+            Store.Settings.CustomIcon = target;
+        }
+        Store.SaveSettings();
+        if (!IsInstalled)
+            return;
+
+        // Re-create the shortcuts that exist with the new icon, and point Apps & Features at it.
+        if (File.Exists(StartMenuShortcut)) TryShortcut(StartMenuShortcut, "", "Blox Code settings");
+        if (File.Exists(PlayShortcut)) TryShortcut(PlayShortcut, "-player", "Play Roblox with Blox Code");
+        if (File.Exists(DesktopShortcut)) TryShortcut(DesktopShortcut, "", "Blox Code");
+        try
+        {
+            using var key = Registry.CurrentUser.OpenSubKey(UninstallKey, writable: true);
+            key?.SetValue("DisplayIcon", IconLocation);
+        }
+        catch (Exception ex) when (ex is UnauthorizedAccessException or System.Security.SecurityException or IOException)
+        {
+            Logger.Warn("Installer::SetCustomIcon", ex.Message);
+        }
+        RefreshIcons();
+    }
+
     private static void TryShortcut(string lnkPath, string arguments, string description)
     {
         try
         {
-            ShellLink.Create(lnkPath, Paths.Application, arguments, description);
+            ShellLink.Create(lnkPath, Paths.Application, arguments, description, CustomIcon);
         }
         catch (Exception ex)
         {

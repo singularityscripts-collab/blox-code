@@ -56,6 +56,16 @@ public partial class MainWindow : Window
     public void RefreshMascots() => BrandMascot.IsAnimated = Store.Settings.AnimateMascot;
 
     /// <summary>Hides the menu, runs the bootstrapper and closes once Roblox has started.</summary>
+    /// <summary>Like <see cref="LaunchRoblox"/>, for Roblox Studio.</summary>
+    public void LaunchStudio()
+    {
+        Store.SaveSettings();
+        var window = new BootstrapperWindow(LaunchSettings.ForStudio());
+        Application.Current.MainWindow = window;
+        window.Show();
+        Close();
+    }
+
     public void LaunchRoblox(string robloxArgs = "")
     {
         Store.SaveSettings();

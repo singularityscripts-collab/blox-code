@@ -135,7 +135,40 @@ com o Windows (seção 3, sem Studio), editor de FastFlags + presets, mods com b
 Fora do escopo desta versão: Roblox Studio, Discord Rich Presence/activity watcher,
 background updater, temas customizados XML, auto-update do próprio bootstrapper.
 
+## 6. MultiBloxy 1.1.0: várias janelas do Roblox
+
+Binário analisado com o REA (`inspect_managed_artifact` e `inspect_managed_members`, só leitura,
+sem executar): `MultiBloxy.exe`, .NET Framework 4.8, x86 (prefer-32-bit), SHA-256
+`168eedac1f655cd39f33fd8cfa5c971c46b08dda912b78fe330797eade7912c3`, 13 tipos e 61 métodos.
+
+* **`Program.OpenMutex`** cria um `Mutex` chamado `ROBLOX_singletonEvent`. O Roblox usa esse
+  nome para um *evento*: cada player novo cria ou abre o evento e o mais antigo fecha. Como o nome já
+  existe com outro tipo, a criação do evento falha e nenhum player encontra o outro.
+* Se o Roblox já estava aberto, o nome pertence ao evento dele e o `Mutex` não pode ser criado
+  (texto: "when {0} was launched, Roblox was already running and had registered its handle").
+  A opção **Fix** chama **`HandleCloser.CloseAllHandles`**: `NtQuerySystemInformation` lista os
+  handles do sistema, os de `RobloxPlayerBeta` são duplicados para o próprio processo
+  (`OpenProcess` + `DuplicateHandle`), `NtQueryObject` dá o nome, e o que contém o nome do
+  evento é fechado dentro do Roblox com `DuplicateHandle` + `DUPLICATE_CLOSE_SOURCE`.
+* **`StopRobloxInstances`** é só `Process.GetProcessesByName("RobloxPlayerBeta")` + `Kill`.
+* O resto é a bandeja (pausar, recarregar, idioma, `config.xml`).
+
+O Blox Code (`windows/Core/MultiInstance.cs`) usa o mesmo mecanismo, reescrito:
+
+* Sem app na bandeja: o lançamento que abre o Roblox pega o nome antes de iniciar o player, e o
+  processo que acompanha o Roblox segura o nome até o último player fechar.
+* A tabela de handles vem de `SystemExtendedHandleInformation` (64), com PID de 64 bits; a tabela
+  antiga guarda o PID em 16 bits e erra com PIDs acima de 65535.
+* Só se pergunta o nome a handles do tipo `Event` (o tipo vem antes, por `ObjectTypeInformation`),
+  então o `NtQueryObject` nunca é chamado num pipe, que pode travar.
+* Testado com um processo falso chamado `RobloxPlayerBeta` que segura o evento: o handle foi fechado
+  em ~0,5 s, o nome virou `Mutex` e um segundo processo não conseguiu mais criar o evento.
+
 ## Desconhecidos
+
+* MultiBloxy: não foi testado contra o Roblox de verdade se o anticheat dele permite abrir o processo
+  com `PROCESS_DUP_HANDLE`. Se não permitir, o Blox Code registra a falha e o lançamento só
+  substitui a janela aberta; com o Roblox fechado antes do primeiro lançamento isso não é preciso.
 
 * A lógica exata de `InitializeConnectivity` (ordem/paralelismo dos testes) está num state
   machine assíncrono; o Blox Code testa os espelhos em paralelo e usa o primeiro válido.

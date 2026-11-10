@@ -15,6 +15,13 @@ namespace BloxCode.Core;
 public sealed partial class Bootstrapper(HttpClient http, LaunchSettings launch, IProgress<BootstrapProgress> progress)
 {
     private const string PlayerExecutable = "RobloxPlayerBeta.exe";
+    private const string StudioExecutable = "RobloxStudioBeta.exe";
+
+    /// <summary>Roblox Studio rather than the player: its own version, packages and executable.</summary>
+    private bool Studio => launch.Mode == LaunchMode.Studio;
+    private string Executable => Studio ? StudioExecutable : PlayerExecutable;
+    private string AppName => Studio ? "Roblox Studio" : "Roblox";
+    private IReadOnlyDictionary<string, string> DirectoryMap => Studio ? PackageManifest.StudioDirectoryMap : PackageManifest.PlayerDirectoryMap;
     private const string WebView2ClientKey = @"SOFTWARE\Microsoft\EdgeUpdate\Clients\{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}";
     private const string OriginalsFolder = ".bloxcode-originals";
 
@@ -56,41 +63,55 @@ public sealed partial class Bootstrapper(HttpClient http, LaunchSettings launch,
 
         var state = Store.State;
         string versionDir = Path.Combine(Paths.Versions, info.VersionGuid);
-        bool upToDate = state.VersionGuid == info.VersionGuid
-                        && File.Exists(Path.Combine(versionDir, PlayerExecutable))
-                        && !state.ForceReinstall && !launch.Force;
+        string? installed = Studio ? state.StudioVersionGuid : state.VersionGuid;
+        bool upToDate = installed == info.VersionGuid
+                        && File.Exists(Path.Combine(versionDir, Executable))
+                        && !(state.ForceReinstall && !Studio) && !launch.Force;
 
         if (!upToDate)
         {
             await InstallVersion(info.VersionGuid, versionDir, ct);
-            state.VersionGuid = info.VersionGuid;
-            state.Channel = channel;
-            state.ForceReinstall = false;
+            if (Studio)
+            {
+                state.StudioVersionGuid = info.VersionGuid;
+            }
+            else
+            {
+                state.VersionGuid = info.VersionGuid;
+                state.Channel = channel;
+                state.ForceReinstall = false;
+            }
             Store.SaveState();
         }
 
         Report(BootstrapPhase.Installing, "Applying your tweaks");
-        ApplyModifications(versionDir);
+        // Mods replace player files (cursor, sounds, font); Studio gets the Fast Flags only.
+        if (!Studio)
+            ApplyModifications(versionDir);
         WriteFastFlags(versionDir);
-        ResetQualityCacheIfAsked();
+        if (!Studio)
+            ResetQualityCacheIfAsked();
         Store.SaveState();
 
         if (!upToDate && Store.Settings.CleanupOldVersions)
-            CleanupOldVersions(info.VersionGuid);
+            CleanupOldVersions(state.VersionGuid, state.StudioVersionGuid, Store.Settings.PinnedVersion);
 
         Logger.Info(ident, $"{info.VersionGuid} ready ({(upToDate ? "already up to date" : "freshly installed")})");
 
         if (launch.NoLaunch)
         {
-            Report(BootstrapPhase.Done, "Roblox is up to date", 1);
+            Report(BootstrapPhase.Done, $"{AppName} is up to date", 1);
             return;
         }
 
-        Report(BootstrapPhase.Launching, "Starting Roblox", 1);
+        Report(BootstrapPhase.Launching, $"Starting {AppName}", 1);
         // Installing or updating Roblox can hand roblox:// links back to Roblox itself; take them back.
         Installer.ReclaimLinksFromRoblox();
+        // Before the player starts: it must find the singleton name already taken.
+        if (Store.Settings.MultiInstance && !Studio)
+            MultiInstance.Acquire();
         StartRoblox(versionDir);
-        Report(BootstrapPhase.Done, "Roblox is running", 1);
+        Report(BootstrapPhase.Done, $"{AppName} is running", 1);
     }
 
     private async Task<(string Channel, ClientVersion Info)> ResolveVersion(CancellationToken ct)
@@ -104,6 +125,29 @@ public sealed partial class Bootstrapper(HttpClient http, LaunchSettings launch,
             channel = Deployment.DefaultChannel;
         }
 
+        if (Studio)
+        {
+            try
+            {
+                return (channel, await Deployment.GetInfo(http, channel, ct, Deployment.StudioBinaryType));
+            }
+            catch (InvalidChannelException) when (channel != Deployment.DefaultChannel)
+            {
+                return (Deployment.DefaultChannel, await Deployment.GetInfo(http, Deployment.DefaultChannel, ct, Deployment.StudioBinaryType));
+            }
+        }
+
+        // A pinned version skips the channel lookup: the packages are fetched by their version-… name.
+        if (Store.Settings.PinnedVersion is { } pinned)
+        {
+            if (PinnedVersionRegex().IsMatch(pinned))
+            {
+                Logger.Info("Bootstrapper::ResolveVersion", $"Staying on pinned {pinned}");
+                return (channel, new ClientVersion { VersionGuid = pinned, Version = pinned });
+            }
+            Logger.Warn("Bootstrapper::ResolveVersion", $"Ignoring invalid pinned version '{pinned}'");
+        }
+
         try
         {
             return (channel, await Deployment.GetInfo(http, channel, ct));
@@ -114,6 +158,9 @@ public sealed partial class Bootstrapper(HttpClient http, LaunchSettings launch,
             return (Deployment.DefaultChannel, await Deployment.GetInfo(http, Deployment.DefaultChannel, ct));
         }
     }
+
+    [GeneratedRegex(@"^version-[0-9a-f]{16}$")]
+    public static partial Regex PinnedVersionRegex();
 
     private string? ChannelFromArgs()
     {
@@ -133,17 +180,18 @@ public sealed partial class Bootstrapper(HttpClient http, LaunchSettings launch,
             manifestText = await http.GetStringAsync(Deployment.GetLocation($"/{versionGuid}-rbxPkgManifest.txt"), timeout.Token);
         }
         var packages = PackageManifest.Parse(manifestText)
-            .Where(p => PackageManifest.PlayerDirectoryMap.ContainsKey(p.Name))
+            .Where(p => DirectoryMap.ContainsKey(p.Name))
             .ToList();
-        if (!packages.Any(p => p.Name == "RobloxApp.zip"))
-            throw new InvalidDataException($"The package manifest for {versionGuid} has no RobloxApp.zip");
+        string main = Studio ? "RobloxStudio.zip" : "RobloxApp.zip";
+        if (!packages.Any(p => p.Name == main))
+            throw new InvalidDataException($"The package manifest for {versionGuid} has no {main}");
         Logger.Info(ident, $"{packages.Count} packages for {versionGuid}");
 
         if (Directory.Exists(versionDir))
         {
             // Wiping a folder Roblox is running from fails halfway and leaves a broken install.
-            if (IsRobloxRunningFrom(versionDir))
-                throw new IOException("Roblox is still open from this version. Close Roblox and try again.");
+            if (IsRunningFrom(versionDir, Executable))
+                throw new IOException($"{AppName} is still open from this version. Close it and try again.");
             Directory.Delete(versionDir, recursive: true);
         }
         Directory.CreateDirectory(versionDir);
@@ -207,7 +255,7 @@ public sealed partial class Bootstrapper(HttpClient http, LaunchSettings launch,
             try
             {
                 Progress(index, package.PackedSize, $"Unpacking {package.Name}");
-                await Task.Run(() => ExtractPackage(package, versionDir), failed.Token);
+                await Task.Run(() => ExtractPackage(package, versionDir, DirectoryMap), failed.Token);
             }
             finally
             {
@@ -236,11 +284,20 @@ public sealed partial class Bootstrapper(HttpClient http, LaunchSettings launch,
         }
 
         File.WriteAllText(Path.Combine(versionDir, "AppSettings.xml"), AppSettingsXml);
-        Store.State.PackageHashes = packages.ToDictionary(p => p.Name, p => p.Signature);
-        Store.State.ModManifest.Clear();
+        var hashes = packages.ToDictionary(p => p.Name, p => p.Signature);
+        if (Studio)
+        {
+            Store.State.StudioPackageHashes = hashes;
+        }
+        else
+        {
+            Store.State.PackageHashes = hashes;
+            Store.State.ModManifest.Clear();
+        }
 
         await EnsureWebView2(versionDir, ct);
-        CleanupDownloadCache(packages);
+        // Keep the other app's cached packages: they're what a repair would need.
+        CleanupDownloadCache(Store.State.PackageHashes.Values.Concat(Store.State.StudioPackageHashes.Values));
     }
 
     private async Task DownloadPackage(string versionGuid, Package package, Action<long> onBytes, CancellationToken ct)
@@ -318,11 +375,11 @@ public sealed partial class Bootstrapper(HttpClient http, LaunchSettings launch,
         }
     }
 
-    private static void ExtractPackage(Package package, string versionDir)
+    private static void ExtractPackage(Package package, string versionDir, IReadOnlyDictionary<string, string> map)
     {
         // Trailing separator so "...\version-ab" can't be matched by a sibling like "...\version-abc".
         string root = Path.TrimEndingDirectorySeparator(
-            Path.GetFullPath(Path.Combine(versionDir, PackageManifest.PlayerDirectoryMap[package.Name]))) + Path.DirectorySeparatorChar;
+            Path.GetFullPath(Path.Combine(versionDir, map[package.Name]))) + Path.DirectorySeparatorChar;
         using var zip = ZipFile.OpenRead(package.DownloadPath);
 
         foreach (var entry in zip.Entries)
@@ -526,7 +583,7 @@ public sealed partial class Bootstrapper(HttpClient http, LaunchSettings launch,
 
     private void StartRoblox(string versionDir)
     {
-        var psi = new ProcessStartInfo(Path.Combine(versionDir, PlayerExecutable))
+        var psi = new ProcessStartInfo(Path.Combine(versionDir, Executable))
         {
             WorkingDirectory = versionDir,
             UseShellExecute = false,
@@ -535,15 +592,17 @@ public sealed partial class Bootstrapper(HttpClient http, LaunchSettings launch,
         if (launch.RobloxArgs.Length > 0)
             psi.ArgumentList.Add(launch.RobloxArgs);
 
-        LaunchedAt = DateTime.UtcNow;
-        using var process = Process.Start(psi) ?? throw new InvalidOperationException("Roblox did not start");
-        Logger.Info("Bootstrapper::StartRoblox", $"Started Roblox (PID {process.Id})");
+        // Only the player is followed afterwards (Discord, server notice, history); Studio isn't.
+        if (!Studio)
+            LaunchedAt = DateTime.UtcNow;
+        using var process = Process.Start(psi) ?? throw new InvalidOperationException($"{AppName} did not start");
+        Logger.Info("Bootstrapper::StartRoblox", $"Started {AppName} (PID {process.Id})");
     }
 
-    private static bool IsRobloxRunningFrom(string versionDir)
+    private static bool IsRunningFrom(string versionDir, string executable)
     {
         string dir = Path.TrimEndingDirectorySeparator(Path.GetFullPath(versionDir)) + Path.DirectorySeparatorChar;
-        foreach (var process in Process.GetProcessesByName(Path.GetFileNameWithoutExtension(PlayerExecutable)))
+        foreach (var process in Process.GetProcessesByName(Path.GetFileNameWithoutExtension(executable)))
         {
             using (process)
             {
@@ -561,11 +620,12 @@ public sealed partial class Bootstrapper(HttpClient http, LaunchSettings launch,
         return false;
     }
 
-    private static void CleanupOldVersions(string keep)
+    /// <summary>Deletes every version folder but the player's, Studio's and a pinned one.</summary>
+    private static void CleanupOldVersions(params string?[] keep)
     {
         foreach (string dir in Directory.EnumerateDirectories(Paths.Versions))
         {
-            if (Path.GetFileName(dir).Equals(keep, StringComparison.OrdinalIgnoreCase))
+            if (keep.Any(k => k is not null && Path.GetFileName(dir).Equals(k, StringComparison.OrdinalIgnoreCase)))
                 continue;
             try
             {
@@ -579,9 +639,9 @@ public sealed partial class Bootstrapper(HttpClient http, LaunchSettings launch,
         }
     }
 
-    private static void CleanupDownloadCache(List<Package> keep)
+    private static void CleanupDownloadCache(IEnumerable<string> keepSignatures)
     {
-        var wanted = keep.Select(p => p.Signature).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var wanted = keepSignatures.ToHashSet(StringComparer.OrdinalIgnoreCase);
         foreach (string file in Directory.EnumerateFiles(Paths.Downloads))
             if (!wanted.Contains(Path.GetFileName(file)))
                 TryDelete(file);

@@ -1,7 +1,7 @@
 namespace BloxCode.Core;
 
 /// <summary>What the launch menu asked for, like Bloxstrap's NextAction (Studio aside).</summary>
-public enum LaunchMenuChoice { None, LaunchRoblox, Configure }
+public enum LaunchMenuChoice { None, LaunchRoblox, LaunchStudio, Configure }
 
 /// <summary>Text for the launch menu shown when Blox Code is opened without arguments.</summary>
 public static class LaunchMenu

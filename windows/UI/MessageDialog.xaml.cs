@@ -38,6 +38,16 @@ public partial class MessageDialog : Window
     public static bool Ask(Window? owner, string title, string message, string yes, string no, bool danger = false) =>
         new MessageDialog(owner, title, message, yes, no, danger).ShowDialog() == true;
 
+    /// <summary>Asks for a short piece of text (a name); null when cancelled or left empty.</summary>
+    public static string? Prompt(Window? owner, string title, string message, string initial, string yes)
+    {
+        var dialog = new MessageDialog(owner, title, message, yes, "Cancel", false);
+        dialog.InputBox.Visibility = Visibility.Visible;
+        dialog.InputBox.Text = initial;
+        dialog.Loaded += (_, _) => { dialog.InputBox.Focus(); dialog.InputBox.SelectAll(); };
+        return dialog.ShowDialog() == true && dialog.InputBox.Text.Trim() is { Length: > 0 } text ? text : null;
+    }
+
     private void OnPrimary(object sender, RoutedEventArgs e) => DialogResult = true;
     private void OnSecondary(object sender, RoutedEventArgs e) => DialogResult = false;
 
