@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Caça-bugs: each check states the CORRECT behaviour and fails while the bug is there, so it
+       becomes a regression test once the bug is fixed. Runs against a throwaway home folder
+       (BLOXCODE_LAYOUT=xdg), never the real %LocalAppData%\BloxCode. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>BugHunt</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\windows\BloxCode.csproj" />
+  </ItemGroup>
+
+</Project>

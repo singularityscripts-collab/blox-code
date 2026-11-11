@@ -45,15 +45,32 @@ public static class GameHistory
     {
         try
         {
-            return File.Exists(FilePath)
-                ? JsonSerializer.Deserialize<List<PlayedGame>>(File.ReadAllText(FilePath), Options) ?? new()
-                : new();
+            return File.Exists(FilePath) ? Parse(File.ReadAllText(FilePath)) : new();
         }
         catch (Exception ex)
         {
             Logger.Warn("GameHistory::Load", ex.Message);
             return new();
         }
+    }
+
+    /// <summary>
+    /// The visits in a History.json. A damaged or hand-edited file can hold null entries or a
+    /// missing name; those are dropped or filled in, never handed to the menu.
+    /// </summary>
+    private static List<PlayedGame> Parse(string json)
+    {
+        var list = JsonSerializer.Deserialize<List<PlayedGame?>>(json, Options) ?? new();
+        var games = new List<PlayedGame>(list.Count);
+        foreach (var game in list)
+        {
+            if (game is null)
+                continue;
+            if (string.IsNullOrWhiteSpace(game.Name))
+                game.Name = $"Place {game.PlaceId}";   // the same fallback as a join whose name couldn't be fetched
+            games.Add(game);
+        }
+        return games;
     }
 
     /// <summary>Records a join; returns the entry so the leave can close it.</summary>
@@ -146,6 +163,43 @@ public static class GameHistory
             : $"{(int)age.TotalDays} days ago";
     }
 
+    /// <summary>
+    /// The list a change is applied to. Unlike <see cref="Load"/> it never turns "couldn't read"
+    /// into "empty", which would write over the whole history: a file that can't be read right now
+    /// (held by an antivirus) is retried and otherwise the change is skipped, and a file that isn't
+    /// valid JSON is kept as History.json.corrupt before starting over.
+    /// </summary>
+    private static List<PlayedGame> LoadForChange()
+    {
+        if (!File.Exists(FilePath))
+            return new();
+
+        string text;
+        for (int attempt = 1; ; attempt++)
+        {
+            try
+            {
+                text = File.ReadAllText(FilePath);
+                break;
+            }
+            catch (IOException) when (attempt < 5)
+            {
+                Thread.Sleep(200);
+            }
+        }
+
+        try
+        {
+            return Parse(text);
+        }
+        catch (JsonException ex)
+        {
+            Logger.Warn("GameHistory::Update", $"History.json is damaged ({ex.Message}); kept as History.json.corrupt");
+            File.Copy(FilePath, FilePath + ".corrupt", overwrite: true);
+            return new();
+        }
+    }
+
     private static void Update(Action<List<PlayedGame>> change)
     {
         using var gate = new Mutex(false, LockName);
@@ -155,7 +209,7 @@ public static class GameHistory
             try { owned = gate.WaitOne(TimeSpan.FromSeconds(5)); }
             catch (AbandonedMutexException) { owned = true; }
 
-            var list = Load();
+            var list = LoadForChange();
             change(list);
             Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
             string temp = FilePath + ".tmp";

@@ -18,7 +18,7 @@ public sealed class InvalidChannelException(string channel, HttpStatusCode? stat
 /// Talks to Roblox's deployment infrastructure. Endpoints and the mirror probe were
 /// recovered from Bloxstrap.RobloxInterfaces.Deployment (see docs/REVERSE_ENGINEERING.md).
 /// </summary>
-public static class Deployment
+public static partial class Deployment
 {
     public const string DefaultChannel = Settings.DefaultChannel;
     public const string BinaryType = "WindowsPlayer";
@@ -47,6 +47,27 @@ public static class Deployment
     public static string BaseUrl { get; private set; } = Mirrors[0];
 
     public static string GetLocation(string resource) => $"{BaseUrl}/channel/common{resource}";
+
+    [System.Text.RegularExpressions.GeneratedRegex(@"^version-[0-9a-f]{16}$")]
+    private static partial System.Text.RegularExpressions.Regex VersionGuidRegex();
+
+    /// <summary>
+    /// A Roblox version name as Roblox writes them (version- and 16 hex digits). It becomes a folder
+    /// name that gets deleted and recreated, so nothing else is ever accepted.
+    /// </summary>
+    public static bool IsValidVersionGuid(string? guid) => guid is not null && VersionGuidRegex().IsMatch(guid);
+
+    /// <summary>The folder of a Roblox version under Versions; throws for a name that isn't a version.</summary>
+    public static string VersionFolder(string guid)
+    {
+        if (!IsValidVersionGuid(guid))
+            throw new InvalidDataException($"'{guid}' isn't a Roblox version name");
+        string root = Path.GetFullPath(Paths.Versions);
+        string folder = Path.GetFullPath(Path.Combine(root, guid));
+        if (!folder.StartsWith(Path.TrimEndingDirectorySeparator(root) + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidDataException($"'{guid}' points outside the Versions folder");
+        return folder;
+    }
 
     public static async Task InitializeConnectivity(HttpClient http, CancellationToken ct)
     {
@@ -133,7 +154,7 @@ public static class Deployment
                 response.EnsureSuccessStatusCode();
 
                 var info = await response.Content.ReadFromJsonAsync<ClientVersion>(timeout.Token);
-                if (info is null || !info.VersionGuid.StartsWith("version-", StringComparison.Ordinal))
+                if (info is null || !IsValidVersionGuid(info.VersionGuid))
                     throw new InvalidDataException("Unexpected client-version response");
                 Logger.Info(ident, $"{channel}: {info.Version} ({info.VersionGuid}) via {host}");
                 return info;

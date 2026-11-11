@@ -67,6 +67,9 @@ public partial class FastFlagsPage : UserControl
         {
             if (MessageDialog.Prompt(_window, "Rename profile", "A new name for this set of flags.", name, "Rename") is not { } renamed || renamed == name)
                 return;
+            if (Store.Settings.FastFlagProfiles.ContainsKey(renamed) &&
+                !MessageDialog.Ask(_window, $"Replace {renamed}?", "Another profile already has this name; renaming replaces it.", "Replace", "Cancel"))
+                return;
             Store.Settings.FastFlagProfiles.Remove(name);
             Store.Settings.FastFlagProfiles[renamed] = flags;
             Store.SaveSettings();
@@ -138,9 +141,18 @@ public partial class FastFlagsPage : UserControl
             return;
         try
         {
-            var flags = FastFlagValidator.ParseJson(File.ReadAllText(dialog.FileName));
-            if (MessageDialog.Prompt(_window, "Import as a profile", $"{flags.Count} flags found. A name for this profile:",
-                    Path.GetFileNameWithoutExtension(dialog.FileName), "Import") is not { } name)
+            // Same rules as the editor's import: entries that aren't real flags are left out.
+            var (flags, skipped) = FastFlagValidator.ValidOnly(FastFlagValidator.ParseJson(File.ReadAllText(dialog.FileName)));
+            if (flags.Count == 0)
+            {
+                MessageDialog.Show(_window, "Nothing to import", skipped == 0 ? "That file has no flags." : $"None of its {skipped} entries is a valid Fast Flag.");
+                return;
+            }
+            string found = $"{flags.Count} flags found" + (skipped > 0 ? $" ({skipped} invalid left out)" : "") + ". A name for this profile:";
+            if (MessageDialog.Prompt(_window, "Import as a profile", found, Path.GetFileNameWithoutExtension(dialog.FileName), "Import") is not { } name)
+                return;
+            if (Store.Settings.FastFlagProfiles.ContainsKey(name) &&
+                !MessageDialog.Ask(_window, $"Replace {name}?", "A profile with this name already exists.", "Replace", "Cancel"))
                 return;
             Store.Settings.FastFlagProfiles[name] = flags;
             Store.SaveSettings();

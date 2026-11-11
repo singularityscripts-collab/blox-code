@@ -104,6 +104,21 @@ public static partial class FastFlagValidator
     }
 
     /// <summary>
+    /// The flags with a valid name and value (normalized), and how many were left out: what an
+    /// imported file or profile may bring in.
+    /// </summary>
+    public static (Dictionary<string, string> Valid, int Skipped) ValidOnly(IReadOnlyDictionary<string, string> flags)
+    {
+        var valid = new Dictionary<string, string>();
+        foreach (var (name, value) in flags)
+        {
+            if (value is not null && ValidateName(name) is null && ValidateValue(name, value) is null)
+                valid[name] = Normalize(name, value);
+        }
+        return (valid, flags.Count - valid.Count);
+    }
+
+    /// <summary>
     /// Parses pasted JSON. Like Bloxstrap it tolerates a missing pair of braces, so a few
     /// "Name": value lines copied out of a bigger file still import.
     /// </summary>

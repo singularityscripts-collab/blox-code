@@ -110,6 +110,20 @@ public partial class HomePage : UserControl
     /// <summary>The last games played, as cards that jump straight back in, and this week's play time.</summary>
     private void RefreshRecent()
     {
+        // The recent games are a nicety: whatever is wrong with them must never keep the menu from opening.
+        try
+        {
+            ShowRecent();
+        }
+        catch (Exception ex)
+        {
+            Logger.Error("HomePage::RefreshRecent", ex);
+            RecentSection.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    private void ShowRecent()
+    {
         var history = Store.Settings.RememberGames ? GameHistory.Load() : new();
         var recent = GameHistory.Recent(4, history);
         RecentSection.Visibility = recent.Count == 0 ? Visibility.Collapsed : Visibility.Visible;

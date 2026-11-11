@@ -139,7 +139,9 @@ public static class ActivityWatcher
             follower.Task = Task.Run(() => RobloxLog.FollowAsync(log, line =>
             {
                 follower.LastLine = DateTime.UtcNow;
-                parser.Feed(line);
+                // One odd line must not end the reading of this window for good.
+                try { parser.Feed(line); }
+                catch (Exception ex) { Logger.Warn("ActivityWatcher::Feed", $"Skipped a log line: {ex.Message}"); }
             }, () => true, launchedAt, ct, followNewer: false, onCaughtUp: () =>
             {
                 follower.Live = true;
@@ -309,7 +311,16 @@ public static class ActivityWatcher
             ? home.Replace("https://github.com/", "https://raw.githubusercontent.com/", StringComparison.OrdinalIgnoreCase).TrimEnd('/') + "/main/linux/Assets/bloxcode-256.png"
             : null;
 
-    private static string Clip(string text, int max) => text.Length <= max ? text : text[..(max - 1)] + "…";
+    /// <summary>At most <paramref name="max"/> characters, ending in … when cut; never splits an emoji (a surrogate pair) in two.</summary>
+    public static string Clip(string text, int max)
+    {
+        if (text.Length <= max)
+            return text;
+        int keep = max - 1;
+        if (char.IsHighSurrogate(text[keep - 1]))
+            keep--;
+        return text[..keep] + "…";
+    }
 
     /// <summary>How many Roblox players are open, asked of Windows at most every two seconds.</summary>
     private sealed class RobloxRunning

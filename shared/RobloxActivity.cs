@@ -49,12 +49,14 @@ public sealed partial class ActivityParser
 
     public void Feed(string line)
     {
-        if (line.Contains("! Joining game", StringComparison.Ordinal) && JoiningRegex().Match(line) is { Success: true } joining)
+        // Numbers too big for a long can't be a real place or universe: such a line is ignored.
+        if (line.Contains("! Joining game", StringComparison.Ordinal) && JoiningRegex().Match(line) is { Success: true } joining
+            && long.TryParse(joining.Groups[2].Value, out long placeId))
         {
             // A new join (first game, or the far side of a teleport) closes whatever came before.
             LeaveCurrent();
             _jobId = joining.Groups[1].Value;
-            _placeId = long.Parse(joining.Groups[2].Value);
+            _placeId = placeId;
             _address = joining.Groups[3].Value;
             _universeId = null;
             _joining = true;
@@ -73,9 +75,10 @@ public sealed partial class ActivityParser
         }
 
         if (line.Contains("game_join_loadtime", StringComparison.Ordinal) && UniverseRegex().Match(line) is { Success: true } universe
-            && long.Parse(universe.Groups[1].Value) == _placeId)
+            && long.TryParse(universe.Groups[1].Value, out long loadedPlace) && loadedPlace == _placeId
+            && long.TryParse(universe.Groups[2].Value, out long universeId))
         {
-            _universeId = long.Parse(universe.Groups[2].Value);
+            _universeId = universeId;
         }
         else if (line.Contains("UDMUX Address", StringComparison.Ordinal) && UdmuxRegex().Match(line) is { Success: true } udmux)
         {

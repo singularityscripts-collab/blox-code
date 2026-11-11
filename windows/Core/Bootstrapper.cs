@@ -62,7 +62,7 @@ public sealed partial class Bootstrapper(HttpClient http, LaunchSettings launch,
         VersionGuid = info.VersionGuid;
 
         var state = Store.State;
-        string versionDir = Path.Combine(Paths.Versions, info.VersionGuid);
+        string versionDir = Deployment.VersionFolder(info.VersionGuid);
         string? installed = Studio ? state.StudioVersionGuid : state.VersionGuid;
         bool upToDate = installed == info.VersionGuid
                         && File.Exists(Path.Combine(versionDir, Executable))

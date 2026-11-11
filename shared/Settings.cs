@@ -93,8 +93,10 @@ public static class Store
         State = Read<State>(Paths.StateFile) ?? new State();
 
         // Hand-edited or older files can carry explicit nulls; never let them reach the rest of the app.
-        Settings.FastFlags ??= new();
+        Settings.FastFlags = WithoutNulls(Settings.FastFlags);
         Settings.FastFlagProfiles ??= new();
+        foreach (string profile in Settings.FastFlagProfiles.Keys.ToList())
+            Settings.FastFlagProfiles[profile] = WithoutNulls(Settings.FastFlagProfiles[profile]);
         Settings.PinnedVersion = string.IsNullOrWhiteSpace(Settings.PinnedVersion) ? null : Settings.PinnedVersion.Trim();
         Settings.Channel = string.IsNullOrWhiteSpace(Settings.Channel) ? Settings.DefaultChannel : Settings.Channel.Trim();
         State.PackageHashes ??= new();
@@ -103,6 +105,10 @@ public static class Store
         if (FastFlagPresets.UpgradeBlurryPresets())
             SaveSettings();
     }
+
+    /// <summary>A flag set without "Name": null entries (a hand-edited file); the code after this assumes every value is text.</summary>
+    private static Dictionary<string, string> WithoutNulls(Dictionary<string, string>? flags) =>
+        flags is null ? new() : flags.Where(f => f.Value is not null).ToDictionary(f => f.Key, f => f.Value);
 
     public static void SaveSettings()
     {

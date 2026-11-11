@@ -3,6 +3,27 @@
 Todas as versões do Blox Code, da mais nova para a mais antiga. Quem tem o Blox Code instalado
 recebe cada versão automaticamente na próxima vez que abrir.
 
+## 1.12.1 — Correções da caça aos bugs
+
+### Correções
+
+- **Links na barra da Home:** um link de servidor privado entrava num servidor público; agora abre
+  o servidor privado. O link "Join server" que o Blox Code põe no Discord passou a funcionar na
+  barra (e leva àquele servidor), e os links de compartilhamento do Roblox (`roblox.com/share?…`)
+  também são aceitos.
+- **Histórico de jogos:** um arquivo de histórico danificado impedia o Blox Code de abrir; agora ele
+  abre normalmente. Um histórico que não dá para ler não é mais apagado na partida seguinte: fica
+  guardado como `History.json.corrupt`, e um arquivo preso por outro programa (como um antivírus)
+  não é sobrescrito.
+- Uma linha estranha no log do Roblox podia desligar o Discord, o aviso de servidor e o histórico
+  daquela janela até o fim da sessão.
+- O nome da versão do Roblox agora é conferido antes de virar pasta: só nomes de versão de verdade,
+  sempre dentro da pasta `Versions`.
+- Nomes de jogo longos com emoji não aparecem mais com "�" no Discord.
+- **Perfis de Fast Flags:** importar um arquivo traz só as flags válidas (e diz quantas ficaram de
+  fora); importar ou renomear para um nome que já existe pergunta antes de substituir.
+- Flags com valor vazio (`null`) num Settings.json editado à mão são descartadas ao abrir.
+
 ## 1.12.0 — Visual novo, minimalista e transparente
 
 ### Novidades
