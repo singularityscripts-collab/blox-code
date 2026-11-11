@@ -31,9 +31,34 @@ public partial class AppearancePage : UserControl
         Animations.IsChecked = Store.Settings.Animations;
         Mascot.IsAnimated = Store.Settings.AnimateMascot;
         BuildAccentSwatches();
+        BuildLaunchThemes();
         RefreshIcon();
         _ready = true;
     }
+
+    private void BuildLaunchThemes()
+    {
+        foreach (var theme in Enum.GetValues<LaunchTheme>())
+        {
+            var segment = new RadioButton { Content = theme.ToString(), GroupName = "launchTheme" + GetHashCode(), IsChecked = Store.Settings.LaunchTheme == theme };
+            segment.SetResourceReference(StyleProperty, "Segment");
+            segment.Checked += (_, _) =>
+            {
+                Store.Settings.LaunchTheme = theme;
+                Store.SaveSettings();
+                RefreshLaunchThemeText();
+            };
+            LaunchThemeSegments.Children.Add(segment);
+        }
+        RefreshLaunchThemeText();
+    }
+
+    private void RefreshLaunchThemeText() => LaunchThemeText.Text = Store.Settings.LaunchTheme switch
+    {
+        LaunchTheme.Minimal => "Just what is happening and a thin bar.",
+        LaunchTheme.Terminal => "A progress bar drawn in text, like a terminal.",
+        _ => "Bit walks the progress bar while Roblox downloads and types away while it unpacks.",
+    } + " The preview fakes a download and launches nothing.";
 
     private void BuildAccentSwatches()
     {

@@ -10,6 +10,9 @@ public enum AccentColor { Mint, Sky, Violet, Rose, Amber }
 /// <summary>What shows through the window: nothing, the wallpaper (Mica) or what is behind it, blurred (Acrylic).</summary>
 public enum WindowBackdrop { Off, Mica, Acrylic }
 
+/// <summary>How the launch window looks: Bit walking the bar, just a title and a thin bar, or a text progress bar.</summary>
+public enum LaunchTheme { Bit, Minimal, Terminal }
+
 public sealed class Settings
 {
     public const string DefaultChannel = "production";
@@ -20,6 +23,8 @@ public sealed class Settings
     /// <summary>Page transitions and the other small interface animations.</summary>
     public bool Animations { get; set; } = true;
     public bool CleanupOldVersions { get; set; } = true;
+    /// <summary>Windows: while a game runs, fetch a newer Roblox version's packages so the next launch is quick (see Prefetch).</summary>
+    public bool PrefetchUpdates { get; set; } = true;
     public bool ConfirmLaunches { get; set; }
     public bool AutoUpdate { get; set; } = true;
     /// <summary>Windows: show the game being played on the Discord profile.</summary>
@@ -32,17 +37,52 @@ public sealed class Settings
     public bool RememberGames { get; set; } = true;
     /// <summary>Windows: let several Roblox players run at once (see MultiInstance).</summary>
     public bool MultiInstance { get; set; }
+    /// <summary>Windows: minutes of continuous play before a "time for a break?" notice; 0 = never.</summary>
+    public int BreakReminderMinutes { get; set; }
     /// <summary>Windows: a Roblox version-… to stay on instead of the channel's latest; null follows the channel.</summary>
     public string? PinnedVersion { get; set; }
     /// <summary>The highlight colour across the app and the launch window.</summary>
     public AccentColor Accent { get; set; } = AccentColor.Mint;
     /// <summary>The see-through window background, where the system supports it.</summary>
     public WindowBackdrop Backdrop { get; set; } = WindowBackdrop.Acrylic;
+    /// <summary>Windows: the launch window's look.</summary>
+    public LaunchTheme LaunchTheme { get; set; } = LaunchTheme.Bit;
     /// <summary>Windows: an .ico for the Blox Code shortcuts and windows; null keeps Bit.</summary>
     public string? CustomIcon { get; set; }
     /// <summary>Saved sets of Fast Flags, by name, to switch between with one click.</summary>
     public Dictionary<string, Dictionary<string, string>> FastFlagProfiles { get; set; } = new();
     public Dictionary<string, string> FastFlags { get; set; } = new();
+    /// <summary>Windows: programs that open together with Roblox (see Integrations).</summary>
+    public List<Integration> Integrations { get; set; } = new();
+    /// <summary>Games kept at the front of Home, whatever was played last (newest pin first).</summary>
+    public List<PinnedGame> PinnedGames { get; set; } = new();
+    /// <summary>Windows: graphics for one game, by place ID: "preset:Low" or "profile:&lt;name&gt;" (see GameProfiles).</summary>
+    public Dictionary<long, string> GameProfiles { get; set; } = new();
+}
+
+/// <summary>A program that opens with Roblox.</summary>
+public sealed class Integration
+{
+    public string Name { get; set; } = "";
+    public string Path { get; set; } = "";
+    public string? Arguments { get; set; }
+    public bool CloseWithRoblox { get; set; } = true;
+}
+
+/// <summary>A program Blox Code started for a launch, to close it once Roblox is closed.</summary>
+public sealed class StartedIntegration
+{
+    public int Pid { get; set; }
+    public DateTime StartedAt { get; set; }
+    public string Path { get; set; } = "";
+}
+
+/// <summary>A game pinned to Home; its name and icon are kept so it stays after leaving the history.</summary>
+public sealed class PinnedGame
+{
+    public long PlaceId { get; set; }
+    public string Name { get; set; } = "";
+    public string? IconUrl { get; set; }
 }
 
 public sealed class State
@@ -60,6 +100,10 @@ public sealed class State
     public string? JustUpdatedTo { get; set; }
     /// <summary>Linux: Sober's own fflags were pulled into FastFlags once, so the first sync can't drop them.</summary>
     public bool SoberFlagsImported { get; set; }
+    /// <summary>Windows: the "import from Bloxstrap/Fishstrap" banner was used or dismissed, so Home doesn't offer it again.</summary>
+    public bool ImportOffered { get; set; }
+    /// <summary>Windows: programs started with Roblox that close with it.</summary>
+    public List<StartedIntegration> IntegrationProcesses { get; set; } = new();
     /// <summary>
     /// Windows: a fixed graphics quality was just removed, so Roblox's per-game quality cache
     /// (frm.cfg, filled at that fixed level while it was on) is cleared before the next launch.
@@ -95,6 +139,12 @@ public static class Store
         // Hand-edited or older files can carry explicit nulls; never let them reach the rest of the app.
         Settings.FastFlags = WithoutNulls(Settings.FastFlags);
         Settings.FastFlagProfiles ??= new();
+        Settings.GameProfiles ??= new();
+        Settings.Integrations = (Settings.Integrations ?? new()).Where(i => i is not null && !string.IsNullOrWhiteSpace(i.Path)).ToList();
+        State.IntegrationProcesses = (State.IntegrationProcesses ?? new()).Where(p => p is not null).ToList();
+        Settings.PinnedGames = (Settings.PinnedGames ?? new()).Where(g => g is not null && g.PlaceId > 0).GroupBy(g => g.PlaceId).Select(g => g.First()).ToList();
+        foreach (var pinned in Settings.PinnedGames)
+            pinned.Name ??= "";
         foreach (string profile in Settings.FastFlagProfiles.Keys.ToList())
             Settings.FastFlagProfiles[profile] = WithoutNulls(Settings.FastFlagProfiles[profile]);
         Settings.PinnedVersion = string.IsNullOrWhiteSpace(Settings.PinnedVersion) ? null : Settings.PinnedVersion.Trim();

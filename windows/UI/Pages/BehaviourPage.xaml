@@ -39,6 +39,14 @@
                     </DockPanel>
                     <Border Style="{StaticResource Divider}" />
                     <DockPanel Margin="0,4">
+                        <CheckBox x:Name="PrefetchToggle" DockPanel.Dock="Right" Style="{StaticResource Toggle}" Click="OnToggle" />
+                        <StackPanel Margin="0,0,16,0">
+                            <TextBlock Text="Download Roblox updates while you play" />
+                            <TextBlock Style="{StaticResource Text.Muted}" TextWrapping="Wrap" Text="A new Roblox version is fetched in the background after a couple of minutes in a game, so the next launch only has to unpack it." />
+                        </StackPanel>
+                    </DockPanel>
+                    <Border Style="{StaticResource Divider}" />
+                    <DockPanel Margin="0,4">
                         <CheckBox x:Name="Confirm" DockPanel.Dock="Right" Style="{StaticResource Toggle}" Click="OnToggle" />
                         <StackPanel>
                             <TextBlock Text="Ask before launching" />
@@ -92,6 +100,26 @@
                             <TextBlock x:Name="MultiText" Style="{StaticResource Text.Muted}" TextWrapping="Wrap" />
                         </StackPanel>
                     </DockPanel>
+                    <Border Style="{StaticResource Divider}" />
+                    <DockPanel Margin="0,4">
+                        <Border DockPanel.Dock="Right" Style="{StaticResource Segmented}" VerticalAlignment="Center">
+                            <StackPanel x:Name="BreakSegments" Orientation="Horizontal" />
+                        </Border>
+                        <StackPanel Margin="0,0,16,0">
+                            <TextBlock Text="Remind me to take a break" />
+                            <TextBlock Style="{StaticResource Text.Muted}" TextWrapping="Wrap" Text="A small notice after that long without stopping. Ten minutes away from games starts the count over." />
+                        </StackPanel>
+                    </DockPanel>
+                    <Border Style="{StaticResource Divider}" />
+                    <DockPanel Margin="0,4">
+                        <Button DockPanel.Dock="Right" Style="{StaticResource Button.Secondary}" Content="Add a program…" Click="OnAddIntegration" VerticalAlignment="Top" />
+                        <StackPanel Margin="0,0,16,0">
+                            <TextBlock Text="Open with Roblox" />
+                            <TextBlock Style="{StaticResource Text.Muted}" TextWrapping="Wrap"
+                                       Text="OBS, a FPS counter… They open with Roblox; switched on, they close again when the last Roblox window does." />
+                            <StackPanel x:Name="IntegrationList" Margin="0,6,0,0" />
+                        </StackPanel>
+                    </DockPanel>
                 </StackPanel>
             </Border>
 
@@ -103,6 +131,14 @@
                         <StackPanel Margin="0,0,16,0">
                             <TextBlock Text="Default Roblox launcher" />
                             <TextBlock x:Name="HandlerText" Style="{StaticResource Text.Muted}" />
+                        </StackPanel>
+                    </DockPanel>
+                    <Border Style="{StaticResource Divider}" />
+                    <DockPanel Margin="0,4">
+                        <StackPanel x:Name="ImportButtons" DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" />
+                        <StackPanel Margin="0,0,16,0">
+                            <TextBlock Text="Bring settings from another launcher" />
+                            <TextBlock x:Name="ImportText" Style="{StaticResource Text.Muted}" TextWrapping="Wrap" />
                         </StackPanel>
                     </DockPanel>
                     <Border Style="{StaticResource Divider}" />

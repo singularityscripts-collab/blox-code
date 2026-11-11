@@ -16,6 +16,7 @@ public partial class MainWindow : Window, IGlassWindow
         _pages = new()
         {
             ["Home"] = () => new HomePage(this),
+            ["Stats"] = () => new StatsPage(this),
             ["FastFlags"] = () => new FastFlagsPage(this),
             ["Mods"] = () => new ModsPage(this),
             ["Appearance"] = () => new AppearancePage(this),

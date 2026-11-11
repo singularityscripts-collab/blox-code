@@ -437,6 +437,32 @@ public static class SelfTest
                 Expect(lines.SequenceEqual(new[] { "line 1", "line 2" }), $"read what was appended ({string.Join("|", lines)})");
             });
 
+            Check("Sober's log: a game joined while Sober runs lands in the history", () =>
+            {
+                string log = Path.Combine(sandbox, "sober_logs", "latest.log");
+                Directory.CreateDirectory(Path.GetDirectoryName(log)!);
+                File.WriteAllText(log, "[FLog::Output] an old line from before\n");
+                Environment.SetEnvironmentVariable("BLOXCODE_SOBER_LOG", log);
+                Store.Settings.RememberGames = true;
+                Store.Settings.ShowServerLocation = false;   // no network here
+                GameHistory.Clear();
+
+                var launchedAt = DateTime.UtcNow.AddSeconds(-2);
+                var running = System.Diagnostics.Stopwatch.StartNew();
+                using var http = new HttpClient(new FailingHandler());
+                var watch = SoberActivity.RunAsync(http, launchedAt, () => running.Elapsed < TimeSpan.FromSeconds(5), (_, _) => { }, CancellationToken.None);
+                Thread.Sleep(1500);   // the reader has caught up; this join is live
+                File.AppendAllText(log,
+                    "2026-11-10T20:03:57.727Z,1.0,1b98,6 [FLog::Output] ! Joining game '0f5c3e2a-1b2c-4d5e-8f90-123456789abc' place 920587237 at 10.0.0.1\n"
+                    + "2026-11-10T20:03:58.000Z,1.0,1b98,6 [FLog::Network] UDMUX Address = 128.116.1.2, Port = 53260 | RCC Server Address = 10.0.0.1, Port = 53260\n"
+                    + "2026-11-10T20:03:59.000Z,1.0,1b98,6 [FLog::Network] serverId: 10.0.0.1|53260\n");
+                Expect(watch.Wait(TimeSpan.FromSeconds(15)), "stops when Sober closes");
+                var played = GameHistory.Load();
+                Expect(played.Count == 1 && played[0].PlaceId == 920587237 && played[0].Name == "Place 920587237", $"history: {played.Count} entries");
+                Expect(played[0].LeftAt is not null, "the visit ends when Sober closes");
+                Environment.SetEnvironmentVariable("BLOXCODE_SOBER_LOG", null);
+            });
+
             // Optional live check against Roblox's web APIs and ipinfo.io: BLOXCODE_LIVE_ACTIVITY=1.
             if (Environment.GetEnvironmentVariable("BLOXCODE_LIVE_ACTIVITY") == "1")
             {
@@ -639,5 +665,12 @@ public static class SelfTest
     {
         try { action(); return false; }
         catch { return true; }
+    }
+
+    /// <summary>An HttpClient handler with no network: game info lookups fail fast, as offline.</summary>
+    private sealed class FailingHandler : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct) =>
+            Task.FromException<HttpResponseMessage>(new HttpRequestException("offline (self-test)"));
     }
 }

@@ -32,6 +32,8 @@
                               Body="{DynamicResource Brush.Mascot}" Eye="{DynamicResource Brush.MascotEye}" />
             </Canvas>
             <ProgressBar x:Name="Progress" Style="{StaticResource Progress}" Minimum="0" Maximum="1" Value="0" />
+            <!-- Terminal theme: the bar drawn in text -->
+            <TextBlock x:Name="AsciiBar" FontFamily="{StaticResource Font.Mono}" FontSize="15" Foreground="{DynamicResource Brush.Accent}" Visibility="Collapsed" />
 
             <!-- Status line: "▖ Doing the thing…" with the percentage on the right -->
             <DockPanel Margin="0,18,0,0">

@@ -13,6 +13,9 @@ public sealed class SoberLauncher(LaunchSettings launch, IProgress<BootstrapProg
 {
     public string? SoberVersion { get; private set; }
 
+    /// <summary>When Sober was started (null when it wasn't); its log is written from then on.</summary>
+    public DateTime? LaunchedAt { get; private set; }
+
     public List<string> FailedMods { get; private set; } = new();
 
     public async Task RunAsync(CancellationToken ct)
@@ -50,6 +53,7 @@ public sealed class SoberLauncher(LaunchSettings launch, IProgress<BootstrapProg
             Logger.Info(ident, "Sober is already running; new settings apply the next time it starts");
 
         Report(BootstrapPhase.Launching, "Starting Sober", 1);
+        LaunchedAt = DateTime.UtcNow;
         await Sober.LaunchAsync(launch.RobloxArgs, ct);
         Report(BootstrapPhase.Done, "Roblox is running", 1);
     }

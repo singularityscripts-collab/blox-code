@@ -3,6 +3,39 @@
 Todas as versões do Blox Code, da mais nova para a mais antiga. Quem tem o Blox Code instalado
 recebe cada versão automaticamente na próxima vez que abrir.
 
+## 1.13.0 — Treze funções novas
+
+### Novidades (Windows)
+
+- **Trazer seu setup do Bloxstrap, Fishstrap, Voidstrap ou Froststrap:** Fast Flags (viram um perfil
+  com o nome do launcher), mods e as escolhas de Discord, localização e confirmação. O outro
+  launcher não é alterado. A Home oferece uma vez; em Settings fica sempre à mão.
+- **Escolher o servidor:** no menu de um jogo (botão direito), "Choose a server…" lista os
+  servidores públicos com jogadores, ping e FPS, e entra no que você escolher.
+- **Gráficos por jogo:** "Graphics for this game" faz aquele jogo sempre abrir com um preset ou um
+  perfil de flags, sem mexer nas flags que você usa nos outros.
+- **Fixar jogos na Home** e **criar um atalho na área de trabalho** para um jogo, com o ícone dele.
+- **Copiar o convite do servidor:** o aviso "Connected to a server" ganhou um botão que copia o
+  link daquele servidor para mandar a um amigo.
+- **Stats:** uma aba nova com o tempo jogado, sessões, jogos, dias seguidos, um gráfico por dia e os
+  jogos mais jogados (semana, mês ou desde sempre). Fica só no seu PC.
+- **Configurações do Roblox** em Flags: sensibilidade da câmera, volume, nível gráfico, tela cheia,
+  estatísticas de desempenho, câmera invertida e menos movimento, mudadas antes de o jogo abrir
+  (com o Roblox fechado, já que ele grava as próprias configurações ao sair).
+- **Abrir programas junto com o Roblox** (OBS, contador de FPS…), que podem fechar sozinhos quando
+  a última janela do Roblox fecha. Settings → Open with Roblox.
+- **Baixar a atualização do Roblox enquanto você joga:** depois de uns minutos num jogo, a versão
+  nova (se houver) é baixada em segundo plano, e a próxima abertura só precisa descompactar.
+- **Lembrete de pausa** depois de 1 h, 1,5 h ou 2 h jogando sem parar (desligado por padrão).
+- **Temas da tela de abertura:** Bit, Minimal ou Terminal (uma barra de progresso em texto), em Look.
+- Quando uma abertura falha, o Blox Code consulta a página de status do Roblox e diz se o problema
+  é do próprio Roblox.
+
+### Novidades (Linux)
+
+- **Jogos recentes na Home** e o aviso de onde fica o servidor (como notificação do sistema),
+  lidos do log do Sober enquanto ele roda.
+
 ## 1.12.1 — Correções da caça aos bugs
 
 ### Correções

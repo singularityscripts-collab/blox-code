@@ -16,6 +16,7 @@ public partial class BehaviourPage : UserControl
 
         ChannelBox.Text = Store.Settings.Channel == Deployment.DefaultChannel ? "" : Store.Settings.Channel;
         Cleanup.IsChecked = Store.Settings.CleanupOldVersions;
+        PrefetchToggle.IsChecked = Store.Settings.PrefetchUpdates;
         Confirm.IsChecked = Store.Settings.ConfirmLaunches;
         AutoUpdate.IsChecked = Store.Settings.AutoUpdate;
         Discord.IsChecked = Store.Settings.DiscordRichPresence && ActivityWatcher.DiscordAvailable;
@@ -35,7 +36,120 @@ public partial class BehaviourPage : UserControl
         if (Store.State.ForceReinstall)
             ReinstallText.Text = "Scheduled — Roblox will be reinstalled on the next launch.";
         RefreshHandler();
+        RefreshImport();
+        RefreshIntegrations();
+        BuildBreakSegments();
         _ready = true;
+    }
+
+    private void BuildBreakSegments()
+    {
+        foreach (var (label, minutes) in new[] { ("Off", 0), ("1 h", 60), ("1.5 h", 90), ("2 h", 120) })
+        {
+            var segment = new RadioButton { Content = label, GroupName = "break" + GetHashCode(), IsChecked = Store.Settings.BreakReminderMinutes == minutes };
+            segment.SetResourceReference(StyleProperty, "Segment");
+            segment.Checked += (_, _) =>
+            {
+                if (!_ready) return;
+                Store.Settings.BreakReminderMinutes = minutes;
+                Store.SaveSettings();
+            };
+            BreakSegments.Children.Add(segment);
+        }
+    }
+
+    /// <summary>One row per program: its name, a "close with Roblox" switch and a remove button.</summary>
+    private void RefreshIntegrations()
+    {
+        IntegrationList.Children.Clear();
+        foreach (var app in Store.Settings.Integrations.ToList())
+        {
+            var row = new DockPanel { Margin = new Thickness(0, 6, 0, 0) };
+            var remove = new Button { Content = "Remove", Padding = new Thickness(10, 4, 10, 4), Margin = new Thickness(8, 0, 0, 0) };
+            remove.SetResourceReference(StyleProperty, "Button.Ghost");
+            remove.Click += (_, _) =>
+            {
+                Store.Settings.Integrations.Remove(app);
+                Store.SaveSettings();
+                RefreshIntegrations();
+            };
+            DockPanel.SetDock(remove, Dock.Right);
+            row.Children.Add(remove);
+
+            var close = new CheckBox { IsChecked = app.CloseWithRoblox, ToolTip = "Close it when the last Roblox window closes", Margin = new Thickness(8, 0, 0, 0) };
+            close.SetResourceReference(StyleProperty, "Toggle");
+            close.Click += (_, _) =>
+            {
+                app.CloseWithRoblox = close.IsChecked == true;
+                Store.SaveSettings();
+            };
+            DockPanel.SetDock(close, Dock.Right);
+            row.Children.Add(close);
+
+            var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+            text.Children.Add(new TextBlock { Text = app.Name });
+            var path = new TextBlock { Text = File.Exists(app.Path) ? app.Path : $"{app.Path} (not found)", TextTrimming = TextTrimming.CharacterEllipsis };
+            path.SetResourceReference(StyleProperty, "Text.Mono");
+            text.Children.Add(path);
+            row.Children.Add(text);
+            IntegrationList.Children.Add(row);
+        }
+    }
+
+    private void OnAddIntegration(object sender, RoutedEventArgs e)
+    {
+        var dialog = new Microsoft.Win32.OpenFileDialog { Filter = "Programs (*.exe)|*.exe", Title = "A program to open with Roblox" };
+        if (dialog.ShowDialog(_window) != true)
+            return;
+        if (Store.Settings.Integrations.Any(i => string.Equals(i.Path, dialog.FileName, StringComparison.OrdinalIgnoreCase)))
+            return;
+        string name = System.Diagnostics.FileVersionInfo.GetVersionInfo(dialog.FileName).FileDescription is { Length: > 0 } description
+            ? description
+            : Path.GetFileNameWithoutExtension(dialog.FileName);
+        Store.Settings.Integrations.Add(new Integration { Name = name, Path = dialog.FileName });
+        Store.SaveSettings();
+        RefreshIntegrations();
+    }
+
+    private void RefreshImport()
+    {
+        ImportButtons.Children.Clear();
+        var found = LauncherImport.Find();
+        ImportText.Text = found.Count == 0
+            ? "Bloxstrap, Fishstrap, Voidstrap or Froststrap: none found on this PC."
+            : string.Join(" · ", found.Select(s => $"{s.Name}: {s.Flags} flags, {s.Mods} mod files"));
+        foreach (var source in found)
+        {
+            var button = new Button { Content = $"From {source.Name}", Margin = new Thickness(6, 0, 0, 0) };
+            button.SetResourceReference(StyleProperty, "Button.Secondary");
+            button.Click += (_, _) => RunImport(_window, source);
+            ImportButtons.Children.Add(button);
+        }
+    }
+
+    /// <summary>Asks, imports one launcher's flags, mods and preferences, and says what came over.</summary>
+    public static bool RunImport(Window owner, ImportSource source)
+    {
+        if (!MessageDialog.Ask(owner, $"Import from {source.Name}?",
+                $"Its Fast Flags become a profile called \"{source.Name}\" (and your flags, if you have none yet), its mod files are copied where you have none, and Discord, server location and launch confirmation follow its settings. {source.Name} itself isn't changed.",
+                "Import", "Cancel"))
+            return false;
+        try
+        {
+            var result = LauncherImport.Import(source);
+            Store.State.ImportOffered = true;
+            Store.SaveState();
+            MessageDialog.Show(owner, $"Imported from {source.Name}",
+                $"{result.Flags} Fast Flags" + (result.SkippedFlags > 0 ? $" ({result.SkippedFlags} invalid left out)" : "")
+                + $", {result.Mods} mod files and {result.Settings} settings.");
+            return true;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            Logger.Error("BehaviourPage::RunImport", ex);
+            MessageDialog.Show(owner, "Couldn't finish the import", ex.Message);
+            return false;
+        }
     }
 
     private void RefreshHandler()
@@ -60,6 +174,7 @@ public partial class BehaviourPage : UserControl
     private void OnToggle(object sender, RoutedEventArgs e)
     {
         Store.Settings.CleanupOldVersions = Cleanup.IsChecked == true;
+        Store.Settings.PrefetchUpdates = PrefetchToggle.IsChecked == true;
         Store.Settings.ConfirmLaunches = Confirm.IsChecked == true;
         Store.Settings.AutoUpdate = AutoUpdate.IsChecked == true;
         if (ActivityWatcher.DiscordAvailable)

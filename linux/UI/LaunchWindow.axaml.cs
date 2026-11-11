@@ -95,6 +95,8 @@ public partial class LaunchWindow : Window
             Succeed(launch.NoLaunch ? "Sober is ready" : "Roblox is running");
             if (launcher.FailedMods.Count > 0)
                 DetailText.Text = $"({launcher.FailedMods.Count} mod(s) couldn't be applied — see the log)";
+            if (launcher.LaunchedAt is { } launchedAt && SoberActivity.IsWanted)
+                WatchSober(launchedAt);
             await Task.Delay(1400);
             SafeClose();
         }
@@ -111,6 +113,15 @@ public partial class LaunchWindow : Window
             if (ex is SoberLaunchException { Output: { Length: > 0 } output })
                 DetailText.Text = output.Split('\n').Last();
         }
+    }
+
+    /// <summary>Stays in the background (no window) while Sober runs: recent games and the server notice.</summary>
+    private static void WatchSober(DateTime launchedAt)
+    {
+        if (Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+            desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+        Task.Run(() => SoberActivity.RunAsync(App.Http, launchedAt, () => Sober.IsRunning, SoberActivity.Notify, CancellationToken.None))
+            .ContinueWith(_ => Dispatcher.UIThread.Post(() => App.Exit()));
     }
 
     private async Task<InstanceLock?> WaitForGateAsync()

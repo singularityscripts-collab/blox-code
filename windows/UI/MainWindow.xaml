@@ -32,6 +32,7 @@
 
             <StackPanel x:Name="Nav" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
                 <RadioButton x:Name="NavHome" Style="{StaticResource Nav.Tab}" Tag="Home" Checked="OnNavigate" IsChecked="True" Content="Home" />
+                <RadioButton Style="{StaticResource Nav.Tab}" Tag="Stats" Checked="OnNavigate" Content="Stats" />
                 <RadioButton Style="{StaticResource Nav.Tab}" Tag="FastFlags" Checked="OnNavigate" Content="Flags" />
                 <RadioButton Style="{StaticResource Nav.Tab}" Tag="Mods" Checked="OnNavigate" Content="Mods" />
                 <RadioButton Style="{StaticResource Nav.Tab}" Tag="Appearance" Checked="OnNavigate" Content="Look" />

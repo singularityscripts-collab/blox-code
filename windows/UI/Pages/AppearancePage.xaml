@@ -77,15 +77,20 @@
             </Border>
 
             <Border Style="{StaticResource Card}">
-                <DockPanel>
-                    <Button DockPanel.Dock="Right" Style="{StaticResource Button.Secondary}" Content="Preview launch screen" VerticalAlignment="Center" Click="OnPreview" />
-                    <ui:BitMascot x:Name="Mascot" DockPanel.Dock="Left" Unit="3" Mood="Walk" Margin="0,0,20,0" VerticalAlignment="Center"
-                                    Body="{DynamicResource Brush.Mascot}" Eye="{DynamicResource Brush.MascotEye}" />
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="Launch screen" Style="{StaticResource Text.H2}" />
-                        <TextBlock Style="{StaticResource Text.Muted}" Text="Bit walks the progress bar while Roblox downloads and types away while it unpacks. The preview fakes a download and launches nothing." />
-                    </StackPanel>
-                </DockPanel>
+                <StackPanel>
+                    <DockPanel>
+                        <Button DockPanel.Dock="Right" Style="{StaticResource Button.Secondary}" Content="Preview launch screen" VerticalAlignment="Center" Click="OnPreview" />
+                        <ui:BitMascot x:Name="Mascot" DockPanel.Dock="Left" Unit="3" Mood="Walk" Margin="0,0,20,0" VerticalAlignment="Center"
+                                        Body="{DynamicResource Brush.Mascot}" Eye="{DynamicResource Brush.MascotEye}" />
+                        <StackPanel VerticalAlignment="Center" Margin="0,0,16,0">
+                            <TextBlock Text="Launch screen" Style="{StaticResource Text.H2}" />
+                            <TextBlock x:Name="LaunchThemeText" Style="{StaticResource Text.Muted}" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </DockPanel>
+                    <Border Style="{StaticResource Segmented}" Margin="0,14,0,0">
+                        <StackPanel x:Name="LaunchThemeSegments" Orientation="Horizontal" />
+                    </Border>
+                </StackPanel>
             </Border>
         </StackPanel>
     </ScrollViewer>

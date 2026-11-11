@@ -242,6 +242,20 @@ public static class FastFlagPresets
             Set(row.Flag, ValueFor(preset, row));
     }
 
+    /// <summary>A copy of <paramref name="flags"/> with a graphics preset in place; changes nothing else (per-game launches).</summary>
+    public static Dictionary<string, string> WithGraphicsPreset(IReadOnlyDictionary<string, string> flags, GraphicsPreset preset)
+    {
+        var result = new Dictionary<string, string>(flags);
+        foreach (var row in GraphicsTable)
+        {
+            if (ValueFor(preset, row) is { } value)
+                result[row.Flag] = value;
+            else
+                result.Remove(row.Flag);
+        }
+        return result;
+    }
+
     /// <summary>
     /// Earlier versions' presets, flag by flag (missing = unset): 1.2.0's blurry Lowest and Low
     /// (quality 1/5, textures 0/1) and the Medium that forced textures to level 2 until 1.4.

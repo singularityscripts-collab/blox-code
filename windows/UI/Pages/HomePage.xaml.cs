@@ -57,10 +57,32 @@ public partial class HomePage : UserControl
             BannerButton.Content = "Use Blox Code";
             DesktopShortcut.Visibility = DesktopShortcutLabel.Visibility = Visibility.Collapsed;
         }
+        else if (!Store.State.ImportOffered && LauncherImport.Find().FirstOrDefault(s => s.Flags > 0 || s.Mods > 0) is { } source)
+        {
+            // Coming from Bloxstrap or a fork: offer its flags and mods once.
+            _importSource = source;
+            Banner.Visibility = Visibility.Visible;
+            BannerTitle.Text = $"Bring your {source.Name} setup";
+            BannerText.Text = $"{source.Flags} Fast Flags and {source.Mods} mod files found. {source.Name} stays as it is.";
+            BannerButton.Content = "Import";
+            BannerDismiss.Visibility = Visibility.Visible;
+            DesktopShortcut.Visibility = DesktopShortcutLabel.Visibility = Visibility.Collapsed;
+        }
         else
         {
             Banner.Visibility = Visibility.Collapsed;
         }
+    }
+
+    private ImportSource? _importSource;
+
+    private void OnBannerDismiss(object sender, RoutedEventArgs e)
+    {
+        Store.State.ImportOffered = true;
+        Store.SaveState();
+        _importSource = null;
+        BannerDismiss.Visibility = Visibility.Collapsed;
+        RefreshBanner();
     }
 
     private static (string Title, string Body)? NotesFor(string version) =>
@@ -82,6 +104,17 @@ public partial class HomePage : UserControl
             _updatedNotice = null;
             Banner.Visibility = Visibility.Collapsed;
             RefreshBanner();
+            return;
+        }
+
+        if (_importSource is { } source)
+        {
+            if (BehaviourPage.RunImport(_window, source))
+            {
+                _importSource = null;
+                BannerDismiss.Visibility = Visibility.Collapsed;
+                RefreshBanner();
+            }
             return;
         }
 
@@ -125,21 +158,87 @@ public partial class HomePage : UserControl
     private void ShowRecent()
     {
         var history = Store.Settings.RememberGames ? GameHistory.Load() : new();
-        var recent = GameHistory.Recent(4, history);
-        RecentSection.Visibility = recent.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+        // Pinned games first (two rows at most), then the latest ones played, filling at least one row.
+        var pinned = Store.Settings.PinnedGames.Take(8)
+            .Select(p => (Game: history.FirstOrDefault(g => g.PlaceId == p.PlaceId) ?? new PlayedGame { PlaceId = p.PlaceId, Name = p.Name, IconUrl = p.IconUrl }, Pinned: true))
+            .ToList();
+        var recent = GameHistory.Recent(8, history).Where(g => pinned.All(p => p.Game.PlaceId != g.PlaceId))
+            .Select(g => (Game: g, Pinned: false));
+        var cards = pinned.Concat(recent).Take(Math.Max(4, Math.Min(8, pinned.Count + (pinned.Count % 4 == 0 ? 0 : 4 - pinned.Count % 4)))).ToList();
+        RecentSection.Visibility = cards.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+        RecentTitle.Text = pinned.Count > 0 ? "games" : "recent";
         RecentGames.Children.Clear();
-        foreach (var game in recent)
-            RecentGames.Children.Add(GameCard(game));
+        foreach (var (game, isPinned) in cards)
+            RecentGames.Children.Add(GameCard(game, isPinned));
 
         var week = GameHistory.Stats(TimeSpan.FromDays(7), history);
         StatsText.Text = week.Total < TimeSpan.FromMinutes(1)
             ? ""
-            : $"{GameHistory.Duration(week.Total)} this week" + (week.TopGame is { } top && recent.Count > 1 ? $" · mostly {Trim(GameHistory.PlainName(top), 22)}" : "");
+            : $"{GameHistory.Duration(week.Total)} this week" + (week.TopGame is { } top && cards.Count > 1 ? $" · mostly {Trim(GameHistory.PlainName(top), 22)}" : "");
+    }
+
+    private void ChooseServer(long placeId, string name)
+    {
+        var browser = new ServerBrowserWindow(_window, placeId, GameHistory.PlainName(name));
+        browser.ShowDialog();
+        if (browser.Choice is { } args)
+            _window.LaunchRoblox(args);
+    }
+
+    private void TogglePin(PlayedGame game, bool pinned)
+    {
+        Store.Settings.PinnedGames.RemoveAll(p => p.PlaceId == game.PlaceId);
+        if (!pinned)
+            Store.Settings.PinnedGames.Insert(0, new PinnedGame { PlaceId = game.PlaceId, Name = game.Name, IconUrl = game.IconUrl });
+        Store.SaveSettings();
+        RefreshRecent();
+    }
+
+    private async Task CreateShortcutAsync(PlayedGame game)
+    {
+        try
+        {
+            string path = await GameShortcuts.CreateAsync(App.Http, game.PlaceId, game.Name, game.IconUrl);
+            MessageDialog.Show(_window, "Shortcut created", $"\"{Path.GetFileNameWithoutExtension(path)}\" is on your desktop. It opens the game through Blox Code, with your mods and its graphics.");
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Runtime.InteropServices.COMException)
+        {
+            Logger.Error("HomePage::CreateShortcut", ex);
+            MessageDialog.Show(_window, "Couldn't create the shortcut", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// "Graphics for this game": one of the presets or a saved profile, used whenever this game
+    /// starts, or the usual flags. Applies to that launch only; the flags set elsewhere stay.
+    /// </summary>
+    private MenuItem GraphicsMenu(long placeId)
+    {
+        string? current = GameProfiles.ChoiceFor(placeId);
+        var root = new MenuItem { Header = GameProfiles.Describe(current) is { } d ? $"Graphics for this game: {d}" : "Graphics for this game" };
+
+        MenuItem Item(string header, string? choice)
+        {
+            var item = new MenuItem { Header = header, IsCheckable = true, IsChecked = current == choice };
+            item.Click += (_, _) =>
+            {
+                GameProfiles.Set(placeId, choice);
+                RefreshRecent();
+            };
+            return item;
+        }
+
+        root.Items.Add(Item("My usual flags", null));
+        foreach (var preset in Enum.GetValues<GraphicsPreset>().Where(p => p != GraphicsPreset.Auto))
+            root.Items.Add(Item($"{preset} — {GraphicsPresetText.Short(preset)}", GameProfiles.PresetPrefix + preset));
+        foreach (string profile in Store.Settings.FastFlagProfiles.Keys.OrderBy(k => k, StringComparer.CurrentCultureIgnoreCase))
+            root.Items.Add(Item($"Profile: {profile}", GameProfiles.ProfilePrefix + profile));
+        return root;
     }
 
     private static string Trim(string text, int max) => text.Length <= max ? text : text[..(max - 1)] + "…";
 
-    private Button GameCard(PlayedGame game)
+    private Button GameCard(PlayedGame game, bool pinned)
     {
         var icon = new Border { Height = 118, CornerRadius = new CornerRadius(12), Margin = new Thickness(0, 0, 0, 10) };
         icon.SetResourceReference(Border.BackgroundProperty, "Brush.SurfaceAlt");
@@ -163,7 +262,11 @@ public partial class HomePage : UserControl
 
         var name = new TextBlock { Text = GameHistory.PlainName(game.Name), FontSize = 13, FontWeight = FontWeights.Medium, TextTrimming = TextTrimming.CharacterEllipsis };
         name.SetResourceReference(TextBlock.ForegroundProperty, "Brush.Text");
-        var when = new TextBlock { Text = $"{GameHistory.Ago(game.LeftAt ?? game.JoinedAt)} · {GameHistory.Duration(game.Played)}", Margin = new Thickness(0, 3, 0, 0), TextTrimming = TextTrimming.CharacterEllipsis };
+        // A pinned game that was never played (or left the history) has no time to show.
+        string whenText = game.JoinedAt == default ? "pinned" : $"{GameHistory.Ago(game.LeftAt ?? game.JoinedAt)} · {GameHistory.Duration(game.Played)}";
+        if (pinned && game.JoinedAt != default)
+            whenText = "pinned · " + whenText;
+        var when = new TextBlock { Text = whenText, Margin = new Thickness(0, 3, 0, 0), TextTrimming = TextTrimming.CharacterEllipsis };
         when.SetResourceReference(StyleProperty, "Text.Mono");
 
         var card = new Button
@@ -174,7 +277,8 @@ public partial class HomePage : UserControl
             BorderThickness = new Thickness(0),
             HorizontalContentAlignment = HorizontalAlignment.Stretch,
             VerticalContentAlignment = VerticalAlignment.Top,
-            ToolTip = $"Play {game.Name}" + (game.Creator is { Length: > 0 } by ? $" by {by}" : ""),
+            ToolTip = $"Play {game.Name}" + (game.Creator is { Length: > 0 } by ? $" by {by}" : "")
+                + (GameProfiles.Describe(GameProfiles.ChoiceFor(game.PlaceId)) is { } graphics ? $"\nGraphics: {graphics}" : ""),
         };
         card.SetResourceReference(StyleProperty, "Button.Base");
         // Flat until hovered: just the game's icon, its name and when it was played
@@ -194,6 +298,16 @@ public partial class HomePage : UserControl
             rejoin.Click += (_, _) => _window.LaunchRoblox($"roblox://experiences/start?placeId={game.PlaceId}&gameInstanceId={job}");
             menu.Items.Add(rejoin);
         }
+        var servers = new MenuItem { Header = "Choose a server…" };
+        servers.Click += (_, _) => ChooseServer(game.PlaceId, game.Name);
+        menu.Items.Add(servers);
+        menu.Items.Add(GraphicsMenu(game.PlaceId));
+        var pin = new MenuItem { Header = pinned ? "Unpin from Home" : "Pin to Home" };
+        pin.Click += (_, _) => TogglePin(game, pinned);
+        menu.Items.Add(pin);
+        var shortcut = new MenuItem { Header = "Create a desktop shortcut" };
+        shortcut.Click += async (_, _) => await CreateShortcutAsync(game);
+        menu.Items.Add(shortcut);
         var page = new MenuItem { Header = "Open the game page" };
         page.Click += (_, _) => Process.Start(new ProcessStartInfo(RobloxGames.GamePage(game.PlaceId)) { UseShellExecute = true });
         menu.Items.Add(page);

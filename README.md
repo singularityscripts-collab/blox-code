@@ -227,7 +227,13 @@ connects to these services, to do what you ask it to:
 - **While you play**, on Windows: Roblox's public game APIs (`apis.roblox.com`, `games.roblox.com`,
   `thumbnails.roblox.com`) for the name and icon of the game you joined, and `ipinfo.io` with the
   Roblox server's address (not yours) to say where that server is. Rich Presence talks only to the
-  Discord app on your own computer. Each of these can be turned off in Settings.
+  Discord app on your own computer. Each of these can be turned off in Settings. On Linux the same
+  happens from Sober's log, and the server notice is a desktop notification (`notify-send`).
+- **Only when you ask**, on Windows: `games.roblox.com` for a game's public servers (Choose a
+  server…), the game's icon from Roblox for a desktop shortcut, and Roblox's status page
+  (`api.status.io`) when a launch fails, to say whether Roblox itself is down.
+- **While you play**, on Windows, if "Download Roblox updates while you play" is on: the same
+  Roblox addresses as a normal update, to fetch a newer version ahead of time.
 
 These requests carry nothing about you beyond what any download does (your IP address and a
 `BloxCode/<version>` user agent). Roblox and Sober, once started, are separate programs with their

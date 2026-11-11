@@ -36,6 +36,7 @@ public partial class HomePage : UserControl
         Scroller.GetObservable(ScrollViewer.ViewportProperty).Subscribe(new SizeObserver(size => Layout.MinHeight = size.Height));
 
         RenderBanners();
+        RefreshRecent();
         AttachedToVisualTree += async (_, _) =>
         {
             Composer.Focus();
@@ -228,6 +229,64 @@ public partial class HomePage : UserControl
     }
 
     private void OnSober(object? sender, RoutedEventArgs e) => _window.Navigate("Sober");
+
+    /// <summary>The last games played (read from Sober's log while it ran), as cards that start them again.</summary>
+    private void RefreshRecent()
+    {
+        try
+        {
+            var history = Store.Settings.RememberGames ? GameHistory.Load() : new();
+            var recent = GameHistory.Recent(4, history);
+            RecentSection.IsVisible = recent.Count > 0;
+            RecentGames.Children.Clear();
+            foreach (var game in recent)
+                RecentGames.Children.Add(GameCard(game));
+            var week = GameHistory.Stats(TimeSpan.FromDays(7), history);
+            StatsText.Text = week.Total < TimeSpan.FromMinutes(1) ? "" : $"{GameHistory.Duration(week.Total)} this week";
+        }
+        catch (Exception ex)
+        {
+            // A nicety: whatever is wrong with the history must never keep the menu from opening.
+            Logger.Error("HomePage::RefreshRecent", ex);
+            RecentSection.IsVisible = false;
+        }
+    }
+
+    private Button GameCard(PlayedGame game)
+    {
+        var icon = new Border { Height = 110, CornerRadius = new CornerRadius(12), Margin = new Thickness(0, 0, 0, 10) };
+        Res.BindBrush(icon, Border.BackgroundProperty, "Brush.SurfaceAlt");
+        if (game.IconUrl is { } url)
+            _ = LoadIconAsync(icon, url);
+
+        var name = new TextBlock { Text = GameHistory.PlainName(game.Name), FontWeight = Avalonia.Media.FontWeight.Medium, TextTrimming = Avalonia.Media.TextTrimming.CharacterEllipsis };
+        var when = new TextBlock { Text = $"{GameHistory.Ago(game.LeftAt ?? game.JoinedAt)} · {GameHistory.Duration(game.Played)}", Margin = new Thickness(0, 3, 0, 0), TextTrimming = Avalonia.Media.TextTrimming.CharacterEllipsis, Classes = { "mono" } };
+        var card = new Button
+        {
+            Content = new StackPanel { Children = { icon, name, when } },
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            HorizontalContentAlignment = HorizontalAlignment.Stretch,
+            Padding = new Thickness(6),
+            Margin = new Thickness(0),
+        };
+        ToolTip.SetTip(card, $"Play {game.Name}");
+        card.Click += (_, _) => _window.LaunchRoblox($"roblox://experiences/start?placeId={game.PlaceId}");
+        return card;
+    }
+
+    private static async Task LoadIconAsync(Border target, string url)
+    {
+        try
+        {
+            byte[] data = await App.Http.GetByteArrayAsync(url);
+            using var stream = new MemoryStream(data);
+            target.Background = new Avalonia.Media.ImageBrush(new Avalonia.Media.Imaging.Bitmap(stream)) { Stretch = Avalonia.Media.Stretch.UniformToFill };
+        }
+        catch (Exception ex)
+        {
+            Logger.Warn("HomePage::Icon", ex.Message);
+        }
+    }
 
     private sealed class SizeObserver(Action<Size> next) : IObserver<Size>
     {

@@ -21,6 +21,9 @@
                            TextTrimming="CharacterEllipsis" />
                 <TextBlock x:Name="BodyText" FontFamily="{StaticResource Font.Mono}" FontSize="12" Margin="0,3,0,0"
                            Foreground="{DynamicResource Brush.Accent}" TextWrapping="Wrap" />
+                <!-- Copies something worth sharing (the server's invite link); never steals focus from the game. -->
+                <Button x:Name="ActionButton" Style="{StaticResource Button.Secondary}" HorizontalAlignment="Left" Padding="12,5" FontSize="12.5"
+                        Margin="0,10,0,0" Visibility="Collapsed" Focusable="False" Click="OnAction" />
             </StackPanel>
         </DockPanel>
     </Border>

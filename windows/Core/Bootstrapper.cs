@@ -88,7 +88,12 @@ public sealed partial class Bootstrapper(HttpClient http, LaunchSettings launch,
         // Mods replace player files (cursor, sounds, font); Studio gets the Fast Flags only.
         if (!Studio)
             ApplyModifications(versionDir);
-        WriteFastFlags(versionDir);
+        // A game with graphics of its own (Home → right-click → Graphics for this game) gets them for this launch only.
+        string? perGame = null;
+        var flags = Studio ? Store.Settings.FastFlags : GameProfiles.FlagsForLaunch(launch.RobloxArgs, out perGame);
+        if (perGame is not null)
+            Logger.Info(ident, $"Using the {perGame} for place {GameProfiles.PlaceIdOf(launch.RobloxArgs)}");
+        WriteFastFlags(versionDir, flags);
         if (!Studio)
             ResetQualityCacheIfAsked();
         Store.SaveState();
@@ -573,12 +578,12 @@ public sealed partial class Bootstrapper(HttpClient http, LaunchSettings launch,
         }
     }
 
-    private static void WriteFastFlags(string versionDir)
+    private static void WriteFastFlags(string versionDir, IReadOnlyDictionary<string, string> flags)
     {
         string dir = Path.Combine(versionDir, "ClientSettings");
         Directory.CreateDirectory(dir);
         File.WriteAllText(Path.Combine(dir, "ClientAppSettings.json"),
-            JsonSerializer.Serialize(Store.Settings.FastFlags, new JsonSerializerOptions { WriteIndented = true }));
+            JsonSerializer.Serialize(flags, new JsonSerializerOptions { WriteIndented = true }));
     }
 
     private void StartRoblox(string versionDir)
@@ -604,6 +609,9 @@ public sealed partial class Bootstrapper(HttpClient http, LaunchSettings launch,
         // Until the player has claimed its folder, a launch right after this one would pick the same.
         if (multi)
             MultiInstance.WaitUntilRegistered(folder, TimeSpan.FromSeconds(10));
+        // Programs set to open with Roblox (Settings → Open with Roblox); never with Studio.
+        if (!Studio)
+            Integrations.StartAll();
     }
 
     private static bool IsRunningFrom(string versionDir, string executable)

@@ -14,11 +14,19 @@ public partial class ToastWindow : Window
     private static ToastWindow? _current;
     private readonly DispatcherTimer _hide;
 
-    private ToastWindow(string title, string body, TimeSpan duration)
+    private readonly string? _copy;
+
+    private ToastWindow(string title, string body, TimeSpan duration, string? copyLabel, string? copy)
     {
         InitializeComponent();
         TitleText.Text = title;
         BodyText.Text = body;
+        _copy = copy;
+        if (copy is not null)
+        {
+            ActionButton.Content = copyLabel ?? "Copy";
+            ActionButton.Visibility = Visibility.Visible;
+        }
         Mascot.IsAnimated = Store.Settings.AnimateMascot;
 
         _hide = new DispatcherTimer { Interval = duration };
@@ -32,11 +40,14 @@ public partial class ToastWindow : Window
         };
     }
 
-    /// <summary>Shows the notice, replacing one that is still on screen.</summary>
-    public static void Show(string title, string body, TimeSpan? duration = null)
+    /// <summary>
+    /// Shows the notice, replacing one that is still on screen. With <paramref name="copy"/>, it
+    /// carries a button that puts that text on the clipboard (and stays a little longer).
+    /// </summary>
+    public static void Show(string title, string body, TimeSpan? duration = null, string? copyLabel = null, string? copy = null)
     {
         _current?.Close();
-        _current = new ToastWindow(title, body, duration ?? TimeSpan.FromSeconds(7));
+        _current = new ToastWindow(title, body, duration ?? TimeSpan.FromSeconds(copy is null ? 7 : 12), copyLabel, copy);
         _current.Closed += (sender, _) => { if (ReferenceEquals(_current, sender)) _current = null; };
         _current.Show();
     }
@@ -57,6 +68,51 @@ public partial class ToastWindow : Window
     }
 
     private void OnClick(object sender, MouseButtonEventArgs e) => FadeOut();
+
+    private async void OnAction(object sender, RoutedEventArgs e)
+    {
+        e.Handled = true;
+        ActionButton.IsEnabled = false;
+        bool copied = await CopyAsync(_copy!);
+        ActionButton.IsEnabled = true;
+        if (!copied)
+        {
+            // Another program holds the clipboard; say so rather than pretend.
+            ActionButton.Content = "Clipboard busy, try again";
+            return;
+        }
+        ActionButton.Content = "Copied";
+        // A moment to read "Copied", then out of the way.
+        _hide.Stop();
+        _hide.Interval = TimeSpan.FromSeconds(1.5);
+        _hide.Start();
+    }
+
+    /// <summary>
+    /// Puts text on the clipboard from a thread of its own, giving up after two seconds: a
+    /// clipboard manager that doesn't answer must not freeze the notice (or the launch window it
+    /// shares a thread with).
+    /// </summary>
+    public static Task<bool> CopyAsync(string text)
+    {
+        var done = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var thread = new Thread(() =>
+        {
+            try
+            {
+                Clipboard.SetDataObject(text, copy: true);
+                done.TrySetResult(true);
+            }
+            catch (Exception ex) when (ex is System.Runtime.InteropServices.COMException or System.Runtime.InteropServices.ExternalException)
+            {
+                Logger.Warn("ToastWindow::Copy", ex.Message);
+                done.TrySetResult(false);
+            }
+        }) { IsBackground = true };
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        return done.Task.WaitAsync(TimeSpan.FromSeconds(2)).ContinueWith(t => t.IsCompletedSuccessfully && t.Result, TaskScheduler.Default);
+    }
 
     // WS_EX_NOACTIVATE keeps keyboard focus in Roblox; WS_EX_TOOLWINDOW keeps it out of Alt+Tab.
     private void MakeNonActivating()

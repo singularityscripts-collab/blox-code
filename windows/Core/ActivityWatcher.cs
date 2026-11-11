@@ -20,11 +20,11 @@ public static class ActivityWatcher
 
     public static bool IsWanted =>
         Store.Settings.ShowServerLocation || Store.Settings.RememberGames || Store.Settings.MultiInstance
-        || (Store.Settings.DiscordRichPresence && DiscordAvailable);
+        || (Store.Settings.DiscordRichPresence && DiscordAvailable) || Integrations.WantsWatcher || Store.Settings.BreakReminderMinutes > 0;
 
     /// <param name="launchedAt">When Roblox was started; its log is the first one created after this.</param>
-    /// <param name="notify">Shows a notice (title, text); called from a worker thread.</param>
-    public static async Task RunAsync(HttpClient http, DateTime launchedAt, Action<string, string> notify)
+    /// <param name="notify">Shows a notice (title, text, and a server invite link to offer for copying, or null); called from a worker thread.</param>
+    public static async Task RunAsync(HttpClient http, DateTime launchedAt, Action<string, string, string?> notify)
     {
         const string ident = "ActivityWatcher::Run";
 
@@ -67,6 +67,9 @@ public static class ActivityWatcher
             // A newer watcher carries on with the same windows; only a real end closes open visits.
             if (Store.Settings.RememberGames && !tookOver)
                 GameHistory.CloseDangling(DateTime.UtcNow);
+            // Every Roblox window is closed: so are the programs that opened with it.
+            if (!tookOver)
+                Integrations.CloseAll();
             if (discord?.IsConnected == true && !tookOver)
             {
                 try { await discord.SetActivityAsync(null, CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(2)); } catch { }
@@ -77,11 +80,12 @@ public static class ActivityWatcher
     }
 
     /// <summary>One run of the watcher: a follower per player log, and the sessions they report.</summary>
-    private sealed class Watch(HttpClient http, DateTime launchedAt, DiscordRpc? discord, Action<string, string> notify)
+    private sealed class Watch(HttpClient http, DateTime launchedAt, DiscordRpc? discord, Action<string, string, string?> notify)
     {
         private readonly Dictionary<string, Follower> _followers = new(StringComparer.OrdinalIgnoreCase);
         private readonly object _sync = new();
         private readonly RobloxRunning _running = new();
+        private readonly BreakReminder _break = new(TimeSpan.FromMinutes(Store.Settings.BreakReminderMinutes));
 
         private sealed class Follower
         {
@@ -96,6 +100,17 @@ public static class ActivityWatcher
         public async Task RunAsync(CancellationToken ct)
         {
             var started = DateTime.UtcNow;
+            // A Roblox update that came out meanwhile is fetched while you play, once per run.
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await Task.Delay(Prefetch.Delay, ct);
+                    await Prefetch.RunAsync(http, ct);
+                }
+                catch (OperationCanceledException) { }
+                catch (Exception ex) { Logger.Warn("ActivityWatcher::Prefetch", ex.Message); }
+            }, ct);
             try
             {
                 while (true)
@@ -115,6 +130,7 @@ public static class ActivityWatcher
                         return;   // No log to read and nothing to hold for: nothing for us to do.
 
                     EndSessionsOfClosedWindows(players);
+                    RemindOfBreak();
                     await Task.Delay(2000, ct);
                 }
             }
@@ -123,6 +139,18 @@ public static class ActivityWatcher
                 lock (_sync)
                     foreach (var f in _followers.Values)
                         f.Work?.Cancel();
+            }
+        }
+
+        /// <summary>After the chosen stretch of continuous play, a gentle notice (Settings → Remind me to take a break).</summary>
+        private void RemindOfBreak()
+        {
+            bool playing;
+            lock (_sync) playing = _followers.Values.Any(f => f.Session is not null);
+            if (_break.Tick(playing, DateTime.UtcNow, out var played))
+            {
+                Logger.Info("ActivityWatcher::Break", $"Reminding of a break after {played}");
+                notify("Time for a break?", $"You've been playing for {GameHistory.Duration(played)}. Stretch, drink some water.", null);
             }
         }
 
@@ -251,8 +279,10 @@ public static class ActivityWatcher
                 {
                     string? where = await location;
                     ct.ThrowIfCancellationRequested();
+                    // A public server can be shared: the invite link opens this very server (also pasted into Blox Code's bar).
                     notify(session.Kind == ServerKind.Public ? "Connected to a server" : "Connected to a private server",
-                        where is null ? "Location unknown" : $"Location: {where}");
+                        where is null ? "Location unknown" : $"Location: {where}",
+                        session.Kind == ServerKind.Public ? RobloxGames.JoinLink(session) : null);
                 }
 
                 if (discord is not null)

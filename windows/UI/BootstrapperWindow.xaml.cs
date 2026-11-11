@@ -86,12 +86,46 @@ public partial class BootstrapperWindow : Window, IGlassWindow
         InitializeComponent();
         ThemeManager.ApplyChrome(this);
         Mascot.IsAnimated = Store.Settings.AnimateMascot;
+        ApplyLaunchTheme(Store.Settings.LaunchTheme);
         VersionText.Text = $"{Store.Settings.Channel} · blox code {App.Version}";
 
         _ticker.Tick += (_, _) => Tick();
         _ticker.Start();
         Closed += (_, _) => { _closed = true; _ticker.Stop(); _cts.Cancel(); };
     }
+
+    private LaunchTheme _theme;
+
+    /// <summary>Look → Launch screen: Bit on the bar (as designed first), a quiet title and thin bar, or a text bar.</summary>
+    private void ApplyLaunchTheme(LaunchTheme theme)
+    {
+        _theme = theme;
+        if (theme == LaunchTheme.Bit)
+            return;
+        Stage.Visibility = Visibility.Collapsed;
+        Height = 250;
+        if (theme == LaunchTheme.Minimal)
+        {
+            Progress.Height = 3;
+            Progress.Margin = new Thickness(0, 14, 0, 0);
+            StatusText.FontSize = 20;
+            Spinner.Visibility = Visibility.Collapsed;
+        }
+        else
+        {
+            Progress.Visibility = Visibility.Collapsed;
+            AsciiBar.Visibility = Visibility.Visible;
+            AsciiBar.Text = Bar(null);
+            StatusText.FontFamily = (System.Windows.Media.FontFamily)FindResource("Font.Mono");
+            StatusText.FontWeight = FontWeights.Normal;
+            StatusText.FontSize = 14;
+        }
+    }
+
+    /// <summary>[██████░░░░…] for the Terminal theme; dots when the size isn't known yet.</summary>
+    public static string Bar(double? fraction, int width = 32) => fraction is { } f
+        ? "[" + new string('█', (int)Math.Round(Math.Clamp(f, 0, 1) * width)) + new string('░', width - (int)Math.Round(Math.Clamp(f, 0, 1) * width)) + "]"
+        : "[" + new string('·', width) + "]";
 
     private void SafeClose()
     {
@@ -144,12 +178,25 @@ public partial class BootstrapperWindow : Window, IGlassWindow
         {
             Logger.Error("BootstrapperWindow::Run", ex);
             Fail(Describe(ex));
+            // A network or Roblox failure may be Roblox's own outage: ask its status page and say so.
+            if (ex is not IOException and not OperationCanceledException)
+                _ = AddRobloxStatusAsync();
         }
         finally
         {
             if (entered)
                 gate.Release();
         }
+    }
+
+    private async Task AddRobloxStatusAsync()
+    {
+        string? note = RobloxStatus.Explain(await RobloxStatus.GetAsync(App.Http, CancellationToken.None));
+        if (note is null)
+            return;
+        Logger.Info("BootstrapperWindow::Fail", note);
+        StatusText.Text += "\n" + note;
+        Height = 380;
     }
 
     /// <summary>Keeps Blox Code running in the background (no window) until Roblox closes, for Discord and the server notice.</summary>
@@ -159,7 +206,7 @@ public partial class BootstrapperWindow : Window, IGlassWindow
         app.ShutdownMode = ShutdownMode.OnExplicitShutdown;
         var dispatcher = app.Dispatcher;
         Task.Run(() => ActivityWatcher.RunAsync(App.Http, launchedAt,
-                (title, body) => dispatcher.BeginInvoke(() => ToastWindow.Show(title, body))))
+                (title, body, invite) => dispatcher.BeginInvoke(() => ToastWindow.Show(title, body, copyLabel: "Copy invite link", copy: invite))))
             .ContinueWith(_ => dispatcher.BeginInvoke(() => app.Shutdown()));
     }
 
@@ -204,6 +251,8 @@ public partial class BootstrapperWindow : Window, IGlassWindow
         Progress.Value = p.Fraction ?? 0;
         Progress.Opacity = p.Fraction is null ? 0.5 : 1;
         PercentText.Text = p.Fraction is { } f ? $"{(int)Math.Round(f * 100)}%" : "";
+        if (_theme == LaunchTheme.Terminal)
+            AsciiBar.Text = Bar(p.Fraction);
 
         Mascot.Mood = p.Phase switch
         {
@@ -265,6 +314,8 @@ public partial class BootstrapperWindow : Window, IGlassWindow
         Progress.Value = 1;
         Progress.Opacity = 1;
         PercentText.Text = "100%";
+        if (_theme == LaunchTheme.Terminal)
+            AsciiBar.Text = Bar(1);
         StatusText.Text = message;
         DetailText.Text = $"({(int)_elapsed.Elapsed.TotalSeconds}s · done)";
         ShowGlyph("✓", "Brush.Success");

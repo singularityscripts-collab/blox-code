@@ -21,6 +21,58 @@ public partial class FastFlagsPage : UserControl
         BuildSegments(MsaaSegments, "msaa", FastFlagPresets.MsaaModes, v => FastFlagPresets.MsaaSamples = v);
         BuildSegments(TextureSegments, "texture", FastFlagPresets.TextureLevels, v => FastFlagPresets.TextureLevel = v);
         Sync();
+        LoadGameSettings();
+    }
+
+    // ---- Roblox's own settings (GlobalBasicSettings_13.xml) --------------------------------------
+
+    private bool _loadingGameSettings;
+
+    /// <summary>Shows Roblox's current values; read-only while a Roblox window is open (it rewrites the file when it closes).</summary>
+    private void LoadGameSettings()
+    {
+        var settings = RobloxSettingsFile.Read();
+        bool open = MultiInstance.RunningPlayers() > 0;
+        GameSettingsCard.IsEnabled = settings is not null && !open;
+        GameSettingsNote.Text = settings is null
+            ? "Roblox hasn't saved its settings on this PC yet. Open it once, then come back."
+            : open
+                ? "Close Roblox to change these: it saves its own settings when it closes and would undo yours."
+                : "Roblox's own settings menu, changed here before a game starts.";
+        if (settings is null)
+            return;
+
+        _loadingGameSettings = true;
+        Sensitivity.Value = settings.MouseSensitivity;
+        Volume.Value = Math.Round(settings.Volume * 100);
+        Quality.Value = settings.Quality;
+        GameFullscreen.IsChecked = settings.Fullscreen;
+        GameStats.IsChecked = settings.PerformanceStats;
+        GameInvert.IsChecked = settings.InvertCamera;
+        GameMotion.IsChecked = settings.ReducedMotion;
+        _loadingGameSettings = false;
+        ShowGameSettingValues();
+    }
+
+    private void ShowGameSettingValues()
+    {
+        SensitivityValue.Text = Sensitivity.Value.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
+        VolumeValue.Text = $"{Volume.Value:0}%";
+        QualityValue.Text = Quality.Value < 1 ? "Auto" : $"{Quality.Value:0}";
+    }
+
+    private void OnGameSettingChanged(object sender, RoutedEventArgs e)
+    {
+        if (_loadingGameSettings || !IsLoaded)
+            return;
+        ShowGameSettingValues();
+        if (MultiInstance.RunningPlayers() > 0)
+        {
+            LoadGameSettings();   // Roblox was opened meanwhile: show its values, locked
+            return;
+        }
+        RobloxSettingsFile.Write(new RobloxGameSettings(Sensitivity.Value, Volume.Value / 100, (int)Quality.Value,
+            GameFullscreen.IsChecked == true, GameStats.IsChecked == true, GameMotion.IsChecked == true, GameInvert.IsChecked == true));
     }
 
     // ---- Profiles: named copies of the whole flag set -------------------------------------------

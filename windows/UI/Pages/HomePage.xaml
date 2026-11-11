@@ -20,6 +20,8 @@
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
                         <CheckBox x:Name="DesktopShortcut" Style="{StaticResource Toggle}" IsChecked="True" Margin="0,0,8,0" ToolTip="Create a desktop shortcut" />
                         <TextBlock x:Name="DesktopShortcutLabel" Text="Desktop icon" Style="{StaticResource Text.Muted}" VerticalAlignment="Center" Margin="0,0,14,0" />
+                        <Button x:Name="BannerDismiss" Style="{StaticResource Button.Ghost}" Padding="12,8" Margin="0,0,6,0" Content="Not now"
+                                Visibility="Collapsed" Click="OnBannerDismiss" />
                         <Button x:Name="BannerButton" Style="{StaticResource Button.Primary}" Padding="14,8" Click="OnBannerAction" />
                     </StackPanel>
                     <StackPanel VerticalAlignment="Center">
@@ -55,7 +57,7 @@
                 <StackPanel x:Name="RecentSection" Visibility="Collapsed" Margin="0,48,0,0">
                     <DockPanel Margin="2,0,2,12">
                         <TextBlock x:Name="StatsText" DockPanel.Dock="Right" Style="{StaticResource Text.Mono}" VerticalAlignment="Center" Margin="12,0,0,0" />
-                        <TextBlock Text="recent" Style="{StaticResource Text.Mono}" VerticalAlignment="Center" />
+                        <TextBlock x:Name="RecentTitle" Text="recent" Style="{StaticResource Text.Mono}" VerticalAlignment="Center" />
                     </DockPanel>
                     <UniformGrid x:Name="RecentGames" Columns="4" Margin="-6,0" />
                 </StackPanel>

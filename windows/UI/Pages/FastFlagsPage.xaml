@@ -134,6 +134,63 @@
                     </DockPanel>
                 </StackPanel>
             </Border>
+
+            <!-- Roblox's own settings menu (GlobalBasicSettings_13.xml), changed before a game starts -->
+            <TextBlock Text="roblox settings" Style="{StaticResource Text.Group}" />
+            <TextBlock x:Name="GameSettingsNote" Style="{StaticResource Text.Muted}" TextWrapping="Wrap" Margin="0,4,0,0" />
+            <Border x:Name="GameSettingsCard" Style="{StaticResource Card}">
+                <StackPanel>
+                    <DockPanel Margin="0,4">
+                        <TextBlock x:Name="SensitivityValue" DockPanel.Dock="Right" Style="{StaticResource Text.Mono}" Width="44" TextAlignment="Right" VerticalAlignment="Center" />
+                        <Slider x:Name="Sensitivity" DockPanel.Dock="Right" Width="220" Minimum="0.1" Maximum="4" SmallChange="0.05" LargeChange="0.25"
+                                IsSnapToTickEnabled="True" TickFrequency="0.05" VerticalAlignment="Center" ValueChanged="OnGameSettingChanged" />
+                        <StackPanel Margin="0,0,16,0">
+                            <TextBlock Text="Camera sensitivity" />
+                            <TextBlock Style="{StaticResource Text.Muted}" Text="How fast the camera turns with the mouse." />
+                        </StackPanel>
+                    </DockPanel>
+                    <Border Style="{StaticResource Divider}" />
+                    <DockPanel Margin="0,4">
+                        <TextBlock x:Name="VolumeValue" DockPanel.Dock="Right" Style="{StaticResource Text.Mono}" Width="44" TextAlignment="Right" VerticalAlignment="Center" />
+                        <Slider x:Name="Volume" DockPanel.Dock="Right" Width="220" Minimum="0" Maximum="100" SmallChange="5" LargeChange="10"
+                                IsSnapToTickEnabled="True" TickFrequency="5" VerticalAlignment="Center" ValueChanged="OnGameSettingChanged" />
+                        <StackPanel Margin="0,0,16,0">
+                            <TextBlock Text="Volume" />
+                            <TextBlock Style="{StaticResource Text.Muted}" Text="Roblox's master volume." />
+                        </StackPanel>
+                    </DockPanel>
+                    <Border Style="{StaticResource Divider}" />
+                    <DockPanel Margin="0,4">
+                        <TextBlock x:Name="QualityValue" DockPanel.Dock="Right" Style="{StaticResource Text.Mono}" Width="44" TextAlignment="Right" VerticalAlignment="Center" />
+                        <Slider x:Name="Quality" DockPanel.Dock="Right" Width="220" Minimum="0" Maximum="10" SmallChange="1" LargeChange="1"
+                                IsSnapToTickEnabled="True" TickFrequency="1" VerticalAlignment="Center" ValueChanged="OnGameSettingChanged" />
+                        <StackPanel Margin="0,0,16,0">
+                            <TextBlock Text="Graphics level" />
+                            <TextBlock Style="{StaticResource Text.Muted}" TextWrapping="Wrap" Text="Roblox's own slider: Auto or 1–10. A graphics preset above takes priority." />
+                        </StackPanel>
+                    </DockPanel>
+                    <Border Style="{StaticResource Divider}" />
+                    <DockPanel Margin="0,4">
+                        <CheckBox x:Name="GameFullscreen" DockPanel.Dock="Right" Style="{StaticResource Toggle}" Click="OnGameSettingChanged" />
+                        <StackPanel><TextBlock Text="Start in fullscreen" /></StackPanel>
+                    </DockPanel>
+                    <Border Style="{StaticResource Divider}" />
+                    <DockPanel Margin="0,4">
+                        <CheckBox x:Name="GameStats" DockPanel.Dock="Right" Style="{StaticResource Toggle}" Click="OnGameSettingChanged" />
+                        <StackPanel><TextBlock Text="Show performance stats" /><TextBlock Style="{StaticResource Text.Muted}" Text="FPS, memory and ping in a corner of the game." /></StackPanel>
+                    </DockPanel>
+                    <Border Style="{StaticResource Divider}" />
+                    <DockPanel Margin="0,4">
+                        <CheckBox x:Name="GameInvert" DockPanel.Dock="Right" Style="{StaticResource Toggle}" Click="OnGameSettingChanged" />
+                        <StackPanel><TextBlock Text="Invert camera up and down" /></StackPanel>
+                    </DockPanel>
+                    <Border Style="{StaticResource Divider}" />
+                    <DockPanel Margin="0,4">
+                        <CheckBox x:Name="GameMotion" DockPanel.Dock="Right" Style="{StaticResource Toggle}" Click="OnGameSettingChanged" />
+                        <StackPanel><TextBlock Text="Reduce motion" /><TextBlock Style="{StaticResource Text.Muted}" Text="Fewer camera shakes and moving effects." /></StackPanel>
+                    </DockPanel>
+                </StackPanel>
+            </Border>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

@@ -24,6 +24,15 @@
                 </Border>
                 <TextBlock x:Name="ComposerHint" Classes="mono" HorizontalAlignment="Center" Margin="0,14,0,0"
                            Text="Enter to launch · empty opens Roblox" />
+
+                <!-- Recent games (from the Sober log) and this week's play time -->
+                <StackPanel x:Name="RecentSection" IsVisible="False" Margin="0,48,0,0">
+                    <DockPanel Margin="2,0,2,12">
+                        <TextBlock x:Name="StatsText" DockPanel.Dock="Right" Classes="mono" VerticalAlignment="Center" Margin="12,0,0,0" />
+                        <TextBlock Text="recent" Classes="mono" VerticalAlignment="Center" />
+                    </DockPanel>
+                    <UniformGrid x:Name="RecentGames" Columns="4" Margin="-6,0" />
+                </StackPanel>
             </StackPanel>
 
             <!-- Sober's state and its settings, out of the way -->
