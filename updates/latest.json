@@ -1,25 +1,25 @@
 {
   "format": 1,
   "product": "BloxCode",
-  "version": "1.12.0",
-  "title": "Visual novo, minimalista e transparente",
-  "published": "2026-11-10T22:03:48.619Z",
-  "notes": "### Novidades\n\n- **Visual novo:** a barra lateral virou abas no topo (Home, Flags, Mods, Look, Settings, About; no\n  Linux também Sober), e embaixo fica só uma linha com o estado do Roblox e a versão do Blox Code.\n- **Home:** só uma barra de jogo no estilo da pesquisa do Windows. Cole o link e aperte Enter, ou\n  clique no Play redondo com ela vazia para abrir o Roblox. Os jogos recentes ficam logo abaixo.\n- **Páginas mais limpas:** sem cartões; cada grupo de opções é uma lista separada por linhas finas,\n  com títulos maiores, botões arredondados e textos mais curtos. Appearance agora se chama Look, e\n  Behaviour se chama Settings.\n- **Transparência (Windows 11):** em Look → Transparency, escolha Acrylic (o que está atrás da\n  janela aparece desfocado, o padrão), Mica (as cores do papel de parede) ou Off. Vale também para a\n  janela de abertura do Roblox. Precisa do Windows 11 22H2 ou mais novo e de \"Efeitos de\n  transparência\" ligado em Configurações → Personalização → Cores; sem isso a janela fica sólida, e\n  a página diz o motivo.",
+  "version": "1.12.1",
+  "title": "Correções da caça aos bugs",
+  "published": "2026-11-11T22:23:50.136Z",
+  "notes": "### Correções\n\n- **Links na barra da Home:** um link de servidor privado entrava num servidor público; agora abre\n  o servidor privado. O link \"Join server\" que o Blox Code põe no Discord passou a funcionar na\n  barra (e leva àquele servidor), e os links de compartilhamento do Roblox (`roblox.com/share?…`)\n  também são aceitos.\n- **Histórico de jogos:** um arquivo de histórico danificado impedia o Blox Code de abrir; agora ele\n  abre normalmente. Um histórico que não dá para ler não é mais apagado na partida seguinte: fica\n  guardado como `History.json.corrupt`, e um arquivo preso por outro programa (como um antivírus)\n  não é sobrescrito.\n- Uma linha estranha no log do Roblox podia desligar o Discord, o aviso de servidor e o histórico\n  daquela janela até o fim da sessão.\n- O nome da versão do Roblox agora é conferido antes de virar pasta: só nomes de versão de verdade,\n  sempre dentro da pasta `Versions`.\n- Nomes de jogo longos com emoji não aparecem mais com \"�\" no Discord.\n- **Perfis de Fast Flags:** importar um arquivo traz só as flags válidas (e diz quantas ficaram de\n  fora); importar ou renomear para um nome que já existe pergunta antes de substituir.\n- Flags com valor vazio (`null`) num Settings.json editado à mão são descartadas ao abrir.",
   "assets": {
     "windows-x64": {
       "name": "BloxCode.exe",
-      "size": 62965623,
-      "sha256": "e53b0ea9ac15e77b7214a555b517c37036789fbc082ee7c367e1e4fa6781c7cf",
+      "size": 62969540,
+      "sha256": "1ee05ec6ed710ac4edb63c769118624d7c484cf47c16e84f076d1559e035c547",
       "urls": [
-        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.12.0/BloxCode.exe"
+        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.12.1/BloxCode.exe"
       ]
     },
     "linux-x64": {
       "name": "BloxCode-x86_64.AppImage",
-      "size": 42076664,
-      "sha256": "9477e66fd1c4e5d23a213e1f783ad816512601461cd7119c794900c03b37b80e",
+      "size": 42080760,
+      "sha256": "37e3f77dbd5a676f2a7a02424176eed0794343bdefe34077f7d05b419c3bbe19",
       "urls": [
-        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.12.0/BloxCode-x86_64.AppImage"
+        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.12.1/BloxCode-x86_64.AppImage"
       ]
     }
   }
