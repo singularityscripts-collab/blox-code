@@ -1,25 +1,25 @@
 {
   "format": 1,
   "product": "BloxCode",
-  "version": "1.12.1",
-  "title": "Correções da caça aos bugs",
-  "published": "2026-11-11T22:23:50.136Z",
-  "notes": "### Correções\n\n- **Links na barra da Home:** um link de servidor privado entrava num servidor público; agora abre\n  o servidor privado. O link \"Join server\" que o Blox Code põe no Discord passou a funcionar na\n  barra (e leva àquele servidor), e os links de compartilhamento do Roblox (`roblox.com/share?…`)\n  também são aceitos.\n- **Histórico de jogos:** um arquivo de histórico danificado impedia o Blox Code de abrir; agora ele\n  abre normalmente. Um histórico que não dá para ler não é mais apagado na partida seguinte: fica\n  guardado como `History.json.corrupt`, e um arquivo preso por outro programa (como um antivírus)\n  não é sobrescrito.\n- Uma linha estranha no log do Roblox podia desligar o Discord, o aviso de servidor e o histórico\n  daquela janela até o fim da sessão.\n- O nome da versão do Roblox agora é conferido antes de virar pasta: só nomes de versão de verdade,\n  sempre dentro da pasta `Versions`.\n- Nomes de jogo longos com emoji não aparecem mais com \"�\" no Discord.\n- **Perfis de Fast Flags:** importar um arquivo traz só as flags válidas (e diz quantas ficaram de\n  fora); importar ou renomear para um nome que já existe pergunta antes de substituir.\n- Flags com valor vazio (`null`) num Settings.json editado à mão são descartadas ao abrir.",
+  "version": "1.13.0",
+  "title": "Treze funções novas",
+  "published": "2026-11-11T23:24:16.261Z",
+  "notes": "### Novidades (Windows)\n\n- **Trazer seu setup do Bloxstrap, Fishstrap, Voidstrap ou Froststrap:** Fast Flags (viram um perfil\n  com o nome do launcher), mods e as escolhas de Discord, localização e confirmação. O outro\n  launcher não é alterado. A Home oferece uma vez; em Settings fica sempre à mão.\n- **Escolher o servidor:** no menu de um jogo (botão direito), \"Choose a server…\" lista os\n  servidores públicos com jogadores, ping e FPS, e entra no que você escolher.\n- **Gráficos por jogo:** \"Graphics for this game\" faz aquele jogo sempre abrir com um preset ou um\n  perfil de flags, sem mexer nas flags que você usa nos outros.\n- **Fixar jogos na Home** e **criar um atalho na área de trabalho** para um jogo, com o ícone dele.\n- **Copiar o convite do servidor:** o aviso \"Connected to a server\" ganhou um botão que copia o\n  link daquele servidor para mandar a um amigo.\n- **Stats:** uma aba nova com o tempo jogado, sessões, jogos, dias seguidos, um gráfico por dia e os\n  jogos mais jogados (semana, mês ou desde sempre). Fica só no seu PC.\n- **Configurações do Roblox** em Flags: sensibilidade da câmera, volume, nível gráfico, tela cheia,\n  estatísticas de desempenho, câmera invertida e menos movimento, mudadas antes de o jogo abrir\n  (com o Roblox fechado, já que ele grava as próprias configurações ao sair).\n- **Abrir programas junto com o Roblox** (OBS, contador de FPS…), que podem fechar sozinhos quando\n  a última janela do Roblox fecha. Settings → Open with Roblox.\n- **Baixar a atualização do Roblox enquanto você joga:** depois de uns minutos num jogo, a versão\n  nova (se houver) é baixada em segundo plano, e a próxima abertura só precisa descompactar.\n- **Lembrete de pausa** depois de 1 h, 1,5 h ou 2 h jogando sem parar (desligado por padrão).\n- **Temas da tela de abertura:** Bit, Minimal ou Terminal (uma barra de progresso em texto), em Look.\n- Quando uma abertura falha, o Blox Code consulta a página de status do Roblox e diz se o problema\n  é do próprio Roblox.\n\n### Novidades (Linux)\n\n- **Jogos recentes na Home** e o aviso de onde fica o servidor (como notificação do sistema),\n  lidos do log do Sober enquanto ele roda.",
   "assets": {
     "windows-x64": {
       "name": "BloxCode.exe",
-      "size": 62969540,
-      "sha256": "1ee05ec6ed710ac4edb63c769118624d7c484cf47c16e84f076d1559e035c547",
+      "size": 63008184,
+      "sha256": "824b76f9b2cb3a0ea6545a28f371c0dc2c6593c5ae87cf542b4b4a8eaa3da2e4",
       "urls": [
-        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.12.1/BloxCode.exe"
+        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.13.0/BloxCode.exe"
       ]
     },
     "linux-x64": {
       "name": "BloxCode-x86_64.AppImage",
-      "size": 42080760,
-      "sha256": "37e3f77dbd5a676f2a7a02424176eed0794343bdefe34077f7d05b419c3bbe19",
+      "size": 42101240,
+      "sha256": "5134f84ebf278c44270526653d51d6737e0c47b63865a507947d238224f6a6a0",
       "urls": [
-        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.12.1/BloxCode-x86_64.AppImage"
+        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.13.0/BloxCode-x86_64.AppImage"
       ]
     }
   }
