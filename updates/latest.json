@@ -1,25 +1,25 @@
 {
   "format": 1,
   "product": "BloxCode",
-  "version": "1.13.0",
-  "title": "Treze funções novas",
-  "published": "2026-11-11T23:24:16.261Z",
-  "notes": "### Novidades (Windows)\n\n- **Trazer seu setup do Bloxstrap, Fishstrap, Voidstrap ou Froststrap:** Fast Flags (viram um perfil\n  com o nome do launcher), mods e as escolhas de Discord, localização e confirmação. O outro\n  launcher não é alterado. A Home oferece uma vez; em Settings fica sempre à mão.\n- **Escolher o servidor:** no menu de um jogo (botão direito), \"Choose a server…\" lista os\n  servidores públicos com jogadores, ping e FPS, e entra no que você escolher.\n- **Gráficos por jogo:** \"Graphics for this game\" faz aquele jogo sempre abrir com um preset ou um\n  perfil de flags, sem mexer nas flags que você usa nos outros.\n- **Fixar jogos na Home** e **criar um atalho na área de trabalho** para um jogo, com o ícone dele.\n- **Copiar o convite do servidor:** o aviso \"Connected to a server\" ganhou um botão que copia o\n  link daquele servidor para mandar a um amigo.\n- **Stats:** uma aba nova com o tempo jogado, sessões, jogos, dias seguidos, um gráfico por dia e os\n  jogos mais jogados (semana, mês ou desde sempre). Fica só no seu PC.\n- **Configurações do Roblox** em Flags: sensibilidade da câmera, volume, nível gráfico, tela cheia,\n  estatísticas de desempenho, câmera invertida e menos movimento, mudadas antes de o jogo abrir\n  (com o Roblox fechado, já que ele grava as próprias configurações ao sair).\n- **Abrir programas junto com o Roblox** (OBS, contador de FPS…), que podem fechar sozinhos quando\n  a última janela do Roblox fecha. Settings → Open with Roblox.\n- **Baixar a atualização do Roblox enquanto você joga:** depois de uns minutos num jogo, a versão\n  nova (se houver) é baixada em segundo plano, e a próxima abertura só precisa descompactar.\n- **Lembrete de pausa** depois de 1 h, 1,5 h ou 2 h jogando sem parar (desligado por padrão).\n- **Temas da tela de abertura:** Bit, Minimal ou Terminal (uma barra de progresso em texto), em Look.\n- Quando uma abertura falha, o Blox Code consulta a página de status do Roblox e diz se o problema\n  é do próprio Roblox.\n\n### Novidades (Linux)\n\n- **Jogos recentes na Home** e o aviso de onde fica o servidor (como notificação do sistema),\n  lidos do log do Sober enquanto ele roda.",
+  "version": "1.13.1",
+  "title": "Menu e links do Roblox",
+  "published": "2026-11-14T10:55:17.498Z",
+  "notes": "### Correções (Windows)\n\n- **As configurações voltam a abrir depois de jogar:** quem dava Play pelo menu e depois tentava\n  abrir o Blox Code de novo não via nada (só fechando pelo Gerenciador de Tarefas). O Blox Code\n  continuava em segundo plano com o Roblox e achava que o menu ainda estava aberto.\n- **Links do Roblox voltam para o Blox Code:** o Roblox registra os links `roblox:` para ele mesmo\n  quando abre ou se atualiza, e eles só voltavam na próxima vez que o Blox Code abria. Agora o Blox\n  Code pega os links de volta enquanto o Roblox roda e quando ele fecha, e confere cada tipo de link\n  separadamente. Links que estão com outro launcher continuam intocados.\n\n### Privacidade\n\n- O log não grava mais o ticket de login de uso único que vem no link de entrada do Roblox\n  (aparece como `gameinfo:***`), para que mandar o log para alguém seja seguro.",
   "assets": {
     "windows-x64": {
       "name": "BloxCode.exe",
-      "size": 63008184,
-      "sha256": "824b76f9b2cb3a0ea6545a28f371c0dc2c6593c5ae87cf542b4b4a8eaa3da2e4",
+      "size": 63009385,
+      "sha256": "4c7f247271ed72e452b1378c2202ddfbe55e3f2d60dd137e3bef4a876cb3d9e6",
       "urls": [
-        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.13.0/BloxCode.exe"
+        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.13.1/BloxCode.exe"
       ]
     },
     "linux-x64": {
       "name": "BloxCode-x86_64.AppImage",
       "size": 42101240,
-      "sha256": "5134f84ebf278c44270526653d51d6737e0c47b63865a507947d238224f6a6a0",
+      "sha256": "a1a26470d17b3378d26dfca9f3ae3120b74df7b3850eb395b124f39d72a99afe",
       "urls": [
-        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.13.0/BloxCode-x86_64.AppImage"
+        "https://github.com/singularityscripts-collab/blox-code/releases/download/v1.13.1/BloxCode-x86_64.AppImage"
       ]
     }
   }
