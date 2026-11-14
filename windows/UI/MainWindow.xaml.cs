@@ -30,6 +30,7 @@ public partial class MainWindow : Window, IGlassWindow
         RefreshMascots();
         RefreshFooter();
         Closing += (_, _) => Store.SaveSettings();
+        Closed += (_, _) => App.MenuClosed();
     }
 
     public void Navigate(string page)

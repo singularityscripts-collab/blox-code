@@ -168,6 +168,9 @@ public partial class BootstrapperWindow : Window, IGlassWindow
             if (bootstrapper.LaunchedAt is { } launchedAt && ActivityWatcher.IsWanted)
                 WatchRoblox(launchedAt);
             await Task.Delay(1400);
+            // The player registers roblox: links for itself as it starts; with no watcher this is the last chance to take them back.
+            if (!_launch.NoLaunch)
+                Installer.ReclaimLinksFromRoblox();
             SafeClose();
         }
         catch (OperationCanceledException)

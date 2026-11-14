@@ -27,34 +27,46 @@ public static class Installer
     }
 
     /// <summary>The command currently registered for roblox-player:, if any.</summary>
-    public static string? CurrentProtocolHandler()
+    public static string? CurrentProtocolHandler() => ProtocolHandler("roblox-player");
+
+    private static string? ProtocolHandler(string protocol)
     {
-        using var key = Registry.CurrentUser.OpenSubKey(@"Software\Classes\roblox-player\shell\open\command");
+        using var key = Registry.CurrentUser.OpenSubKey($@"Software\Classes\{protocol}\shell\open\command");
         return key?.GetValue("") as string;
     }
 
-    public static bool IsDefaultLauncher =>
-        CurrentProtocolHandler()?.Contains(Paths.Application, StringComparison.OrdinalIgnoreCase) == true;
+    private static bool IsOurs(string? handler) =>
+        handler?.Contains(Paths.Application, StringComparison.OrdinalIgnoreCase) == true;
+
+    public static bool IsDefaultLauncher => IsOurs(CurrentProtocolHandler());
 
     /// <summary>
-    /// Roblox's own player and updater register roblox-player: for themselves whenever they install
-    /// or update, which silently undoes Blox Code's links. Like Bloxstrap, an installed Blox Code
-    /// takes them back on every run; another launcher (Bloxstrap, Fishstrap…) is left alone and the
-    /// Home banner asks instead. Returns true when the links were taken back.
+    /// Roblox's own player and updater register roblox: and roblox-player: for themselves whenever
+    /// they install, update or start, which silently undoes Blox Code's links. Like Bloxstrap, an
+    /// installed Blox Code takes them back: on every run, and while it watches Roblox (see
+    /// <see cref="ActivityWatcher"/>). Each link is checked on its own, as Roblox may take only one.
+    /// Another launcher (Bloxstrap, Fishstrap…) is left alone and the Home banner asks instead.
+    /// Returns true when a link was taken back.
     /// </summary>
     public static bool ReclaimLinksFromRoblox()
     {
         const string ident = "Installer::ReclaimLinksFromRoblox";
         try
         {
-            if (!IsInstalled || IsDefaultLauncher)
+            if (!IsInstalled)
                 return false;
-            string? handler = CurrentProtocolHandler();
-            if (handler is not null && !IsRobloxsOwn(handler))
+            var handlers = Protocols.ToDictionary(p => p, ProtocolHandler);
+            if (handlers.Values.All(IsOurs))
+                return false;
+            // Some other launcher has the links: that's the user's choice, not Roblox's doing.
+            if (handlers.Values.Any(h => h is not null && !IsOurs(h) && !IsRobloxsOwn(h)))
                 return false;
 
-            RegisterProtocols();
-            Logger.Info(ident, $"Roblox links pointed at {handler ?? "nothing"}; registered Blox Code again");
+            var taken = handlers.Where(h => !IsOurs(h.Value)).ToList();
+            foreach (var (protocol, _) in taken)
+                RegisterProtocol(protocol);
+            Logger.Info(ident, "Registered Blox Code again for " +
+                string.Join(", ", taken.Select(h => $"{h.Key}: (was {h.Value ?? "nothing"})")));
             return true;
         }
         catch (Exception ex) when (ex is UnauthorizedAccessException or System.Security.SecurityException or IOException)
@@ -206,16 +218,19 @@ public static class Installer
     public static void RegisterProtocols()
     {
         foreach (string protocol in Protocols)
-        {
-            using var key = Registry.CurrentUser.CreateSubKey($@"Software\Classes\{protocol}");
-            key.SetValue("", $"URL: {protocol} Protocol");
-            key.SetValue("URL Protocol", "");
+            RegisterProtocol(protocol);
+    }
 
-            using (var icon = key.CreateSubKey("DefaultIcon"))
-                icon.SetValue("", $"{Paths.Application},0");
-            using (var command = key.CreateSubKey(@"shell\open\command"))
-                command.SetValue("", $"\"{Paths.Application}\" -player \"%1\"");
-        }
+    private static void RegisterProtocol(string protocol)
+    {
+        using var key = Registry.CurrentUser.CreateSubKey($@"Software\Classes\{protocol}");
+        key.SetValue("", $"URL: {protocol} Protocol");
+        key.SetValue("URL Protocol", "");
+
+        using (var icon = key.CreateSubKey("DefaultIcon"))
+            icon.SetValue("", $"{Paths.Application},0");
+        using (var command = key.CreateSubKey(@"shell\open\command"))
+            command.SetValue("", $"\"{Paths.Application}\" -player \"%1\"");
     }
 
     public static void Uninstall()

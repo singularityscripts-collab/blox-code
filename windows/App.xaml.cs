@@ -148,9 +148,24 @@ public partial class App : Application
     private static Mutex? _menuLock;
     private bool _reportingError;
 
+    /// <summary>
+    /// The settings window closed. After Play this process carries on in the background (Discord,
+    /// history, multi-instance) for as long as Roblox runs; it must not keep the menu "open" meanwhile,
+    /// or every later start would think a menu is showing and quit. Called on the UI thread, which owns the lock.
+    /// </summary>
+    public static void MenuClosed()
+    {
+        if (_menuLock is not { } menuLock)
+            return;
+        _menuLock = null;
+        try { menuLock.ReleaseMutex(); }
+        catch (ApplicationException) { }   // Not owned by this thread: closing the handle frees it all the same.
+        menuLock.Dispose();
+    }
+
     protected override void OnExit(ExitEventArgs e)
     {
-        _menuLock?.Dispose();
+        MenuClosed();
         base.OnExit(e);
     }
 

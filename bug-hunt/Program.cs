@@ -198,6 +198,35 @@ Check("B10", "Settings.json com valor de flag null carrega sem erro e sem null",
     Expect(Store.Settings.FastFlags.Values.All(v => v is not null), "um valor null chegou ao app");
 });
 
+// ---------- B11: after Play from the menu, the background watcher kept the menu lock ----------
+Check("B11", "fechar a janela de configurações libera o menu mesmo com o processo ainda vivo", () =>
+{
+    string name = "BloxCode-Menu-bughunt-" + Guid.NewGuid().ToString("N")[..8];
+    var field = typeof(BloxCode.App).GetField("_menuLock", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
+    field.SetValue(null, new Mutex(true, name, out _));
+    BloxCode.App.MenuClosed();   // MainWindow.Closed; the process carries on (watcher)
+    bool reopened = false;
+    var other = new Thread(() =>
+    {
+        using var second = new Mutex(true, name, out reopened);
+        if (reopened) second.ReleaseMutex();
+    });
+    other.Start();
+    other.Join();
+    Expect(reopened, "outra abertura ainda acha que o menu está aberto");
+    BloxCode.App.MenuClosed();   // a second call (OnExit) is harmless
+});
+
+// ---------- B12: the launch link's one-time login ticket was written to the log ----------
+Check("B12", "o ticket de login do link (gameinfo:) não vai para o log", () =>
+{
+    string link = "roblox-player:1+launchmode:play+gameinfo:SECRETTICKET_abc123+launchtime:1+placelauncherurl:https%3A%2F%2Fx";
+    string masked = Logger.Mask($"args: -player {link}");
+    Expect(!masked.Contains("SECRETTICKET"), "o ticket apareceu: " + masked);
+    Expect(masked.Contains("gameinfo:***+launchtime:1"), "o resto do link mudou: " + masked);
+    Expect(Logger.Mask("nada a esconder") == "nada a esconder", "mudou uma linha comum");
+});
+
 // ---------- extras: things that held up ----------
 Check("X1", "manifesto de atualização sem assinatura válida é recusado", () =>
 {

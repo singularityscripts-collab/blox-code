@@ -3,6 +3,23 @@
 Todas as versões do Blox Code, da mais nova para a mais antiga. Quem tem o Blox Code instalado
 recebe cada versão automaticamente na próxima vez que abrir.
 
+## 1.13.1 — Menu e links do Roblox
+
+### Correções (Windows)
+
+- **As configurações voltam a abrir depois de jogar:** quem dava Play pelo menu e depois tentava
+  abrir o Blox Code de novo não via nada (só fechando pelo Gerenciador de Tarefas). O Blox Code
+  continuava em segundo plano com o Roblox e achava que o menu ainda estava aberto.
+- **Links do Roblox voltam para o Blox Code:** o Roblox registra os links `roblox:` para ele mesmo
+  quando abre ou se atualiza, e eles só voltavam na próxima vez que o Blox Code abria. Agora o Blox
+  Code pega os links de volta enquanto o Roblox roda e quando ele fecha, e confere cada tipo de link
+  separadamente. Links que estão com outro launcher continuam intocados.
+
+### Privacidade
+
+- O log não grava mais o ticket de login de uso único que vem no link de entrada do Roblox
+  (aparece como `gameinfo:***`), para que mandar o log para alguém seja seguro.
+
 ## 1.13.0 — Treze funções novas
 
 ### Novidades (Windows)

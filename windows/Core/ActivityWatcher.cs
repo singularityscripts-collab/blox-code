@@ -69,7 +69,11 @@ public static class ActivityWatcher
                 GameHistory.CloseDangling(DateTime.UtcNow);
             // Every Roblox window is closed: so are the programs that opened with it.
             if (!tookOver)
+            {
                 Integrations.CloseAll();
+                // Roblox may have updated itself while it ran; the next link must still reach Blox Code.
+                Installer.ReclaimLinksFromRoblox();
+            }
             if (discord?.IsConnected == true && !tookOver)
             {
                 try { await discord.SetActivityAsync(null, CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(2)); } catch { }
@@ -86,6 +90,8 @@ public static class ActivityWatcher
         private readonly object _sync = new();
         private readonly RobloxRunning _running = new();
         private readonly BreakReminder _break = new(TimeSpan.FromMinutes(Store.Settings.BreakReminderMinutes));
+        private static readonly TimeSpan ReclaimEvery = TimeSpan.FromSeconds(15);
+        private DateTime _lastReclaim = DateTime.UtcNow;
 
         private sealed class Follower
         {
@@ -131,6 +137,13 @@ public static class ActivityWatcher
 
                     EndSessionsOfClosedWindows(players);
                     RemindOfBreak();
+                    // Roblox's player and updater register roblox: links for themselves as they start or
+                    // update; taking them back only at Blox Code's next start left links opening plain Roblox.
+                    if (DateTime.UtcNow - _lastReclaim > ReclaimEvery)
+                    {
+                        _lastReclaim = DateTime.UtcNow;
+                        Installer.ReclaimLinksFromRoblox();
+                    }
                     await Task.Delay(2000, ct);
                 }
             }
