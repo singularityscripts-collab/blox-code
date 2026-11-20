@@ -135,17 +135,16 @@ public partial class BootstrapperWindow : Window, IGlassWindow
 
     private async Task RunAsync()
     {
-        // Only one bootstrapper at a time; a second launch waits and then finds Roblox up to date.
-        using var gate = new Semaphore(1, 1, "BloxCode-Bootstrapper");
-        bool entered = gate.WaitOne(0);
-        if (!entered)
-        {
+        // Only one bootstrapper at a time; a second launch waits (however long a slow first install
+        // takes, or until Cancel) and then finds Roblox up to date.
+        using var gate = new LaunchGate("BloxCode-Launch", _cts.Token);
+        if (await Task.WhenAny(gate.Entered, Task.Delay(200)) != gate.Entered)
             OnProgress(new BootstrapProgress(BootstrapPhase.Connecting, "Waiting for another Blox Code launch to finish"));
-            entered = await Task.Run(() => gate.WaitOne(TimeSpan.FromMinutes(3)));
-        }
 
         try
         {
+            if (!await gate.Entered)
+                throw new OperationCanceledException();
             var progress = new Progress<BootstrapProgress>(OnProgress);
             var bootstrapper = new Bootstrapper(App.Http, _launch!, progress);
             try
@@ -155,11 +154,7 @@ public partial class BootstrapperWindow : Window, IGlassWindow
             finally
             {
                 // Let a queued launch start now rather than after our closing animation.
-                if (entered)
-                {
-                    gate.Release();
-                    entered = false;
-                }
+                gate.Dispose();
             }
 
             VersionText.Text = $"{Store.State.Channel} · {bootstrapper.VersionGuid}";
@@ -182,13 +177,8 @@ public partial class BootstrapperWindow : Window, IGlassWindow
             Logger.Error("BootstrapperWindow::Run", ex);
             Fail(Describe(ex));
             // A network or Roblox failure may be Roblox's own outage: ask its status page and say so.
-            if (ex is not IOException and not OperationCanceledException)
+            if (ex is not IOException and not OperationCanceledException and not PinnedVersionGoneException)
                 _ = AddRobloxStatusAsync();
-        }
-        finally
-        {
-            if (entered)
-                gate.Release();
         }
     }
 

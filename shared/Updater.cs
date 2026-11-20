@@ -203,7 +203,9 @@ public static class Updater
     public static async Task<string> DownloadAsync(HttpClient http, UpdateInfo info, IProgress<(long Done, long Total)> progress, CancellationToken ct)
     {
         Directory.CreateDirectory(UpdatesFolder);
-        string path = Path.Combine(UpdatesFolder, $"BloxCode-{info.Version}{AssetExtension}");
+        // A name of its own per download: two links opened together each fetch the update without
+        // tripping over the other's half-written (or already running) file. Leftovers go on a later start.
+        string path = Path.Combine(UpdatesFolder, $"BloxCode-{info.Version}-{Guid.NewGuid().ToString("N")[..8]}{AssetExtension}");
 
         Exception? last = null;
         foreach (string url in info.DownloadUrls)
@@ -376,6 +378,10 @@ public static class Updater
     /// <summary>Deletes leftover downloads once we're no longer running from that folder.</summary>
     public static void CleanupUpdatesFolder()
     {
+        // Copies of Blox Code an update moved aside while they were still running.
+        if (OperatingSystem.IsWindows())
+            Paths.DeleteOldExecutables(Paths.Application);
+
         if (!Directory.Exists(UpdatesFolder) || Paths.Process.StartsWith(UpdatesFolder, Paths.PathComparison))
             return;
         foreach (string file in Directory.EnumerateFiles(UpdatesFolder))

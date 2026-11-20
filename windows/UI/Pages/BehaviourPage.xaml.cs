@@ -328,7 +328,7 @@ public partial class BehaviourPage : UserControl
     private void OnUninstall(object sender, RoutedEventArgs e)
     {
         if (!MessageDialog.Ask(_window, "Uninstall Blox Code?",
-                "This removes Blox Code, its shortcuts and the Roblox files it downloaded.", "Uninstall", "Cancel", danger: true))
+                Installer.UninstallWarning, "Uninstall", "Cancel", danger: true))
             return;
 
         Installer.Uninstall();

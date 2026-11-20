@@ -96,7 +96,7 @@ public partial class App : Application
 
             case LaunchMode.Uninstall:
                 if (launch.Quiet || MessageDialog.Ask(null, "Uninstall Blox Code?",
-                        "This removes Blox Code, its shortcuts and the Roblox files it downloaded.", "Uninstall", "Cancel", danger: true))
+                        Installer.UninstallWarning, "Uninstall", "Cancel", danger: true))
                 {
                     Installer.Uninstall();
                 }

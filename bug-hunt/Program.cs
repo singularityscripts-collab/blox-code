@@ -583,6 +583,233 @@ Check("F11", "lembrete de pausa: avisa a cada intervalo e recomeça depois de 10
     Expect(!off.Tick(true, t0.AddHours(10), out _), "desligado não devia avisar");
 });
 
+// ================= Rodada 2: as funções do launcher =================
+
+// A real running program at `exe` (a copy of ping, which stays open for a while), like a running Roblox or Blox Code.
+System.Diagnostics.Process RunCopyOfPing(string exe, int seconds)
+{
+    Directory.CreateDirectory(Path.GetDirectoryName(exe)!);
+    File.Copy(Path.Combine(Environment.SystemDirectory, "PING.EXE"), exe, overwrite: true);
+    var p = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(exe, $"-n {seconds} 127.0.0.1") { CreateNoWindow = true, UseShellExecute = false, RedirectStandardOutput = true })!;
+    Thread.Sleep(300);
+    return p;
+}
+
+// ---------- L1: the self-update can't replace BloxCode.exe while another Blox Code runs from it ----------
+Check("L1", "atualizar o Blox Code funciona com outro Blox Code aberto (o que fica vigiando o Roblox)", () =>
+{
+    string installed = Path.Combine(sandbox, "L1", "BloxCode.exe");
+    string update = Path.Combine(sandbox, "L1", "update", "BloxCode-9.9.9.exe");
+    using var running = RunCopyOfPing(installed, 20);   // the background watcher, started from the installed copy
+    try
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(update)!);
+        File.Copy(Path.Combine(Environment.SystemDirectory, "whoami.exe"), update, overwrite: true);
+        try { Paths.InstallExecutable(update, installed); }   // what Updater.ApplyUpgrade does (10 tries, 0.5 s apart)
+        catch (IOException ex) { throw new Exception("a cópia instalada não pôde ser trocada: " + ex.Message); }
+        Expect(new FileInfo(installed).Length == new FileInfo(update).Length, "o arquivo instalado não é o novo");
+        Expect(!running.HasExited, "o Blox Code que estava aberto foi derrubado");
+        Paths.DeleteOldExecutables(installed);   // still running: stays for now
+        Expect(Directory.GetFiles(Path.GetDirectoryName(installed)!, "*.old").Length == 1, "a cópia antiga em uso devia ficar até fechar");
+        running.Kill(); running.WaitForExit(3000);
+        Paths.DeleteOldExecutables(installed);   // a later start, after it closed
+        Expect(Directory.GetFiles(Path.GetDirectoryName(installed)!, "*.old").Length == 0, "a cópia antiga não foi apagada depois de fechar");
+    }
+    finally { try { running.Kill(); running.WaitForExit(3000); } catch { } }
+});
+
+// ---------- L2: "Free up space" half-deletes a Roblox version that is still running ----------
+string RunningOldVersion(string guid, out System.Diagnostics.Process player)
+{
+    string dir = Path.Combine(Paths.Versions, guid);
+    Directory.CreateDirectory(Path.Combine(dir, "content", "sounds"));
+    File.WriteAllText(Path.Combine(dir, "content", "sounds", "ouch.ogg"), "sound");
+    File.WriteAllText(Path.Combine(dir, "AppSettings.xml"), "<Settings/>");
+    player = RunCopyOfPing(Path.Combine(dir, "RobloxPlayerBeta.exe"), 20);
+    return dir;
+}
+Check("L2", "\"Free up space\" não apaga pela metade uma versão do Roblox que ainda está aberta", () =>
+{
+    Environment.SetEnvironmentVariable("BLOXCODE_ROBLOX_LOGS", Path.Combine(sandbox, "L2-roblox-logs"));
+    Store.State.VersionGuid = "version-1111111111111111";   // the current version; the open game is on the previous one
+    string old = RunningOldVersion("version-2222222222222222", out var player);
+    try
+    {
+        DiskCleanup.Run();
+        Expect(File.Exists(Path.Combine(old, "content", "sounds", "ouch.ogg")), "os arquivos do jogo aberto foram apagados (só o .exe em uso ficou)");
+        player.Kill(); player.WaitForExit(3000);
+        DiskCleanup.Run();   // the game closed: now it goes
+        Expect(!Directory.Exists(old), "a versão antiga ficou depois que o jogo fechou");
+    }
+    finally { try { player.Kill(); player.WaitForExit(3000); } catch { } player.Dispose(); }
+});
+Check("L2b", "instalar uma versão nova do Roblox não apaga pela metade a antiga que ainda está aberta", () =>
+{
+    string old = RunningOldVersion("version-3333333333333333", out var player);
+    try
+    {
+        // Settings → Delete old versions (on by default) runs right after a new version is installed.
+        var cleanup = typeof(Bootstrapper).GetMethod("CleanupOldVersions", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
+        cleanup.Invoke(null, new object?[] { new string?[] { "version-1111111111111111", null, null } });
+        Expect(File.Exists(Path.Combine(old, "content", "sounds", "ouch.ogg")), "os arquivos do jogo aberto foram apagados (só o .exe em uso ficou)");
+        player.Kill(); player.WaitForExit(3000);
+        cleanup.Invoke(null, new object?[] { new string?[] { "version-1111111111111111", null, null } });
+        Expect(!Directory.Exists(old), "a versão antiga ficou depois que o jogo fechou");
+    }
+    finally { try { player.Kill(); player.WaitForExit(3000); } catch { } player.Dispose(); }
+});
+
+// ---------- L3: the background watcher saves an old copy of State.json over newer changes ----------
+Check("L3", "fechar o Roblox não desfaz o que outro Blox Code salvou enquanto o jogo rodava", () =>
+{
+    Store.Load();
+    // The launch that opened Roblox started OBS ("close with Roblox") and keeps running in the background.
+    Store.State.IntegrationProcesses.Add(new StartedIntegration { Pid = 999_999, StartedAt = DateTime.UtcNow, Path = @"C:\OBS\obs64.exe" });
+    Store.SaveState();
+    // Meanwhile the settings window (another process) schedules a reinstall and hides the import banner.
+    var disk = JsonNode.Parse(File.ReadAllText(Paths.StateFile))!;
+    disk["ForceReinstall"] = true;
+    disk["ImportOffered"] = true;
+    File.WriteAllText(Paths.StateFile, disk.ToJsonString());
+    // Roblox closes: the watcher closes OBS.
+    Integrations.CloseAll();
+    var after = JsonNode.Parse(File.ReadAllText(Paths.StateFile))!;
+    Expect(after["ForceReinstall"]?.GetValue<bool>() == true, "\"Reinstall Roblox\" agendado foi perdido");
+    Expect(after["ImportOffered"]?.GetValue<bool>() == true, "o banner de importar volta a aparecer");
+    Expect(after["IntegrationProcesses"]!.AsArray().Count == 0, "a mudança deste processo (OBS fechado) não foi gravada");
+    Expect(Store.State.ForceReinstall, "o que o outro processo salvou não chegou à memória deste");
+    Store.State.ForceReinstall = false;
+    Store.SaveState();   // and this process can still undo it on purpose
+    Expect(JsonNode.Parse(File.ReadAllText(Paths.StateFile))!["ForceReinstall"]!.GetValue<bool>() == false, "não deu para desfazer de propósito");
+});
+
+// ---------- L4: two launches downloading the same Blox Code update at once ----------
+Check("L4", "dois links abertos juntos baixam a mesma atualização sem um deles falhar", () =>
+{
+    byte[] payload = new byte[3 << 20];
+    new Random(1).NextBytes(payload);
+    string sha = Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(payload));
+    var listener = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, 0);
+    listener.Start();
+    int port = ((System.Net.IPEndPoint)listener.LocalEndpoint).Port;
+    var serving = Task.Run(async () =>
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            var client = await listener.AcceptTcpClientAsync();
+            _ = Task.Run(async () =>
+            {
+                using (client)
+                {
+                    var s = client.GetStream();
+                    var buf = new byte[4096];
+                    await s.ReadAsync(buf);   // the request
+                    await s.WriteAsync(System.Text.Encoding.ASCII.GetBytes($"HTTP/1.1 200 OK\r\nContent-Length: {payload.Length}\r\nConnection: close\r\n\r\n"));
+                    for (int off = 0; off < payload.Length; off += 256 << 10)   // slow, like a real download
+                    {
+                        await s.WriteAsync(payload.AsMemory(off, Math.Min(256 << 10, payload.Length - off)));
+                        await Task.Delay(100);
+                    }
+                }
+            });
+        }
+    });
+    try
+    {
+        var info = new UpdateInfo(new Version(9, 9, 9), "v9.9.9", new[] { $"http://127.0.0.1:{port}/BloxCode.exe" }, payload.Length, sha, null);
+        using var http = new System.Net.Http.HttpClient();
+        var none = new Progress<(long, long)>();
+        var first = Updater.DownloadAsync(http, info, none, CancellationToken.None);
+        Thread.Sleep(200);
+        var second = Updater.DownloadAsync(http, info, none, CancellationToken.None);
+        string? error = null;
+        try { Task.WaitAll(first, second); }
+        catch (AggregateException ex) { error = ex.InnerExceptions[0].Message; }
+        Expect(error is null, "um deles falhou: " + error);
+    }
+    finally { listener.Stop(); }
+});
+
+// ---------- L5: a game called like a Windows device name ----------
+Check("L5", "atalho de um jogo chamado \"CON\" (nome reservado do Windows)", () =>
+{
+    string folder = Path.Combine(sandbox, "L5");
+    Directory.CreateDirectory(folder);
+    using var http = new System.Net.Http.HttpClient();
+    string lnk = GameShortcuts.CreateAsync(http, 42, "CON", null, folder).GetAwaiter().GetResult();
+    Expect(File.Exists(lnk) && Path.GetDirectoryName(Path.GetFullPath(lnk)) == Path.GetFullPath(folder), "atalho não criado: " + lnk);
+});
+
+// ---------- L6: a second launch gave up waiting after 3 minutes and ran alongside the first ----------
+Check("L6", "um segundo launch espera o primeiro terminar, sem limite de tempo, e o Cancel funciona", () =>
+{
+    string name = "BloxCode-Launch-bughunt-" + Guid.NewGuid().ToString("N")[..8];
+    using var first = new LaunchGate(name, CancellationToken.None);
+    Expect(first.Entered.Wait(2000) && first.Entered.Result, "o primeiro não entrou");
+    using var second = new LaunchGate(name, CancellationToken.None);
+    Expect(!second.Entered.Wait(1500), "o segundo entrou com o primeiro ainda instalando");
+    first.Dispose();
+    Expect(second.Entered.Wait(2000) && second.Entered.Result, "o segundo não entrou depois que o primeiro terminou");
+
+    using var cancel = new CancellationTokenSource();
+    using var third = new LaunchGate(name, cancel.Token);   // second still holds it
+    cancel.Cancel();
+    Expect(third.Entered.Wait(2000) && !third.Entered.Result, "Cancel não parou a espera");
+    second.Dispose();
+
+    // A launch that crashed (its thread ended without letting go) doesn't block the next one forever.
+    var crashed = new Thread(() => new Mutex(false, name).WaitOne());
+    crashed.Start(); crashed.Join();
+    using var after = new LaunchGate(name, CancellationToken.None);
+    Expect(after.Entered.Wait(2000) && after.Entered.Result, "um launch que caiu travou os próximos");
+});
+
+// ---------- L7: a pinned version Roblox took down read as a network error ----------
+Check("L7", "versão fixada que o Roblox tirou do ar dá uma mensagem que fala da versão fixada", () =>
+{
+    var listener = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, 0);
+    listener.Start();
+    int port = ((System.Net.IPEndPoint)listener.LocalEndpoint).Port;
+    _ = Task.Run(async () =>
+    {
+        using var client = await listener.AcceptTcpClientAsync();
+        var s = client.GetStream();
+        await s.ReadAsync(new byte[4096]);
+        await s.WriteAsync(System.Text.Encoding.ASCII.GetBytes("HTTP/1.1 403 Forbidden\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"));
+    });
+    var baseUrl = typeof(Deployment).GetProperty("BaseUrl")!;
+    string before = (string)baseUrl.GetValue(null)!;
+    baseUrl.SetValue(null, $"http://127.0.0.1:{port}");   // a fake mirror on this PC
+    const string pinned = "version-0000000000000001";
+    Store.Settings.PinnedVersion = pinned;
+    try
+    {
+        using var http = new System.Net.Http.HttpClient();
+        var boot = new Bootstrapper(http, LaunchSettings.ForPlayer(), new Progress<BootstrapProgress>());
+        var install = (Task)typeof(Bootstrapper).GetMethod("InstallVersion", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
+            .Invoke(boot, new object[] { pinned, Path.Combine(Paths.Versions, pinned), CancellationToken.None })!;
+        Exception? error = null;
+        try { install.GetAwaiter().GetResult(); } catch (Exception ex) { error = ex; }
+        Expect(error is PinnedVersionGoneException && error.Message.Contains("pinned"), "a mensagem foi: " + error?.Message);
+    }
+    finally { baseUrl.SetValue(null, before); Store.Settings.PinnedVersion = null; listener.Stop(); }
+});
+
+// ---------- L8: installing Studio threw away the next Roblox version fetched in the background ----------
+Check("L8", "limpar o cache de downloads mantém o que acabou de ser baixado em segundo plano", () =>
+{
+    Directory.CreateDirectory(Paths.Downloads);
+    string fresh = Path.Combine(Paths.Downloads, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+    string stale = Path.Combine(Paths.Downloads, "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
+    File.WriteAllText(fresh, "next version, prefetched while playing");
+    File.WriteAllText(stale, "an old version nobody uses");
+    File.SetLastWriteTimeUtc(stale, DateTime.UtcNow.AddDays(-10));
+    typeof(Bootstrapper).GetMethod("CleanupDownloadCache", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!
+        .Invoke(null, new object[] { new[] { "cccccccccccccccccccccccccccccccc" } });
+    Expect(File.Exists(fresh), "o pacote baixado em segundo plano foi apagado");
+    Expect(!File.Exists(stale), "o pacote velho ficou");
+});
+
 Console.WriteLine($"\n{bugs} bug(s) reproduzido(s), {ok} verificação(ões) ok. Sandbox: {sandbox}");
 try { Directory.Delete(sandbox, recursive: true); } catch { }
 return bugs;

@@ -14,6 +14,10 @@ public sealed class ClientVersion
 public sealed class InvalidChannelException(string channel, HttpStatusCode? status)
     : Exception($"Channel '{channel}' is not available ({status?.ToString() ?? "no response"})");
 
+/// <summary>The version pinned in Settings is no longer on Roblox's servers.</summary>
+public sealed class PinnedVersionGoneException(string version, Exception inner)
+    : Exception($"Roblox no longer offers {version}, the version pinned in Settings → Roblox version. Clear that box to get the latest Roblox.", inner);
+
 /// <summary>
 /// Talks to Roblox's deployment infrastructure. Endpoints and the mirror probe were
 /// recovered from Bloxstrap.RobloxInterfaces.Deployment (see docs/REVERSE_ENGINEERING.md).

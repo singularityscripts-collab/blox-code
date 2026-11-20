@@ -1,3 +1,146 @@
+# Caça-bugs do Blox Code — rodada 2: as funções do launcher (1.13.1, commit ced0d7d)
+
+Feita em 19/11/2026, só no projeto local, com arquivos de teste numa pasta temporária. Nenhum
+servidor de terceiros foi atacado; o teste de download usa um servidor falso no próprio PC
+(127.0.0.1). Nada foi corrigido ainda.
+
+Áreas atacadas: instalação e atualização do Roblox (mirrors, pacotes, extração, cache, versões
+antigas), mods e fonte, Fast Flags e gráficos por jogo, multi-instância, links e a barra da Home,
+atalhos de jogo, "Free up space", "Reinstall Roblox", desinstalar, auto-update do próprio Blox Code,
+programas que abrem com o Roblox e o estado salvo (`State.json`) entre processos.
+
+Testes em `bug-hunt/Program.cs` (seção "Rodada 2"). `dotnet run --project bug-hunt`: 5 bugs
+reproduzidos, 33 verificações ok. Cada bug falhou nas duas execuções.
+
+**Status: os 5 bugs e as 4 suspeitas foram corrigidos (ainda sem commit).** `dotnet run --project
+bug-hunt`: 41 de 41 verificações passam (`L6`, `L7` e `L8` são testes novos, um para cada
+suspeita corrigida que dava para testar). Builds do Windows e do Linux: 0 avisos. Autoteste
+do Linux: todas as verificações passam. O app real abre, mostra Settings e fecha sem erro no log.
+
+| # | Correção |
+| --- | --- |
+| L1 | `Paths.InstallExecutable`: se o `BloxCode.exe` estiver em uso, ele é renomeado para `BloxCode.exe.<id>.old` (o Windows permite) e o novo é copiado. As cópias antigas são apagadas numa próxima abertura, quando ninguém mais roda delas (`Paths.DeleteOldExecutables`). A instalação a partir da versão portátil usa o mesmo caminho. |
+| L2, L2b | `Bootstrapper.IsVersionInUse` confere o Roblox e o Studio rodando da pasta, inclusive pelos atalhos `Instances\N`. "Free up space" e a limpeza de versões antigas pulam a versão inteira enquanto ela está em uso e a apagam depois que o jogo fecha. |
+| L3 | `Store.SaveState` grava só os campos que este processo mudou desde a última leitura ou gravação, por cima do que está no disco, e traz para a memória o que os outros processos salvaram. A gravação passa por um mutex nomeado (`BloxCode-State`). |
+| L4 | Cada download da atualização tem um nome próprio (`BloxCode-X-<id>.exe`); as sobras são apagadas numa próxima abertura. |
+| Suspeita: dois launches juntos | `LaunchGate`: mutex nomeado num thread próprio. O segundo launch espera sem limite de tempo, o Cancel interrompe a espera, e um launch que caiu libera a vez (mutex abandonado). Antes ele desistia depois de 3 minutos e rodava junto com o primeiro. |
+| Suspeita: versão fixada fora do ar | Um 403/404 no manifesto da versão fixada vira `PinnedVersionGoneException`, com uma mensagem que fala da versão fixada e de onde limpá-la. A consulta à página de status do Roblox é pulada nesse caso. |
+| Suspeita: desinstalar | O aviso (no Settings e no `-uninstall`) diz que configurações, Fast Flags e mods também vão embora, e mostra a pasta dos mods. |
+| Suspeita: Studio apagava o Prefetch | A limpeza do cache de downloads mantém os pacotes baixados nos últimos 2 dias. |
+
+## Bugs confirmados (do mais grave para o menos grave)
+
+### L1 — O Blox Code não se atualiza enquanto o Roblox está aberto, e baixa a atualização toda vez
+
+- **Gravidade:** Alta
+- **Onde:** `shared/Updater.cs` (`ApplyUpgrade`), `shared/Paths.cs:82` (`InstallExecutable`),
+  `windows/App.xaml.cs` (`FindUpdateAsync`)
+- **Como reproduzir:**
+  1. Abra um jogo pelo Blox Code. O processo que abriu o Roblox continua aberto em segundo plano
+     (Discord, histórico) até o Roblox fechar. Ele roda a partir de `BloxCode.exe` instalado.
+  2. Com uma versão nova do Blox Code publicada, clique num link do Roblox ou abra o Blox Code.
+- **Esperado:** a atualização é instalada, ou fica para quando o Roblox fechar, sem erro.
+- **Aconteceu:** a versão nova (~60 MB) é baixada, a troca do `BloxCode.exe` falha porque o arquivo
+  está em uso ("being used by another process") e aparece "Update didn't finish". Isso se repete
+  a cada link ou abertura enquanto o jogo roda: são 60 MB baixados de novo a cada vez, e uma janela
+  de erro antes de cada jogo.
+- **Causa provável:** o Windows não deixa sobrescrever um `.exe` em execução. `ApplyUpgrade` só
+  espera 5 s (10 tentativas), que é o tempo de o processo anterior fechar, mas o processo em segundo
+  plano fica aberto por horas.
+- **Sugestão:** o Windows deixa *renomear* um `.exe` em execução. Renomear o instalado para
+  `BloxCode.exe.old`, copiar o novo e apagar o `.old` na próxima abertura. Outra opção é não
+  procurar atualização enquanto houver um Blox Code em segundo plano.
+- **Teste:** `L1` (um programa de verdade rodando a partir do caminho instalado).
+
+### L2 / L2b — Apagar uma versão antiga do Roblox que ainda está aberta deixa a pasta pela metade
+
+- **Gravidade:** Média
+- **Onde:** `windows/Core/DiskCleanup.cs:22` (Settings → Free up space) e
+  `windows/Core/Bootstrapper.cs:639` (`CleanupOldVersions`, ligado por padrão)
+- **Como reproduzir (L2):** jogue numa versão do Roblox; enquanto o jogo roda, o Roblox lança uma
+  versão nova e outro launch instala essa versão; abra Settings → Free up space.
+- **Como reproduzir (L2b):** com multi-instância ligada e um jogo aberto, o Roblox lança uma versão
+  nova e você abre outra janela: a instalação da versão nova apaga a pasta da antiga.
+- **Esperado:** o próprio código diz "Anything in use is skipped, never forced": uma versão em uso
+  fica intacta.
+- **Aconteceu:** `Directory.Delete(recursive)` apaga tudo o que não está preso (sons, texturas,
+  fontes, `AppSettings.xml`) e só para no `.exe` em uso. O jogo aberto perde os arquivos que ainda
+  vai carregar, e a pasta fica quebrada no disco. No "Free up space", o espaço liberado também não
+  é contado.
+- **Causa provável:** nada confere se um `RobloxPlayerBeta.exe` está rodando daquela pasta antes de
+  apagar. O `Bootstrapper` já tem `IsRunningFrom` para isso, mas só usa na reinstalação.
+- **Sugestão:** pular a pasta quando `IsRunningFrom(dir, "RobloxPlayerBeta.exe")` for verdadeiro,
+  incluindo as janelas abertas pelos atalhos `Instances\N`, e tentar de novo na próxima limpeza.
+- **Testes:** `L2`, `L2b`.
+
+### L3 — Fechar o Roblox desfaz o que outro Blox Code salvou enquanto o jogo rodava
+
+- **Gravidade:** Média
+- **Onde:** `windows/Core/Integrations.cs:59` (`CloseAll` → `Store.SaveState`), `shared/Settings.cs:169`
+- **Como reproduzir:**
+  1. Em Settings → Open with Roblox, configure um programa (ex.: OBS) com "fecha junto".
+  2. Abra um jogo. O processo em segundo plano guarda uma cópia do `State.json` na memória.
+  3. Com o jogo aberto, abra as configurações e clique em "Reinstall Roblox" (agendado) ou dispense
+     o banner de importar.
+  4. Feche o Roblox.
+- **Esperado:** o que foi salvo no passo 3 continua salvo.
+- **Aconteceu:** ao fechar o OBS, o processo em segundo plano grava a cópia antiga inteira do
+  `State.json` por cima. A reinstalação agendada some e o banner volta. Pelo mesmo caminho podem
+  voltar a versão do Roblox e a lista de mods aplicados, o que força uma reinstalação desnecessária.
+- **Causa provável:** `Store.SaveState` grava o objeto inteiro que está na memória, que foi lido
+  quando aquele processo abriu.
+- **Sugestão:** em `CloseAll` (e em quem grava estado num processo que vive muito), reler o
+  `State.json` do disco, mudar só o campo necessário e gravar, de preferência com um lock entre
+  processos (um mutex nomeado).
+- **Teste:** `L3`.
+
+### L4 — Dois links abertos juntos: um deles falha ao baixar a atualização
+
+- **Gravidade:** Baixa
+- **Onde:** `shared/Updater.cs:206` (`DownloadAsync`, sempre o mesmo arquivo `BloxCode-X.exe`)
+- **Como reproduzir:** com uma atualização publicada, clique em dois links do Roblox (ou em dois
+  atalhos de jogo) em poucos segundos.
+- **Esperado:** os dois seguem; o segundo espera ou reaproveita o download do primeiro.
+- **Aconteceu:** o segundo falha na hora com "being used by another process" e mostra "Couldn't
+  update Blox Code".
+- **Sugestão:** baixar para um arquivo temporário único e renomear no fim, ou segurar o mutex
+  `BloxCode-AutoUpdater` durante o download.
+- **Teste:** `L4` (servidor falso local, download lento de 3 MB).
+
+## Suspeitas encontradas lendo o código (não reproduzidas)
+
+- **Dois launches instalando o Roblox ao mesmo tempo** (`BootstrapperWindow.RunAsync`): o segundo
+  launch espera o primeiro por no máximo 3 minutos e depois segue sem a trava. Numa primeira
+  instalação lenta (mais de 3 min), se a pessoa clicar em Play de novo, o segundo pode apagar a
+  pasta que o primeiro ainda está extraindo (`Directory.Delete(versionDir)`). Precisaria de uma
+  conexão lenta de verdade para reproduzir.
+- **Versão fixada que o Roblox tirou do ar** (Settings → Pin): o launch falha com "Network error:
+  … 403 (Forbidden)", sem dizer que o problema é a versão fixada. Até a pessoa limpar o campo, o
+  Roblox não abre. Não testei para não fazer pedidos de propósito ao CDN do Roblox.
+- **Desinstalar apaga mods e configurações:** `rmdir /S /Q` em `%LocalAppData%\BloxCode` leva
+  junto a pasta `Modifications` (sons, cursor e fonte que a pessoa escolheu) e o `Settings.json`.
+  O aviso fala só em "Blox Code, os atalhos e os arquivos do Roblox".
+- **Abrir o Studio apaga o que foi baixado em segundo plano:** a instalação do Studio limpa o cache
+  de downloads e mantém só os pacotes já instalados, então os pacotes da versão nova do Roblox
+  baixados durante o jogo (Prefetch) são apagados.
+
+## O que testei e não quebrou
+
+- Atalho de jogo com nome reservado do Windows ("CON"): criado normalmente (`L5`).
+- Extração de pacotes: um caminho `../` dentro do zip é recusado (`ExtractPackage`, lendo o código).
+- Nome de versão e canal: só `version-` com 16 hex, e canal só `[a-z0-9_-]` (rodada 1, B9).
+- Links e barra da Home: links de jogo, servidor privado, share e `roblox://` (rodada 1).
+- Fast Flags: importação, perfis, valores nulos, JSON malformado (rodada 1, B8/B10/X4).
+- Download de pacotes do Roblox: tentativa de novo, detector de travamento (30 s sem dados) e
+  checksum MD5, conferidos lendo o código.
+- Auto-update: manifesto sem assinatura válida é recusado (X1); tamanho e SHA-256 conferidos.
+- Mods: remover um mod restaura o original pelo backup; mod preso pelo Roblox é tentado de novo no
+  próximo launch, sem derrubar o launch (lendo o código).
+- Programas que abrem com o Roblox: abre uma vez só e fecha só o que o Blox Code abriu (F5).
+- Menu e links (corrigidos na 1.13.1): B11 e B12 continuam passando.
+
+---
+
 # Caça-bugs do Blox Code — 1.12.0 (commit ecba0ce)
 
 Feito em 11/11/2026, só no projeto local, com dados de teste numa pasta temporária.

@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
 namespace BloxCode.Core;
@@ -151,10 +152,17 @@ public static class Store
         Settings.Channel = string.IsNullOrWhiteSpace(Settings.Channel) ? Settings.DefaultChannel : Settings.Channel.Trim();
         State.PackageHashes ??= new();
         State.ModManifest ??= new();
+        lock (Sync)
+            _stateBase = Snapshot(State);
 
         if (FastFlagPresets.UpgradeBlurryPresets())
             SaveSettings();
     }
+
+    /// <summary>The state as this process last read or wrote it: what it changed since is what it saves.</summary>
+    private static JsonObject? _stateBase;
+
+    private static JsonObject Snapshot(State state) => JsonSerializer.SerializeToNode(state, Options)!.AsObject();
 
     /// <summary>A flag set without "Name": null entries (a hand-edited file); the code after this assumes every value is text.</summary>
     private static Dictionary<string, string> WithoutNulls(Dictionary<string, string>? flags) =>
@@ -166,7 +174,74 @@ public static class Store
             SettingsSaved?.Invoke();
     }
 
-    public static void SaveState() => Write(Paths.StateFile, State);
+    /// <summary>
+    /// Saves the state without undoing other Blox Code processes. The one watching Roblox lives for
+    /// hours while the settings window or a new launch save their own changes (a reinstall, a new
+    /// Roblox version, the import banner); writing this process's whole, older copy would put all of
+    /// that back. So only what this process changed since it last read or wrote the file goes over
+    /// what is on disk, and what the others saved comes back into memory.
+    /// </summary>
+    public static void SaveState()
+    {
+        lock (Sync)
+        {
+            using var _ = CrossProcessLock("BloxCode-State");
+            var mine = Snapshot(State);
+            var merged = mine;
+            if (_stateBase is { } baseline && ReadObject(Paths.StateFile) is { } disk)
+            {
+                merged = disk;
+                foreach (var (name, value) in mine)
+                    if (!disk.ContainsKey(name) || !JsonNode.DeepEquals(value, baseline[name]))
+                        merged[name] = value?.DeepClone();
+            }
+            if (!Write(Paths.StateFile, merged.ToJsonString(Options)))
+                return;
+            _stateBase = (JsonObject)merged.DeepClone();
+            if (!ReferenceEquals(merged, mine) && merged.Deserialize<State>(Options) is { } fresh)
+                foreach (var property in typeof(State).GetProperties().Where(p => p.CanRead && p.CanWrite))
+                    property.SetValue(State, property.GetValue(fresh));
+        }
+    }
+
+    private static JsonObject? ReadObject(string path)
+    {
+        try
+        {
+            return File.Exists(path) ? JsonNode.Parse(File.ReadAllText(path)) as JsonObject : null;
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
+        {
+            return null;
+        }
+    }
+
+    /// <summary>A named lock shared by every Blox Code process; best effort, never blocks for long.</summary>
+    private static IDisposable? CrossProcessLock(string name)
+    {
+        try
+        {
+            var mutex = new Mutex(false, name);
+            bool owned;
+            try { owned = mutex.WaitOne(TimeSpan.FromSeconds(2)); }
+            catch (AbandonedMutexException) { owned = true; }
+            return new Releaser(mutex, owned);
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or WaitHandleCannotBeOpenedException or PlatformNotSupportedException)
+        {
+            return null;
+        }
+    }
+
+    private sealed class Releaser(Mutex mutex, bool owned) : IDisposable
+    {
+        public void Dispose()
+        {
+            if (owned)
+                mutex.ReleaseMutex();
+            mutex.Dispose();
+        }
+    }
 
     private static T? Read<T>(string path) where T : class
     {
@@ -185,7 +260,9 @@ public static class Store
         }
     }
 
-    private static bool Write<T>(string path, T value)
+    private static bool Write<T>(string path, T value) => Write(path, JsonSerializer.Serialize(value, Options));
+
+    private static bool Write(string path, string json)
     {
         lock (Sync)
         {
@@ -194,7 +271,7 @@ public static class Store
                 Directory.CreateDirectory(Path.GetDirectoryName(path)!);
                 // Write a sibling file and swap it in, so a crash mid-write can't leave half a JSON file.
                 string temp = path + ".tmp";
-                File.WriteAllText(temp, JsonSerializer.Serialize(value, Options));
+                File.WriteAllText(temp, json);
                 File.Move(temp, path, overwrite: true);
                 return true;
             }

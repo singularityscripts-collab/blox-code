@@ -84,7 +84,18 @@ public static class Paths
         Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
         if (OperatingSystem.IsWindows())
         {
-            File.Copy(source, destination, overwrite: true);
+            try
+            {
+                File.Copy(source, destination, overwrite: true);
+            }
+            catch (IOException) when (File.Exists(destination))
+            {
+                // Another Blox Code still runs from it (the one watching Roblox, or an open settings
+                // window): Windows won't let a running .exe be overwritten, but it can be renamed. The
+                // old copy keeps running from its new name and is deleted on a later start.
+                File.Move(destination, destination + "." + Guid.NewGuid().ToString("N")[..8] + OldSuffix);
+                File.Copy(source, destination);
+            }
             return;
         }
 
@@ -92,6 +103,20 @@ public static class Paths
         File.Copy(source, temp, overwrite: true);
         MakeExecutable(temp);
         File.Move(temp, destination, overwrite: true);
+    }
+
+    private const string OldSuffix = ".old";
+
+    /// <summary>Deletes the copies <see cref="InstallExecutable"/> moved aside; one still running stays until next time.</summary>
+    public static void DeleteOldExecutables(string destination)
+    {
+        string? dir = Path.GetDirectoryName(destination);
+        if (dir is null || !Directory.Exists(dir))
+            return;
+        foreach (string old in Directory.EnumerateFiles(dir, Path.GetFileName(destination) + ".*" + OldSuffix))
+        {
+            try { File.Delete(old); } catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
+        }
     }
 
     public static void MakeExecutable(string path)

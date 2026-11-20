@@ -52,7 +52,9 @@ public static class DiskCleanup
         if (Store.State.StudioVersionGuid is { } studio) keep.Add(studio);
 
         if (Directory.Exists(Paths.Versions))
-            foreach (var dir in new DirectoryInfo(Paths.Versions).EnumerateDirectories().Where(d => !keep.Contains(d.Name)))
+            // A version a Roblox window still runs from is skipped whole: deleting what isn't locked would
+            // pull sounds and textures out from under the open game.
+            foreach (var dir in new DirectoryInfo(Paths.Versions).EnumerateDirectories().Where(d => !keep.Contains(d.Name) && !Bootstrapper.IsVersionInUse(d.FullName)))
                 yield return new Target(dir.FullName, SizeOf(dir));
 
         if (Directory.Exists(Paths.Downloads))

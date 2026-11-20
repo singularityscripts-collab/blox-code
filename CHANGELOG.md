@@ -3,6 +3,28 @@
 Todas as versões do Blox Code, da mais nova para a mais antiga. Quem tem o Blox Code instalado
 recebe cada versão automaticamente na próxima vez que abrir.
 
+## 1.13.2 — Launcher mais robusto
+
+### Correções (Windows)
+
+- **O Blox Code se atualiza mesmo com o Roblox aberto.** Antes, com um jogo rodando, cada link
+  baixava a versão nova de novo (uns 60 MB) e mostrava "Update didn't finish", porque o Blox Code
+  em segundo plano prendia o arquivo.
+- **Versões do Roblox em uso não são mais apagadas pela metade.** "Free up space" e a limpeza de
+  versões antigas tiravam sons e texturas de um jogo ainda aberto (com multi-instância, por
+  exemplo). Agora a versão fica inteira até o jogo fechar.
+- **Fechar o Roblox não desfaz mais o que foi salvo durante o jogo.** Com um programa configurado
+  para abrir junto com o Roblox, fechar o jogo podia cancelar um "Reinstall Roblox" agendado ou
+  trazer de volta o banner de importar.
+- **Dois links abertos ao mesmo tempo** com uma atualização pendente não dão mais erro em um deles.
+- **Dois launches ao mesmo tempo:** o segundo espera o primeiro terminar, por mais lenta que seja a
+  primeira instalação, e o Cancel interrompe a espera. Antes, depois de 3 minutos ele seguia junto
+  e podia estragar a instalação em andamento.
+- **Versão fixada que o Roblox tirou do ar:** o erro agora diz que o problema é a versão fixada e
+  onde limpá-la, em vez de "Network error 403".
+- **Abrir o Studio** não apaga mais a versão nova do Roblox baixada em segundo plano durante o jogo.
+- **Desinstalar** avisa que as configurações, as Fast Flags e os mods também são apagados.
+
 ## 1.13.1 — Menu e links do Roblox
 
 ### Correções (Windows)

@@ -182,7 +182,16 @@ public sealed partial class Bootstrapper(HttpClient http, LaunchSettings launch,
         using (var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct))
         {
             timeout.CancelAfter(TimeSpan.FromSeconds(30));
-            manifestText = await http.GetStringAsync(Deployment.GetLocation($"/{versionGuid}-rbxPkgManifest.txt"), timeout.Token);
+            try
+            {
+                manifestText = await http.GetStringAsync(Deployment.GetLocation($"/{versionGuid}-rbxPkgManifest.txt"), timeout.Token);
+            }
+            catch (HttpRequestException ex) when (ex.StatusCode is System.Net.HttpStatusCode.Forbidden or System.Net.HttpStatusCode.NotFound
+                                                  && !Studio && Store.Settings.PinnedVersion == versionGuid)
+            {
+                // Otherwise it reads as a network error, and Roblox won't start until the pin is cleared.
+                throw new PinnedVersionGoneException(versionGuid, ex);
+            }
         }
         var packages = PackageManifest.Parse(manifestText)
             .Where(p => DirectoryMap.ContainsKey(p.Name))
@@ -195,7 +204,7 @@ public sealed partial class Bootstrapper(HttpClient http, LaunchSettings launch,
         if (Directory.Exists(versionDir))
         {
             // Wiping a folder Roblox is running from fails halfway and leaves a broken install.
-            if (IsRunningFrom(versionDir, Executable))
+            if (IsVersionInUse(versionDir))
                 throw new IOException($"{AppName} is still open from this version. Close it and try again.");
             Directory.Delete(versionDir, recursive: true);
         }
@@ -614,16 +623,35 @@ public sealed partial class Bootstrapper(HttpClient http, LaunchSettings launch,
             Integrations.StartAll();
     }
 
+    /// <summary>
+    /// Roblox (or Studio) is running from this version folder, directly or through one of the
+    /// multi-instance junctions: its files must not be deleted or replaced.
+    /// </summary>
+    public static bool IsVersionInUse(string versionDir) =>
+        IsRunningFrom(versionDir, PlayerExecutable) || IsRunningFrom(versionDir, StudioExecutable);
+
     private static bool IsRunningFrom(string versionDir, string executable)
     {
-        string dir = Path.TrimEndingDirectorySeparator(Path.GetFullPath(versionDir)) + Path.DirectorySeparatorChar;
+        static string Folder(string path) => Path.TrimEndingDirectorySeparator(Path.GetFullPath(path)) + Path.DirectorySeparatorChar;
+        string target = Folder(versionDir);
+        var dirs = new List<string> { target };
+        // An extra window runs from Instances\N, a junction to the version folder: its path doesn't say which version.
+        try
+        {
+            if (Directory.Exists(MultiInstance.InstancesFolder))
+                foreach (var junction in new DirectoryInfo(MultiInstance.InstancesFolder).EnumerateDirectories())
+                    if (junction.LinkTarget is { } link && string.Equals(Folder(link), target, StringComparison.OrdinalIgnoreCase))
+                        dirs.Add(Folder(junction.FullName));
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
+
         foreach (var process in Process.GetProcessesByName(Path.GetFileNameWithoutExtension(executable)))
         {
             using (process)
             {
                 try
                 {
-                    if (process.MainModule?.FileName?.StartsWith(dir, StringComparison.OrdinalIgnoreCase) == true)
+                    if (process.MainModule?.FileName is { } file && dirs.Any(d => file.StartsWith(d, StringComparison.OrdinalIgnoreCase)))
                         return true;
                 }
                 catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
@@ -642,6 +670,12 @@ public sealed partial class Bootstrapper(HttpClient http, LaunchSettings launch,
         {
             if (keep.Any(k => k is not null && Path.GetFileName(dir).Equals(k, StringComparison.OrdinalIgnoreCase)))
                 continue;
+            // A window still open on the old version (multi-instance) keeps it until it closes.
+            if (IsVersionInUse(dir))
+            {
+                Logger.Info("Bootstrapper::CleanupOldVersions", $"Keeping {dir} for now: Roblox is still running from it");
+                continue;
+            }
             try
             {
                 Directory.Delete(dir, recursive: true);
@@ -654,13 +688,19 @@ public sealed partial class Bootstrapper(HttpClient http, LaunchSettings launch,
         }
     }
 
+    /// <summary>
+    /// Drops cached packages no install uses. Fresh ones stay: they are the next Roblox version,
+    /// fetched in the background while a game ran (Prefetch), which installing Studio must not throw away.
+    /// </summary>
     private static void CleanupDownloadCache(IEnumerable<string> keepSignatures)
     {
         var wanted = keepSignatures.ToHashSet(StringComparer.OrdinalIgnoreCase);
         foreach (string file in Directory.EnumerateFiles(Paths.Downloads))
-            if (!wanted.Contains(Path.GetFileName(file)))
+            if (!wanted.Contains(Path.GetFileName(file)) && DateTime.UtcNow - File.GetLastWriteTimeUtc(file) > FreshDownload)
                 TryDelete(file);
     }
+
+    private static readonly TimeSpan FreshDownload = TimeSpan.FromDays(2);
 
     private static string Md5Of(string path)
     {

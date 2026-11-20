@@ -88,7 +88,7 @@ public static class Installer
         Paths.EnsureCreated();
 
         if (!Paths.IsRunningInstalled)
-            File.Copy(Paths.Process, Paths.Application, overwrite: true);
+            Paths.InstallExecutable(Paths.Process, Paths.Application);
 
         RegisterProtocols();
 
@@ -232,6 +232,11 @@ public static class Installer
         using (var command = key.CreateSubKey(@"shell\open\command"))
             command.SetValue("", $"\"{Paths.Application}\" -player \"%1\"");
     }
+
+    /// <summary>What uninstalling takes with it: the whole BloxCode folder, so the mods and settings too.</summary>
+    public static string UninstallWarning =>
+        "This removes Blox Code, its shortcuts and the Roblox files it downloaded, along with your settings, Fast Flags and mods "
+        + $"(the files in {Paths.Modifications}). Copy anything you want to keep first.";
 
     public static void Uninstall()
     {
